@@ -1,4 +1,4 @@
-//pub mod menu;
+pub mod menu;
 
 // Default values used on multiple elements.
 pub static DEFAULT_FONT_SIZE: u16 = 14;

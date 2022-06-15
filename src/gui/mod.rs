@@ -1,4 +1,4 @@
-//mod element;
+mod element;
 mod style;
 
 use crate::cli::Opts;
@@ -17,15 +17,26 @@ use iced::{
 use image::ImageFormat;
 
 use std::sync::RwLock;
+use std::collections::HashMap;
 
 pub struct Ajour {
+    state: HashMap<Mode, State>,
+    error: Option<anyhow::Error>,
+    mode: Mode,
+    config: Config,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
 
 impl Default for Ajour {
     fn default() -> Self {
+        let mut state = HashMap::new();
+        state.insert(Mode::Catalog, State::Loading);
         Self {
+            state,
+            error: None,
+            mode: Mode::Catalog,
+            config: Config::default(),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
@@ -103,25 +114,16 @@ impl Application for Ajour {
             .unwrap_or(&&("Dark".to_string(), Theme::dark()))
             .1
             .palette;
-        
-        let mut content = Column::new();
 
-        /*let menu_container = element::menu::data_container(
+        let menu_container = element::menu::data_container(
             color_palette,
             &self.mode,
             &self.state,
             &self.error,
             &self.config,
-            updatable_addons,
-            updatable_wagos,
-            &mut self.settings_btn_state,
-            &mut self.about_btn_state,
-            &mut self.catalog_mode_btn_state,
-            &mut self.install_mode_btn_state,
-            &mut self.self_update_state,
-            &mut self.flavor_picklist_state,
-            self.weak_auras_is_installed,
-        );*/
+        );
+
+        let mut content = Column::new().push(menu_container);
 
         /*if let Some(c) = container {
             content = content.push(c);
@@ -188,6 +190,76 @@ pub fn run(opts: Opts, config: Config) {
 
     // Runs the GUI.
     Ajour::run(settings).expect("running Ajour gui");
+}
+
+#[derive(Debug)]
+pub enum State {
+    Ready,
+    Loading,
+    Error(anyhow::Error),
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State::Ready
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum SelfUpdateStatus {
+    InProgress,
+    Failed,
+}
+
+impl std::fmt::Display for SelfUpdateStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            SelfUpdateStatus::InProgress => localized_string("updating"),
+            SelfUpdateStatus::Failed => localized_string("failed"),
+        };
+        write!(f, "{}", s)
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct SelfUpdateState {
+    status: Option<SelfUpdateStatus>,
+    btn_state: button::State,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Mode {
+    Catalog,
+    Install,
+    Settings,
+    About,
+}
+
+#[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
+pub enum Interaction {
+    //Expand(ExpandType),
+    Ignore(String),
+    SelectBackupDirectory(),
+    OpenLink(String),
+    Unignore(String),
+    Update(String),
+    ScaleUp,
+    ScaleDown,
+    Backup,
+    ToggleHideIgnoredAddons(bool),
+    CatalogQuery(String),
+    InstallScmQuery(String),
+    InstallScmUrl,
+    UpdateAjour,
+    AlternatingRowColorToggled(bool),
+    KeybindingsToggle(bool),
+    #[cfg(target_os = "windows")]
+    ToggleCloseToTray(bool),
+    #[cfg(target_os = "windows")]
+    ToggleAutoStart(bool),
+    #[cfg(target_os = "windows")]
+    ToggleStartClosedToTray(bool),
 }
 
 pub struct ThemeState {

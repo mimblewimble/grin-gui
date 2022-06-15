@@ -1,16 +1,15 @@
+use isahc::http::version;
+
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message, Mode, SelfUpdateState, State},
     crate::localization::localized_string,
     crate::VERSION,
-    ajour_core::{
-        config::{Config, Flavor},
-        theme::ColorPalette,
-    },
+    ajour_core::{config::Config, theme::ColorPalette},
     ajour_widgets::TableRow,
     iced::{
-        button, pick_list, Align, Button, Column, Container, Element, HorizontalAlignment, Length,
-        PickList, Row, Space, Text,
+        button, pick_list, Alignment, Button, Column, Container, Element, Length, PickList, Row,
+        Space, Text,
     },
     std::collections::HashMap,
     version_compare::{CompOp, VersionCompare},
@@ -23,17 +22,8 @@ pub fn data_container<'a>(
     state: &HashMap<Mode, State>,
     error: &Option<anyhow::Error>,
     config: &Config,
-    updatable_addons: usize,
-    updatable_wagos: usize,
-    settings_button_state: &'a mut button::State,
-    about_button_state: &'a mut button::State,
-    catalog_mode_btn_state: &'a mut button::State,
-    install_mode_btn_state: &'a mut button::State,
-    self_update_state: &'a mut SelfUpdateState,
-    flavor_picklist_state: &'a mut pick_list::State<Flavor>,
-    weak_auras_is_installed: bool,
 ) -> Container<'a, Message> {
-    let flavor = config.wow.flavor;
+    /*let flavor = config.wow.flavor;
     let mut valid_flavors = config
         .wow
         .directories
@@ -44,14 +34,26 @@ pub fn data_container<'a>(
     valid_flavors.sort();
 
     // State.
-    let myaddons_state = state.get(&Mode::MyAddons(flavor));
+    let myaddons_state = state.get(&Mode::MyAddons(flavor));*/
 
     // A row contain general settings.
     let mut settings_row = Row::new()
         .height(Length::Units(50))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
 
-    let mut needs_update = false;
+    let version_text = Text::new("Test Text Label")
+    .size(DEFAULT_FONT_SIZE)
+    .horizontal_alignment(iced::alignment::Horizontal::Right);
+
+    let version_container = Container::new(version_text)
+        .center_y()
+        .padding(5)
+        .style(style::NormalForegroundContainer(color_palette));
+
+    settings_row = settings_row
+        .push(version_container);
+ 
+    /*let mut needs_update = false;
 
     let mut my_addons_table_row = {
         let title_container = Container::new(
@@ -374,18 +376,19 @@ pub fn data_container<'a>(
 
     segmented_mode_control_row =
         segmented_mode_control_row.push(settings_mode_button.map(Message::Interaction));
+      */
 
-    let segmented_mode_control_container = Container::new(segmented_mode_control_row)
+    /*let segmented_mode_control_container = Container::new(segmented_mode_control_row)
         .padding(2)
-        .style(style::SegmentedContainer(color_palette));
+        .style(style::SegmentedContainer(color_palette));*/
 
     settings_row = settings_row
-        .push(segmented_mode_control_container)
+        //.push(segmented_mode_control_container)
         .push(Space::new(
             Length::Units(DEFAULT_PADDING + 5),
             Length::Units(0),
         ))
-        .align_items(Align::Center);
+        .align_items(Alignment::Center);
 
     // Add space above settings_row.
     let settings_column = Column::new().push(settings_row);
