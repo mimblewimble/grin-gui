@@ -1,5 +1,5 @@
 use ajour_core::theme::ColorPalette;
-use ajour_widgets::table_row;
+//use ajour_widgets::table_row;
 use iced::{
     button, checkbox, container, pick_list, scrollable, slider, text_input, Background, Color,
 };
@@ -505,7 +505,7 @@ impl container::StyleSheet for Row {
     }
 }
 
-pub struct TableRow(pub ColorPalette);
+/*pub struct TableRow(pub ColorPalette);
 impl table_row::StyleSheet for TableRow {
     fn style(&self) -> table_row::Style {
         table_row::Style {
@@ -597,7 +597,7 @@ impl table_row::StyleSheet for TableRowAlternate {
             ..style
         }
     }
-}
+}*/
 
 pub struct ForegroundScrollable(pub ColorPalette);
 impl scrollable::StyleSheet for ForegroundScrollable {
@@ -669,7 +669,7 @@ impl scrollable::StyleSheet for Scrollable {
     }
 }
 
-pub struct PickList(pub ColorPalette);
+/*pub struct PickList(pub ColorPalette);
 impl pick_list::StyleSheet for PickList {
     fn menu(&self) -> pick_list::Menu {
         pick_list::Menu {
@@ -746,9 +746,9 @@ impl pick_list::StyleSheet for SecondaryPickList {
             ..active
         }
     }
-}
+}*/
 
-pub struct MenuPickList(pub ColorPalette);
+/*pub struct MenuPickList(pub ColorPalette);
 impl pick_list::StyleSheet for MenuPickList {
     fn menu(&self) -> pick_list::Menu {
         pick_list::Menu {
@@ -792,7 +792,7 @@ impl pick_list::StyleSheet for MenuPickList {
             ..active
         }
     }
-}
+}*/
 
 pub struct ChannelBadge(pub ColorPalette);
 impl container::StyleSheet for ChannelBadge {
@@ -807,7 +807,7 @@ impl container::StyleSheet for ChannelBadge {
     }
 }
 
-pub struct DefaultCheckbox(pub ColorPalette);
+/*pub struct DefaultCheckbox(pub ColorPalette);
 impl checkbox::StyleSheet for DefaultCheckbox {
     fn active(&self, _is_checked: bool) -> checkbox::Style {
         checkbox::Style {
@@ -845,7 +845,7 @@ impl checkbox::StyleSheet for AlwaysCheckedCheckbox {
     fn hovered(&self, _is_checked: bool) -> checkbox::Style {
         self.active(_is_checked)
     }
-}
+}*/
 
 pub struct CatalogQueryInput(pub ColorPalette);
 impl text_input::StyleSheet for CatalogQueryInput {

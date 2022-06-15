@@ -3,13 +3,13 @@
 // https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more information.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//mod cli;
+mod cli;
 mod gui;
 mod localization;
 #[cfg(target_os = "windows")]
 mod process;
 #[cfg(target_os = "windows")]
-//mod tray;
+mod tray;
 
 use ajour_core::config::Config;
 use ajour_core::fs::{PersistentData, CONFIG_DIR};
@@ -27,10 +27,6 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type Result<T, E = anyhow::Error> = std::result::Result<T, E>;
 
 pub fn main() {
-
-}
-
-/*pub fn main() {
     let opts_result = cli::get_opts();
 
     #[cfg(debug_assertions)]
@@ -79,7 +75,7 @@ pub fn main() {
     #[cfg(target_os = "windows")]
     process::avoid_multiple_instances();
 
-    match opts.command {
+    /*match opts.command {
         Some(command) => {
             // Process the command and exit
             if let Err(e) = match command {
@@ -105,7 +101,7 @@ pub fn main() {
                 log_error(&e);
             }
         }
-        None => {
+        None => {*/
             let config: Config =
                 Config::load_or_default().expect("loading config on application startup");
 
@@ -114,8 +110,8 @@ pub fn main() {
 
             // Start the GUI
             gui::run(opts, config);
-        }
-    }
+        /*
+    }*/
 }
 
 /// Log any errors
@@ -209,4 +205,4 @@ fn handle_self_update_temp(cleanup_path: &Path) -> Result<()> {
     log::debug!("Ajour updated successfully");
 
     Ok(())
-}*/
+}

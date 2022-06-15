@@ -2,23 +2,23 @@
 
 pub use crate::style::table_row::{Style, StyleSheet};
 use iced_native::{
-    event, layout, mouse, overlay, Align, Clipboard, Element, Event, Hasher, Layout, Length, Point,
-    Rectangle, Widget,
+    event, layout, mouse, overlay, Alignment, Clipboard, Element, Event, Layout, Length, Point,
+    Rectangle, Shell, Widget, renderer, Padding
 };
 
 use std::hash::Hash;
 
 #[allow(missing_debug_implementations)]
 pub struct TableRow<'a, Message, Renderer: self::Renderer> {
-    padding: u16,
+    padding: Padding,
     width: Length,
     height: Length,
     max_width: u32,
     max_height: u32,
     inner_row_height: u32,
-    horizontal_alignment: Align,
-    vertical_alignment: Align,
-    style: Renderer::Style,
+    horizontal_alignment: Alignment,
+    vertical_alignment: Alignment,
+    style_sheet: Box<dyn StyleSheet + 'a>,
     content: Element<'a, Message, Renderer>,
     on_press: Option<Box<dyn Fn(Event) -> Message + 'a>>,
 }
@@ -34,21 +34,21 @@ where
         T: Into<Element<'a, Message, Renderer>>,
     {
         TableRow {
-            padding: 0,
+            padding: Padding::ZERO,
             width: Length::Shrink,
             height: Length::Shrink,
             max_width: u32::MAX,
             max_height: u32::MAX,
             inner_row_height: u32::MAX,
-            horizontal_alignment: Align::Start,
-            vertical_alignment: Align::Start,
-            style: Renderer::Style::default(),
+            horizontal_alignment: Alignment::Start,
+            vertical_alignment: Alignment::Start,
+            style_sheet: Default::default(),
             content: content.into(),
             on_press: None,
         }
     }
-    pub fn style(mut self, style: impl Into<<Renderer as self::Renderer>::Style>) -> Self {
-        self.style = style.into();
+    pub fn style(mut self, style: impl Into<Box<dyn StyleSheet + 'a>>) -> Self {
+        self.style_sheet = style.into();
         self
     }
 
@@ -83,26 +83,26 @@ where
     }
 
     /// Sets the content alignment for the horizontal axis of the [`TableRow`].
-    pub fn align_x(mut self, alignment: Align) -> Self {
+    pub fn align_x(mut self, alignment: Alignment) -> Self {
         self.horizontal_alignment = alignment;
         self
     }
 
     /// Sets the content alignment for the vertical axis of the [`TableRow`].
-    pub fn align_y(mut self, alignment: Align) -> Self {
+    pub fn align_y(mut self, alignment: Alignment) -> Self {
         self.vertical_alignment = alignment;
         self
     }
 
     /// Centers the contents in the horizontal axis of the [`TableRow`].
     pub fn center_x(mut self) -> Self {
-        self.horizontal_alignment = Align::Center;
+        self.horizontal_alignment = Alignment::Center;
         self
     }
 
     /// Centers the contents in the vertical axis of the [`TableRow`].
     pub fn center_y(mut self) -> Self {
-        self.vertical_alignment = Align::Center;
+        self.vertical_alignment = Alignment::Center;
         self
     }
 
@@ -130,31 +130,31 @@ where
     }
 
     fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
-        let padding = f32::from(self.padding);
 
         let limits = limits
             .loose()
             .width(self.width)
             .height(self.height)
-            .pad(padding);
+            .pad(self.padding);
 
         let mut content = self.content.layout(renderer, &limits.loose());
         let size = limits.resolve(content.size());
 
-        content.move_to(Point::new(padding, padding));
+        // TODO: MODIFIED COORDINATES, CHECK
+        content.move_to(Point::new(self.padding.top as f32, self.padding.left as f32));
         content.align(self.horizontal_alignment, self.vertical_alignment, size);
 
-        layout::Node::with_children(size.pad(padding), vec![content])
+        layout::Node::with_children(size.pad(self.padding), vec![content])
     }
 
     fn draw(
         &self,
         renderer: &mut Renderer,
-        defaults: &Renderer::Defaults,
+        _style: &renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
-    ) -> Renderer::Output {
+    ) {
         let bounds = layout.bounds();
         let custom_bounds = Rectangle {
             x: bounds.x,
@@ -164,17 +164,16 @@ where
         };
         self::Renderer::draw(
             renderer,
-            defaults,
             layout,
             cursor_position,
-            &self.style,
+            self.style_sheet.as_ref(),
             &self.content,
             viewport,
             &custom_bounds,
         )
     }
 
-    fn hash_layout(&self, state: &mut Hasher) {
+    /*fn hash_layout(&self, state: &mut Hasher) {
         struct Marker;
         std::any::TypeId::of::<Marker>().hash(state);
 
@@ -186,7 +185,7 @@ where
         self.inner_row_height.hash(state);
 
         self.content.hash_layout(state);
-    }
+    }*/
 
     fn on_event(
         &mut self,
@@ -195,7 +194,7 @@ where
         cursor_position: Point,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
-        messages: &mut Vec<Message>,
+        shell: &mut Shell<'_, Message>,
     ) -> event::Status {
         let status_from_content = self.content.on_event(
             event.clone(),
@@ -203,7 +202,7 @@ where
             cursor_position,
             renderer,
             clipboard,
-            messages,
+            shell,
         );
         match status_from_content {
             event::Status::Ignored => {
@@ -218,7 +217,7 @@ where
                             height: self.inner_row_height as f32,
                         };
                         if custom_bounds.contains(cursor_position) {
-                            messages.push(on_press(event));
+                            shell.publish(on_press(event));
                         }
                     }
                 }
@@ -228,8 +227,8 @@ where
         }
     }
 
-    fn overlay(&mut self, layout: Layout<'_>) -> Option<overlay::Element<'_, Message, Renderer>> {
-        self.content.overlay(layout.children().next().unwrap())
+    fn overlay(&mut self, layout: Layout<'_>, renderer: &Renderer) -> Option<overlay::Element<'_, Message, Renderer>> {
+        self.content.overlay(layout.children().next().unwrap(), renderer)
     }
 }
 
@@ -238,14 +237,13 @@ pub trait Renderer: iced_native::Renderer {
     #[allow(clippy::too_many_arguments)]
     fn draw<Message>(
         &mut self,
-        defaults: &Self::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
-        style: &Self::Style,
+        style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
         viewport: &Rectangle,
-        custom_bounds: &Rectangle,
-    ) -> Self::Output;
+        custom_bounds: &Rectangle,   
+    );
 }
 
 impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>

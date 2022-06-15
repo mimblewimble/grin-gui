@@ -1,10 +1,4 @@
-pub mod about;
-pub mod catalog;
-pub mod menu;
-pub mod my_addons;
-pub mod my_weakauras;
-pub mod settings;
-pub mod status;
+//pub mod menu;
 
 // Default values used on multiple elements.
 pub static DEFAULT_FONT_SIZE: u16 = 14;

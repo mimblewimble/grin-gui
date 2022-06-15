@@ -1,8 +1,9 @@
 #![allow(clippy::type_complexity)]
 
 use iced_native::{
-    container, event, layout, mouse, space, Align, Clipboard, Container, Element, Event, Hasher,
-    Layout, Length, Point, Rectangle, Space, Widget,
+    event, layout, mouse, Alignment, Clipboard, Element, Event, Hasher,
+    Layout, Length, Point, Rectangle, Widget,
+    widget::{self, container::{self, Container}, {space::{self, Space}}},
 };
 
 mod state;
@@ -142,7 +143,7 @@ where
             &limits,
             0.0,
             self.spacing as f32,
-            Align::Start,
+            Alignment::Start,
             &self.children,
         )
     }
@@ -288,7 +289,7 @@ where
         )
     }
 
-    fn hash_layout(&self, state: &mut Hasher) {
+    /*fn hash_layout(&self, state: &mut Hasher) {
         use std::hash::Hash;
 
         struct Marker;
@@ -304,10 +305,10 @@ where
         for child in &self.children {
             child.hash_layout(state);
         }
-    }
+    }*/
 }
 
-pub trait Renderer: iced_native::Renderer + container::Renderer + space::Renderer + Sized {
+pub trait Renderer: iced_native::Renderer + widget::container::Renderer + widget::space::Renderer + Sized {
     fn draw<Message>(
         &mut self,
         defaults: &Self::Defaults,

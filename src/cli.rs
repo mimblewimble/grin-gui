@@ -1,7 +1,5 @@
 use crate::VERSION;
 
-use ajour_core::{config::Flavor, repository::CompressionFormat};
-
 use isahc::http::Uri;
 use structopt::{
     clap::{self, AppSettings},
@@ -90,9 +88,6 @@ pub enum Command {
     UpdateAuras,
     /// Install an addon
     Install {
-        #[structopt(parse(try_from_str = str_to_flavor), possible_values = &["retail","ptr","beta","classic_tbc","classic_era","classic_era_ptr","classic_ptr","classic_beta"])]
-        /// flavor to install addon under
-        flavor: Flavor,
         #[structopt()]
         /// source url [Github & Gitlab currently supported]
         url: Uri,
@@ -102,39 +97,15 @@ pub enum Command {
         #[structopt(short, long, default_value = "all", parse(try_from_str = str_to_backup_folder), possible_values = &["all","wtf","addons","config", "screenshots", "fonts"])]
         /// folder to backup
         backup_folder: BackupFolder,
-        #[structopt(short, long, parse(try_from_str = str_to_flavor), possible_values = &["retail","ptr","beta","classic_tbc","classic_era","classic_era_ptr","classic_ptr","classic_beta"])]
-        /// space separated list of flavors to include in backup. If ommited, all flavors will be included.
-        flavors: Vec<Flavor>,
         #[structopt()]
         /// folder to save backups to
         destination: PathBuf,
-        #[structopt(short, long, default_value = "zip", possible_values = &["zip", "zstd"])]
-        compression_format: CompressionFormat,
-        #[structopt(short, long, default_value = "0")]
-        level: i32,
     },
     /// Add a World of Warcraft path
     PathAdd {
         /// path to the World of Warcraft directory
         path: PathBuf,
-        #[structopt(parse(try_from_str = str_to_flavor), possible_values = &["retail","ptr","beta","classic_era","classic_era_ptr","classic","classic_ptr","classic_beta"])]
-        /// flavor to use from the path. If none, we use all we find
-        flavor: Option<Flavor>,
     },
-}
-
-fn str_to_flavor(s: &str) -> Result<Flavor, &'static str> {
-    match s {
-        "retail" => Ok(Flavor::Retail),
-        "beta" => Ok(Flavor::RetailBeta),
-        "ptr" => Ok(Flavor::RetailPtr),
-        "classic_tbc" => Ok(Flavor::ClassicTbc),
-        "classic_era" => Ok(Flavor::ClassicEra),
-        "classic_era_ptr" => Ok(Flavor::ClassicEraPtr),
-        "classic_ptr" => Ok(Flavor::ClassicPtr),
-        "classic_beta" => Ok(Flavor::ClassicBeta),
-        _ => Err("valid values are ['retail','ptr','beta','classic_tbc','classic_era','classic_era_ptr','classic_ptr','classic_beta']"),
-    }
 }
 
 #[derive(Debug, Clone, Copy)]

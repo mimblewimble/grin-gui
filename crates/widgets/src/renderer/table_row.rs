@@ -12,14 +12,13 @@ where
 
     fn draw<Message>(
         &mut self,
-        defaults: &Self::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
-        style_sheet: &Self::Style,
+        style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
         viewport: &Rectangle,
         custom_bounds: &Rectangle,
-    ) -> Self::Output {
+    ) {
         let bounds = layout.bounds();
         let is_mouse_over = custom_bounds.contains(cursor_position);
         let content_layout = layout.children().next().unwrap();
@@ -30,10 +29,38 @@ where
             style_sheet.style()
         };
 
-        let (content, mouse_interaction) =
-            content.draw(self, defaults, content_layout, cursor_position, viewport);
+        if style.background.is_some() {
+            let background = Primitive::Quad {
+                bounds: Rectangle {
+                    x: bounds.x + style.offset_left as f32,
+                    y: bounds.y,
+                    width: bounds.width - style.offset_right as f32,
+                    height: custom_bounds.height,
+                },
+                background: style
+                    .background
+                    .unwrap_or(Background::Color(Color::TRANSPARENT)),
+                border_radius: style.border_radius,
+                border_width: style.border_width,
+                border_color: style.border_color,
+            };
 
-        (
+            /*self.fill_quad(
+                renderer::Quad {
+                    bounds,
+                    border_color: style.border_color,
+                    border_width: style.border_width,
+                    border_radius: style.border_radius,
+                },
+                style.background,
+            );*/
+        }
+        
+        content.draw(self, &iced_native::renderer::Style::default(), content_layout, cursor_position, viewport);
+
+        //content.draw(self, style.into().as_ref(), content_layout, cursor_position, viewport);
+
+        /*(
             if style.background.is_some() {
                 let background = Primitive::Quad {
                     bounds: Rectangle {
@@ -61,6 +88,6 @@ where
             } else {
                 mouse_interaction
             },
-        )
+        )*/
     }
 }
