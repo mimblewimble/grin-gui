@@ -46,6 +46,7 @@ impl Default for Ajour {
 #[derive(Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
+    Interaction(Interaction),
     None(())
 }
 
@@ -238,6 +239,7 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Interaction {
+    ModeSelected(Mode),
     //Expand(ExpandType),
     Ignore(String),
     SelectBackupDirectory(),

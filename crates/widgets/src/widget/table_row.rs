@@ -2,8 +2,8 @@
 
 pub use crate::style::table_row::{Style, StyleSheet};
 use iced_native::{
-    event, layout, mouse, overlay, Alignment, Clipboard, Element, Event, Layout, Length, Point,
-    Rectangle, Shell, Widget, renderer, Padding
+    event, layout, mouse, overlay, renderer, Alignment, Clipboard, Element, Event, Layout, Length,
+    Padding, Point, Rectangle, Shell, Widget,
 };
 
 use std::hash::Hash;
@@ -130,7 +130,6 @@ where
     }
 
     fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
-
         let limits = limits
             .loose()
             .width(self.width)
@@ -141,7 +140,10 @@ where
         let size = limits.resolve(content.size());
 
         // TODO: MODIFIED COORDINATES, CHECK
-        content.move_to(Point::new(self.padding.top as f32, self.padding.left as f32));
+        content.move_to(Point::new(
+            self.padding.top as f32,
+            self.padding.left as f32,
+        ));
         content.align(self.horizontal_alignment, self.vertical_alignment, size);
 
         layout::Node::with_children(size.pad(self.padding), vec![content])
@@ -171,6 +173,16 @@ where
             viewport,
             &custom_bounds,
         )
+    }
+
+    fn mouse_interaction(
+        &self,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+        renderer: &Renderer,
+    ) -> mouse::Interaction {
+        self::Renderer::mouse_interaction(renderer, layout, cursor_position, viewport)
     }
 
     /*fn hash_layout(&self, state: &mut Hasher) {
@@ -227,8 +239,13 @@ where
         }
     }
 
-    fn overlay(&mut self, layout: Layout<'_>, renderer: &Renderer) -> Option<overlay::Element<'_, Message, Renderer>> {
-        self.content.overlay(layout.children().next().unwrap(), renderer)
+    fn overlay(
+        &mut self,
+        layout: Layout<'_>,
+        renderer: &Renderer,
+    ) -> Option<overlay::Element<'_, Message, Renderer>> {
+        self.content
+            .overlay(layout.children().next().unwrap(), renderer)
     }
 }
 
@@ -242,8 +259,15 @@ pub trait Renderer: iced_native::Renderer {
         style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
         viewport: &Rectangle,
-        custom_bounds: &Rectangle,   
+        custom_bounds: &Rectangle,
     );
+
+    fn mouse_interaction(
+        &self,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+    ) -> mouse::Interaction;
 }
 
 impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>

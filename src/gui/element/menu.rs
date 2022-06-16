@@ -8,7 +8,7 @@ use {
     ajour_core::{config::Config, theme::ColorPalette},
     ajour_widgets::TableRow,
     iced::{
-        button, pick_list, Alignment, Button, Column, Container, Element, Length, PickList, Row,
+        button, pick_list, Alignment, alignment, Button, Column, Container, Element, Length, PickList, Row,
         Space, Text,
     },
     std::collections::HashMap,
@@ -41,7 +41,53 @@ pub fn data_container<'a>(
         .height(Length::Units(50))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
 
-    let version_text = Text::new("Test Text Label")
+    let mut my_wallet_table_row = {
+        let title_container = Container::new(
+            Text::new(localized_string("my-addons"))
+                .horizontal_alignment(alignment::Horizontal::Center)
+                .size(DEFAULT_FONT_SIZE),
+        )
+        .style(style::HoverableSegmentContainer(color_palette));
+        /*let text = {
+            match updatable_addons {
+                0..=9 => format!("{}", updatable_addons),
+                _ => "9+".to_owned(),
+            }
+        };
+        let notification_row = Row::new()
+            .push(Space::new(Length::Units(7), Length::Units(0)))
+            .push(
+                Text::new(text)
+                    .horizontal_alignment(alignment::Horizontal::Center)
+                    .size(10),
+            )
+            .push(Space::new(Length::Units(7), Length::Units(0)));
+        let notification_container = Container::new(notification_row)
+            .padding(3)
+            .style(style::HoverableSegmentAlternateContainer(color_palette));*/
+        let mut row = Row::new()
+            .height(Length::Units(24))
+            .align_items(Alignment::Center)
+            .push(Space::new(Length::Units(6), Length::Units(1)))
+            .push(title_container)
+            .push(Space::new(Length::Units(6), Length::Units(1)));
+
+        // Only display the notification container if we have any updatable addons.
+        /*if updatable_addons > 0 {
+            row = row
+                .push(notification_container)
+                .push(Space::new(Length::Units(6), Length::Units(1)));
+        }*/
+
+        TableRow::new(row).inner_row_height(24).on_press(move |_| {
+            Message::Interaction(Interaction::ModeSelected(Mode::Catalog))
+        })
+    };
+
+
+    settings_row = settings_row
+        .push(my_wallet_table_row);
+    /*let version_text = Text::new("Test Text Label")
     .size(DEFAULT_FONT_SIZE)
     .horizontal_alignment(iced::alignment::Horizontal::Right);
 
@@ -51,7 +97,7 @@ pub fn data_container<'a>(
         .style(style::NormalForegroundContainer(color_palette));
 
     settings_row = settings_row
-        .push(version_container);
+        .push(version_container);*/
  
     /*let mut needs_update = false;
 
