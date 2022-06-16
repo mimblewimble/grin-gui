@@ -17,15 +17,15 @@ use image::ImageFormat;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
+use element::DEFAULT_PADDING;
+
 pub struct Ajour {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
-    catalog_mode_btn_state: button::State,
-    install_mode_btn_state: button::State,
-    settings_mode_btn_state: button::State,
-    about_mode_btn_state: button::State,
+    about_state: element::about::StateContainer,
+    menu_state: element::menu::StateContainer,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -39,10 +39,8 @@ impl Default for Ajour {
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
-            catalog_mode_btn_state: Default::default(),
-            install_mode_btn_state: Default::default(),
-            settings_mode_btn_state: Default::default(),
-            about_mode_btn_state: Default::default(),
+            about_state: Default::default(),
+            menu_state: Default::default(),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
@@ -100,8 +98,10 @@ impl Application for Ajour {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
-        iced::Subscription::batch(vec![runtime_subscription])
+          let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
+                iced::Subscription::batch(vec![
+                    runtime_subscription,
+                ])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -126,20 +126,38 @@ impl Application for Ajour {
         let menu_container = element::menu::data_container(
             color_palette,
             &self.mode,
-            &self.state,
+            //&self.state,
             &self.config,
             &self.error,
-            &mut self.catalog_mode_btn_state,
-            &mut self.install_mode_btn_state,
-            &mut self.settings_mode_btn_state,
-            &mut self.about_mode_btn_state,
+            &mut self.menu_state,
         );
 
+        // This column gathers all the other elements together.
         let mut content = Column::new().push(menu_container);
 
-        /*if let Some(c) = container {
+        // Spacer between menu and content.
+        content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+
+        match self.mode {
+            Mode::About => {
+                let about_container = element::about::data_container(
+                    color_palette,
+                    &None,
+                    &mut self.about_state,
+                );
+                content = content.push(about_container)
+            },
+            _ => {
+
+            }
+        }
+        let container: Option<Container<Message>> = match self.mode {
+            _ => None,
+        };
+
+        if let Some(c) = container {
             content = content.push(c);
-        };*/
+        };
 
         // Finally wraps everything in a container.
         Container::new(content)

@@ -15,17 +15,33 @@ use {
     version_compare::{CompOp, VersionCompare},
 };
 
+pub struct StateContainer {
+    catalog_mode_btn: button::State,
+    install_mode_btn: button::State,
+    settings_mode_btn: button::State,
+    about_mode_btn: button::State,
+}
+
+impl Default for StateContainer {
+    fn default() -> Self {
+        Self {
+            catalog_mode_btn: Default::default(),
+            install_mode_btn: Default::default(),
+            settings_mode_btn: Default::default(),
+            about_mode_btn: Default::default(),
+        }
+    }
+}
+
+
 #[allow(clippy::too_many_arguments)]
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     mode: &Mode,
-    state: &HashMap<Mode, State>,
+    //state: &HashMap<Mode, State>,
     config: &Config,
     error: &Option<anyhow::Error>,
-    catalog_mode_btn_state: &'a mut button::State,
-    install_mode_btn_state: &'a mut button::State,
-    settings_mode_btn_state: &'a mut button::State,
-    about_mode_btn_state: &'a mut button::State,
+    state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     /*let flavor = config.wow.flavor;
     let mut valid_flavors = config
@@ -89,19 +105,19 @@ pub fn data_container<'a>(
     };
 
     let mut catalog_mode_button: Button<Interaction> = Button::new(
-        catalog_mode_btn_state,
+        &mut state.catalog_mode_btn,
         Text::new(localized_string("catalog")).size(DEFAULT_FONT_SIZE),
     )
     .style(style::DisabledDefaultButton(color_palette));
 
     let mut install_mode_button: Button<Interaction> = Button::new(
-        install_mode_btn_state,
+        &mut state.install_mode_btn,
         Text::new(localized_string("install-from-url")).size(DEFAULT_FONT_SIZE),
     )
     .style(style::DisabledDefaultButton(color_palette));
 
     let mut settings_mode_button: Button<Interaction> = Button::new(
-        settings_mode_btn_state,
+        &mut state.settings_mode_btn,
         Text::new(localized_string("settings"))
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
@@ -109,7 +125,7 @@ pub fn data_container<'a>(
     .on_press(Interaction::ModeSelected(Mode::Settings));
 
     let mut about_mode_button: Button<Interaction> = Button::new(
-        about_mode_btn_state,
+        &mut state.about_mode_btn,
         Text::new(localized_string("about"))
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
@@ -148,11 +164,6 @@ pub fn data_container<'a>(
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
     }
-
-    catalog_mode_button = catalog_mode_button.style(style::DefaultButton(color_palette));
-    install_mode_button = install_mode_button.style(style::DefaultButton(color_palette));
-    about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
-    settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
 
     let catalog_mode_button: Element<Interaction> = catalog_mode_button.into();
     let install_mode_button: Element<Interaction> = install_mode_button.into();
