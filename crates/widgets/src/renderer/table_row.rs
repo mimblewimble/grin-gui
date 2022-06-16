@@ -2,7 +2,9 @@ use crate::style::table_row::StyleSheet;
 
 use crate::widget::table_row;
 use iced_graphics::{Backend, Primitive, Renderer};
-use iced_native::{mouse, Background, Color, Element, Layout, Point, Rectangle};
+use iced_native::{
+    mouse, Background, Color, Element, Layout, Point, Rectangle, Renderer as iced_native_Renderer,
+};
 
 impl<B> table_row::Renderer for Renderer<B>
 where
@@ -45,32 +47,34 @@ where
             style_sheet.style()
         };
 
-        if style.background.is_some() {
-            let background = Primitive::Quad {
-                bounds: Rectangle {
-                    x: bounds.x + style.offset_left as f32,
-                    y: bounds.y,
-                    width: bounds.width - style.offset_right as f32,
-                    height: custom_bounds.height,
-                },
-                background: style
-                    .background
-                    .unwrap_or(Background::Color(Color::TRANSPARENT)),
-                border_radius: style.border_radius,
-                border_width: style.border_width,
-                border_color: style.border_color,
-            };
+        let background = iced_native::renderer::Quad {
+            bounds: Rectangle {
+                x: bounds.x + style.offset_left as f32,
+                y: bounds.y,
+                width: bounds.width - style.offset_right as f32,
+                height: custom_bounds.height,
+            },
+            border_radius: style.border_radius,
+            border_width: style.border_width,
+            border_color: style.border_color,
+        };
 
-            /*self.fill_quad(
-                renderer::Quad {
-                    bounds,
-                    border_color: style.border_color,
-                    border_width: style.border_width,
-                    border_radius: style.border_radius,
-                },
-                style.background,
-            );*/
-        }
+        self.fill_quad(
+            background.into(),
+            style
+                .background
+                .unwrap_or(Background::Color(Color::TRANSPARENT)),
+        );
+
+        /*self.fill_quad(
+            renderer::Quad {
+                bounds,
+                border_color: style.border_color,
+                border_width: style.border_width,
+                border_radius: style.border_radius,
+            },
+            style.background,
+        );*/
 
         content.draw(
             self,

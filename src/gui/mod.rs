@@ -1,29 +1,31 @@
 mod element;
 mod style;
+mod update;
 
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
-use ajour_core::{
-    config::Config,
-    theme::Theme
-};
+use ajour_core::{config::Config, theme::Theme};
 
 use iced::{
-    button, pick_list, scrollable, slider, text_input, Alignment, Application, Button,
-    Column, Command, Container, Element, Length, PickList, Row, Scrollable,
-    Settings, Space, Subscription, Text, TextInput,
+    button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
+    Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Space, Subscription,
+    Text, TextInput,
 };
 
 use image::ImageFormat;
 
-use std::sync::RwLock;
 use std::collections::HashMap;
+use std::sync::RwLock;
 
 pub struct Ajour {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
+    catalog_mode_btn_state: button::State,
+    install_mode_btn_state: button::State,
+    settings_mode_btn_state: button::State,
+    about_mode_btn_state: button::State,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -37,6 +39,10 @@ impl Default for Ajour {
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
+            catalog_mode_btn_state: Default::default(),
+            install_mode_btn_state: Default::default(),
+            settings_mode_btn_state: Default::default(),
+            about_mode_btn_state: Default::default(),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
@@ -46,10 +52,11 @@ impl Default for Ajour {
 #[derive(Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
+    Error(anyhow::Error),
     Interaction(Interaction),
-    None(())
+    RuntimeEvent(iced_native::Event),
+    None(()),
 }
-
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -93,15 +100,15 @@ impl Application for Ajour {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        iced::Subscription::batch(vec![])
+        let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
+        iced::Subscription::batch(vec![runtime_subscription])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
-        /*match update::handle_message(self, message) {
+        match update::handle_message(self, message) {
             Ok(x) => x,
             Err(e) => Command::perform(async { e }, Message::Error),
-        }*/
-        Command::none()
+        }
     }
 
     fn view(&mut self) -> Element<Message> {
@@ -120,8 +127,12 @@ impl Application for Ajour {
             color_palette,
             &self.mode,
             &self.state,
-            &self.error,
             &self.config,
+            &self.error,
+            &mut self.catalog_mode_btn_state,
+            &mut self.install_mode_btn_state,
+            &mut self.settings_mode_btn_state,
+            &mut self.about_mode_btn_state,
         );
 
         let mut content = Column::new().push(menu_container);
@@ -138,7 +149,6 @@ impl Application for Ajour {
             .into()
     }
 }
-
 
 /// Starts the GUI.
 /// This function does not return.
@@ -305,4 +315,3 @@ impl Default for ScaleState {
         }
     }
 }
-
