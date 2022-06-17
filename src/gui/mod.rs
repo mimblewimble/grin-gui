@@ -27,6 +27,7 @@ pub struct Ajour {
     about_state: element::about::StateContainer,
     menu_state: element::menu::StateContainer,
     settings_state: element::settings::StateContainer,
+    settings_view: element::settings::View,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -43,10 +44,15 @@ impl Default for Ajour {
             about_state: Default::default(),
             menu_state: Default::default(),
             settings_state: Default::default(),
+            settings_view: Default::default(),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
     }
+}
+
+pub trait MessageInteraction {
+    fn handle_message(&self, message: Message) -> crate::Result<Command<Message>>;
 }
 
 #[derive(Debug)]
@@ -54,6 +60,7 @@ impl Default for Ajour {
 pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
+    //MessageInteraction(&'a mut dyn MessageInteraction),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
@@ -99,7 +106,7 @@ impl Application for Ajour {
         }
     }
 
-    fn subscription(&self) -> Subscription<Self::Message> {
+    fn subscription(&self) -> Subscription<Message> {
         let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
         iced::Subscription::batch(vec![runtime_subscription])
     }
@@ -146,7 +153,7 @@ impl Application for Ajour {
             },
             Mode::Settings => {
                 let settings_container =
-                    element::settings::data_container(color_palette, &mut self.settings_state);
+                    self.settings_view.data_container(color_palette);
                 content = content.push(settings_container)
             }
              _ => {}

@@ -11,8 +11,41 @@ use {
     strfmt::strfmt,
 };
 
+pub struct StateContainer {
+    pub mode: Mode,
+    wallet_btn: button::State,
+    node_btn: button::State,
+    general_btn: button::State,
+}
+
+impl Default for StateContainer {
+    fn default() -> Self {
+        Self {
+            mode: Mode::Wallet,
+            wallet_btn: Default::default(),
+            node_btn: Default::default(),
+            general_btn: Default::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Mode {
+    Wallet,
+    Node,
+    General,
+}
+
 pub struct View {
     pub state: StateContainer,
+}
+
+impl Default for View {
+    fn default() -> Self {
+        Self {
+            state: Default::default(),
+        }
+    }
 }
 
 impl View {
@@ -22,10 +55,10 @@ impl View {
     }
 
     pub fn data_container<'a>(
-        &mut self,
+        &'a mut self,
         color_palette: ColorPalette,
     ) -> Container<'a, Message> {
-        let mut selection_row = Row::new().height(Length::Units(39)).push(Space::new(
+        let mut selection_row = Row::new().height(Length::Units(40)).push(Space::new(
             Length::Units(DEFAULT_PADDING),
             Length::Units(1),
         ));
@@ -85,38 +118,14 @@ impl View {
             .style(style::SegmentedContainer(color_palette));
 
         selection_row = selection_row
-            .push(Space::new(Length::Fill, Length::Units(-1)))
+            .push(Space::new(Length::Fill, Length::Units(0)))
             .push(segmented_mode_control_container)
             .push(Space::new(
                 Length::Units(DEFAULT_PADDING + 4),
-                Length::Units(-1),
+                Length::Units(0),
             ))
             .align_items(Alignment::Center);
         Container::new(selection_row).style(style::BrightForegroundContainer(color_palette))
     }
 }
 
-pub struct StateContainer {
-    pub mode: Mode,
-    wallet_btn: button::State,
-    node_btn: button::State,
-    general_btn: button::State,
-}
-
-impl Default for StateContainer {
-    fn default() -> Self {
-        Self {
-            mode: Mode::Wallet,
-            wallet_btn: Default::default(),
-            node_btn: Default::default(),
-            general_btn: Default::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Mode {
-    Wallet,
-    Node,
-    General,
-}
