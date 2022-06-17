@@ -32,7 +32,7 @@ pub fn data_container<'a>(
     release: &Option<Release>,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-    let ajour_title = Text::new(localized_string("ajour")).size(DEFAULT_HEADER_FONT_SIZE);
+    let ajour_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
     let ajour_title_container =
         Container::new(ajour_title).style(style::BrightBackgroundContainer(color_palette));
 

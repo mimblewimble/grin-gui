@@ -26,6 +26,7 @@ pub struct Ajour {
     config: Config,
     about_state: element::about::StateContainer,
     menu_state: element::menu::StateContainer,
+    settings_state: element::settings::StateContainer,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -41,6 +42,7 @@ impl Default for Ajour {
             config: Config::default(),
             about_state: Default::default(),
             menu_state: Default::default(),
+            settings_state: Default::default(),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
@@ -98,10 +100,8 @@ impl Application for Ajour {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-          let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
-                iced::Subscription::batch(vec![
-                    runtime_subscription,
-                ])
+        let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
+        iced::Subscription::batch(vec![runtime_subscription])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -136,20 +136,20 @@ impl Application for Ajour {
         let mut content = Column::new().push(menu_container);
 
         // Spacer between menu and content.
-        content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
 
         match self.mode {
             Mode::About => {
-                let about_container = element::about::data_container(
-                    color_palette,
-                    &None,
-                    &mut self.about_state,
-                );
+                let about_container =
+                    element::about::data_container(color_palette, &None, &mut self.about_state);
                 content = content.push(about_container)
             },
-            _ => {
-
+            Mode::Settings => {
+                let settings_container =
+                    element::settings::data_container(color_palette, &mut self.settings_state);
+                content = content.push(settings_container)
             }
+             _ => {}
         }
         let container: Option<Container<Message>> = match self.mode {
             _ => None,
@@ -268,6 +268,7 @@ pub enum Mode {
 #[allow(clippy::large_enum_variant)]
 pub enum Interaction {
     ModeSelected(Mode),
+    ModeSelectedSettings(element::settings::Mode),
     //Expand(ExpandType),
     Ignore(String),
     SelectBackupDirectory(),

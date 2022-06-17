@@ -19,7 +19,11 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
             // Set Mode
             ajour.mode = mode;
         }
-
+        Message::Interaction(Interaction::ModeSelectedSettings(mode)) => {
+            log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
+            // Set Mode
+            ajour.settings_state.mode = mode;
+        }
         Message::Error(error) => {
             log_error(&error);
             ajour.error = Some(error);
