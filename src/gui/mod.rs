@@ -23,6 +23,7 @@ use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
+static MAIN_MENU_VIEW: &str = "MAIN_MENU_VIEW";
 static MAIN_SETTINGS_VIEW: &str = "MAIN_SETTINGS_VIEW";
 
 pub struct Ajour {
@@ -69,16 +70,28 @@ impl Ajour {
             .insert(uuid, Box::new(element::settings::View::default()));
     }
 
+    fn view_uuid_for_label(
+        view_labels: &HashMap<&'static str, Uuid>,
+        view_label: &'static str,
+    ) -> Uuid {
+        view_labels.get(view_label).unwrap().clone()
+    }
+
+    fn get_view<'a>(
+        views: &'a mut HashMap<Uuid, Box<dyn MessageHandlingView>>,
+        view_uuid: &Uuid,
+    ) -> Option<&'a mut Box<dyn MessageHandlingView>> {
+        views.get_mut(view_uuid)
+    }
+
     fn create_views(&mut self) {
         self.create_view(
             MAIN_SETTINGS_VIEW,
             Box::new(element::settings::View::default()),
         );
+        self.create_view(MAIN_MENU_VIEW, Box::new(element::menu::View::default()));
     }
 
-    fn view_uuid_for_label(&self, view_label: &'static str) -> Uuid {
-        self.view_labels.get(view_label).unwrap().clone()
-    }
 }
 
 pub trait MessageHandlingView {
@@ -154,7 +167,7 @@ impl Application for Ajour {
     }
 
     fn view(&mut self) -> Element<Message> {
-        // Get color palette of chosen theme.
+        let view_labels = &self.view_labels;
         let color_palette = self
             .theme_state
             .themes
@@ -165,17 +178,15 @@ impl Application for Ajour {
             .1
             .palette;
 
-        let menu_container = element::menu::data_container(
-            color_palette,
-            &self.mode,
-            //&self.state,
-            &self.config,
-            &self.error,
-            &mut self.menu_state,
-        );
+        let mut content = Column::new();
+        let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_MENU_VIEW);
 
-        // This column gathers all the other elements together.
-        let mut content = Column::new().push(menu_container);
+        {
+            let views = &mut self.views;
+            if let Some(menu_container) = Ajour::get_view(views, &view_uuid) {
+                content = Column::new().push(menu_container.data_container(color_palette))
+            }
+        }
 
         // Spacer between menu and content.
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
@@ -187,11 +198,9 @@ impl Application for Ajour {
                 content = content.push(about_container)
             }
             Mode::Settings => {
-                let view_uuid = self.view_uuid_for_label(MAIN_SETTINGS_VIEW);
-                if let Some(settings_container) = self
-                    .views
-                    .get_mut(&view_uuid)
-                {
+                let views = &mut self.views;
+                let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_SETTINGS_VIEW);
+                if let Some(settings_container) = Ajour::get_view(views, &view_uuid) {
                     content = content.push(settings_container.data_container(color_palette))
                 }
             }

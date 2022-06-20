@@ -7,11 +7,8 @@ use {
         button, scrollable, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Scrollable, Space, Text,
     },
-    std::collections::HashMap,
-    std::{fmt::Display},
-    strfmt::strfmt,
-    serde_json,
     serde::{Serialize, Deserialize},
+    serde_json,
 };
 
 #[derive(Debug, Clone)]
