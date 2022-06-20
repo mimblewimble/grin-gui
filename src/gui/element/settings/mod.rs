@@ -8,7 +8,10 @@ use {
         Scrollable, Space, Text,
     },
     std::collections::HashMap,
+    std::{fmt::Display},
     strfmt::strfmt,
+    serde_json,
+    serde::{Serialize, Deserialize},
 };
 
 #[derive(Debug, Clone)]
@@ -30,7 +33,12 @@ impl Default for StateContainer {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum LocalViewInteraction {
+    SelectMode(Mode),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Mode {
     Wallet,
     Node,
@@ -39,33 +47,39 @@ pub enum Mode {
 
 #[derive(Debug, Clone)]
 pub struct View {
+    pub id: String,
     pub state: StateContainer,
 }
 
 impl Default for View {
     fn default() -> Self {
         Self {
+            id: Default::default(),
             state: Default::default(),
         }
     }
 }
 
-impl View {
-    /// Create new with state
-    pub fn new(state: StateContainer) -> Self {
-        Self { state }
-    }
-}
-
 impl MessageHandlingView for View {
+
+    fn set_id(&mut self, new_id: &str) {
+        self.id = new_id.to_string()
+    }
+
+    fn get_id(&self) -> &str {
+        &self.id
+    }
+
     fn handle_message(&mut self, message: &Message) -> crate::Result<iced::Command<Message>> {
-        match message {
-            Message::Interaction(Interaction::ModeSelectedSettings(mode)) => {
-                log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
-                // Set Mode
-                self.state.mode = mode.clone();
+        if let Message::Interaction(Interaction::ViewInteraction(stringified)) = message {
+            let local_interaction: LocalViewInteraction = serde_json::from_str(stringified).unwrap();
+            match local_interaction {
+                LocalViewInteraction::SelectMode(mode) => {
+                    log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
+                    // Set Mode
+                    self.state.mode = mode
+                }
             }
-            _ => {},
         }
         Ok(Command::none())
     }
@@ -79,19 +93,25 @@ impl MessageHandlingView for View {
             &mut self.state.wallet_btn,
             Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
         )
-        .on_press(Interaction::ModeSelectedSettings(Mode::Wallet));
+        .on_press(Interaction::ViewInteraction(
+            serde_json::to_string(&LocalViewInteraction::SelectMode(Mode::Wallet)).unwrap()
+        ));
 
         let mut node_button: Button<Interaction> = Button::new(
             &mut self.state.node_btn,
             Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
         )
-        .on_press(Interaction::ModeSelectedSettings(Mode::Node));
+        .on_press(Interaction::ViewInteraction(
+            serde_json::to_string(&LocalViewInteraction::SelectMode(Mode::Node)).unwrap()
+        ));
 
         let mut general_button: Button<Interaction> = Button::new(
             &mut self.state.general_btn,
             Text::new(localized_string("general")).size(DEFAULT_FONT_SIZE),
         )
-        .on_press(Interaction::ModeSelectedSettings(Mode::General));
+        .on_press(Interaction::ViewInteraction(
+            serde_json::to_string(&LocalViewInteraction::SelectMode(Mode::General)).unwrap()
+        ));
 
         match self.state.mode {
             Mode::Wallet => {
@@ -139,4 +159,5 @@ impl MessageHandlingView for View {
             .align_items(Alignment::Center);
         Container::new(selection_row).style(style::BrightForegroundContainer(color_palette))
     }
+
 }

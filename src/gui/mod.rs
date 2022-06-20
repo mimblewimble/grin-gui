@@ -5,6 +5,7 @@ mod update;
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
 use ajour_core::{config::Config, theme::Theme};
+use uuid::Uuid;
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -21,14 +22,16 @@ use ajour_core::theme::ColorPalette;
 use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
-static MAIN_SETTINGS_VIEW: &'static str = "MAIN_SETTINGS_VIEW";
+
+static MAIN_SETTINGS_VIEW: &str = "MAIN_SETTINGS_VIEW";
 
 pub struct Ajour {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
-    views: HashMap<&'static str, Box<dyn MessageHandlingView>>,
+    views: HashMap<Uuid, Box<dyn MessageHandlingView>>,
+    view_labels: HashMap<&'static str, Uuid>,
     about_state: element::about::StateContainer,
     menu_state: element::menu::StateContainer,
     //settings_state: element::settings::StateContainer,
@@ -47,6 +50,7 @@ impl Default for Ajour {
             mode: Mode::Catalog,
             config: Config::default(),
             views: HashMap::new(),
+            view_labels: HashMap::new(),
             about_state: Default::default(),
             menu_state: Default::default(),
             //settings_state: Default::default(),
@@ -57,7 +61,29 @@ impl Default for Ajour {
     }
 }
 
+impl Ajour {
+    fn create_view(&mut self, view_label: &'static str, view: Box<dyn MessageHandlingView>) {
+        let uuid = Uuid::new_v4();
+        self.view_labels.insert(view_label, uuid);
+        self.views
+            .insert(uuid, Box::new(element::settings::View::default()));
+    }
+
+    fn create_views(&mut self) {
+        self.create_view(
+            MAIN_SETTINGS_VIEW,
+            Box::new(element::settings::View::default()),
+        );
+    }
+
+    fn view_uuid_for_label(&self, view_label: &'static str) -> Uuid {
+        self.view_labels.get(view_label).unwrap().clone()
+    }
+}
+
 pub trait MessageHandlingView {
+    fn set_id(&mut self, new_id: &str);
+    fn get_id(&self) -> &str;
     fn handle_message(&mut self, message: &Message) -> crate::Result<Command<Message>>;
     fn data_container<'a>(&'a mut self, color_palette: ColorPalette) -> Container<'a, Message>;
 }
@@ -67,11 +93,9 @@ pub trait MessageHandlingView {
 pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
-    //MessageInteraction(Box<dyn MessageInteraction),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
-
 
 impl Application for Ajour {
     type Executor = iced::executor::Default;
@@ -80,10 +104,11 @@ impl Application for Ajour {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut ajour = Ajour::default();
-        ajour.views.insert(
+        ajour.create_views();
+        /*ajour.views.insert(
             MAIN_SETTINGS_VIEW,
             Box::new(element::settings::View::default()),
-        );
+        );*/
         (ajour, Command::batch(vec![]))
     }
 
@@ -162,7 +187,11 @@ impl Application for Ajour {
                 content = content.push(about_container)
             }
             Mode::Settings => {
-                if let Some(settings_container) = self.views.get_mut(MAIN_SETTINGS_VIEW) {
+                let view_uuid = self.view_uuid_for_label(MAIN_SETTINGS_VIEW);
+                if let Some(settings_container) = self
+                    .views
+                    .get_mut(&view_uuid)
+                {
                     content = content.push(settings_container.data_container(color_palette))
                 }
             }
@@ -284,6 +313,7 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Interaction {
+    ViewInteraction(String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
     //Expand(ExpandType),
