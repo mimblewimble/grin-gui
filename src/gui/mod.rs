@@ -15,19 +15,24 @@ use iced::{
 use image::ImageFormat;
 
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
+use ajour_core::theme::ColorPalette;
 use element::DEFAULT_PADDING;
+
+static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
+static MAIN_SETTINGS_VIEW: &'static str = "MAIN_SETTINGS_VIEW";
 
 pub struct Ajour {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
+    views: HashMap<&'static str, Box<dyn MessageHandlingView>>,
     about_state: element::about::StateContainer,
     menu_state: element::menu::StateContainer,
-    settings_state: element::settings::StateContainer,
-    settings_view: element::settings::View,
+    //settings_state: element::settings::StateContainer,
+    //settings_view: Arc<RwLock<element::settings::View>>,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -41,18 +46,20 @@ impl Default for Ajour {
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
+            views: HashMap::new(),
             about_state: Default::default(),
             menu_state: Default::default(),
-            settings_state: Default::default(),
-            settings_view: Default::default(),
+            //settings_state: Default::default(),
+            //settings_view: Arc::new(RwLock::new(Default::default())),
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
     }
 }
 
-pub trait MessageInteraction {
-    fn handle_message(&self, message: Message) -> crate::Result<Command<Message>>;
+pub trait MessageHandlingView {
+    fn handle_message(&mut self, message: &Message) -> crate::Result<Command<Message>>;
+    fn data_container<'a>(&'a mut self, color_palette: ColorPalette) -> Container<'a, Message>;
 }
 
 #[derive(Debug)]
@@ -60,12 +67,11 @@ pub trait MessageInteraction {
 pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
-    //MessageInteraction(&'a mut dyn MessageInteraction),
+    //MessageInteraction(Box<dyn MessageInteraction),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
 
-static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 impl Application for Ajour {
     type Executor = iced::executor::Default;
@@ -74,6 +80,10 @@ impl Application for Ajour {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut ajour = Ajour::default();
+        ajour.views.insert(
+            MAIN_SETTINGS_VIEW,
+            Box::new(element::settings::View::default()),
+        );
         (ajour, Command::batch(vec![]))
     }
 
@@ -150,13 +160,13 @@ impl Application for Ajour {
                 let about_container =
                     element::about::data_container(color_palette, &None, &mut self.about_state);
                 content = content.push(about_container)
-            },
-            Mode::Settings => {
-                let settings_container =
-                    self.settings_view.data_container(color_palette);
-                content = content.push(settings_container)
             }
-             _ => {}
+            Mode::Settings => {
+                if let Some(settings_container) = self.views.get_mut(MAIN_SETTINGS_VIEW) {
+                    content = content.push(settings_container.data_container(color_palette))
+                }
+            }
+            _ => {}
         }
         let container: Option<Container<Message>> = match self.mode {
             _ => None,

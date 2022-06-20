@@ -1,16 +1,17 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{style, Interaction, Message, MessageHandlingView},
     crate::localization::localized_string,
     ajour_core::{theme::ColorPalette, utility::Release},
     iced::{
-        button, scrollable, Alignment, Button, Column, Container, Element, Length, Row, Scrollable,
-        Space, Text,
+        button, scrollable, Alignment, Button, Column, Command, Container, Element, Length, Row,
+        Scrollable, Space, Text,
     },
     std::collections::HashMap,
     strfmt::strfmt,
 };
 
+#[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
     wallet_btn: button::State,
@@ -36,6 +37,7 @@ pub enum Mode {
     General,
 }
 
+#[derive(Debug, Clone)]
 pub struct View {
     pub state: StateContainer,
 }
@@ -53,15 +55,25 @@ impl View {
     pub fn new(state: StateContainer) -> Self {
         Self { state }
     }
+}
 
-    pub fn data_container<'a>(
-        &'a mut self,
-        color_palette: ColorPalette,
-    ) -> Container<'a, Message> {
-        let mut selection_row = Row::new().height(Length::Units(40)).push(Space::new(
-            Length::Units(DEFAULT_PADDING),
-            Length::Units(1),
-        ));
+impl MessageHandlingView for View {
+    fn handle_message(&mut self, message: &Message) -> crate::Result<iced::Command<Message>> {
+        match message {
+            Message::Interaction(Interaction::ModeSelectedSettings(mode)) => {
+                log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
+                // Set Mode
+                self.state.mode = mode.clone();
+            }
+            _ => {},
+        }
+        Ok(Command::none())
+    }
+
+    fn data_container<'a>(&'a mut self, color_palette: ColorPalette) -> Container<'a, Message> {
+        let mut selection_row = Row::new()
+            .height(Length::Units(40))
+            .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(1)));
 
         let mut wallet_button: Button<Interaction> = Button::new(
             &mut self.state.wallet_btn,
@@ -128,4 +140,3 @@ impl View {
         Container::new(selection_row).style(style::BrightForegroundContainer(color_palette))
     }
 }
-

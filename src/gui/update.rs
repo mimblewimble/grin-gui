@@ -13,6 +13,9 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Message>> {
+    for m in ajour.views.values_mut() {
+        m.handle_message(&message);
+    }
     match message {
         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
@@ -25,7 +28,7 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
         Message::Interaction(Interaction::ModeSelectedSettings(mode)) => {
             log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
             // Set Mode
-            ajour.settings_state.mode = mode;
+            //ajour.settings_state.mode = mode;
         }
         Message::Error(error) => {
             log_error(&error);
