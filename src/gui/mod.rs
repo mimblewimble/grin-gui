@@ -5,7 +5,6 @@ mod update;
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
 use ajour_core::{config::Config, theme::Theme};
-use uuid::Uuid;
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -23,37 +22,33 @@ use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
-static MAIN_MENU_VIEW: &str = "MAIN_MENU_VIEW";
-static MAIN_SETTINGS_VIEW: &str = "MAIN_SETTINGS_VIEW";
-
 pub struct Ajour {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
-    views: HashMap<Uuid, Box<dyn MessageHandlingView>>,
-    view_labels: HashMap<&'static str, Uuid>,
-    about_state: element::about::StateContainer,
     menu_state: element::menu::StateContainer,
+    settings_state: element::settings::StateContainer,
+    //menu_state: element::menu::StateContainer,
     //settings_state: element::settings::StateContainer,
     //settings_view: Arc<RwLock<element::settings::View>>,
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
 
-impl Default for Ajour {
+impl<'a> Default for Ajour {
     fn default() -> Self {
         let mut state = HashMap::new();
         state.insert(Mode::Catalog, State::Loading);
+
         Self {
             state,
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
-            views: HashMap::new(),
-            view_labels: HashMap::new(),
-            about_state: Default::default(),
             menu_state: Default::default(),
+            settings_state: Default::default(),
+
             //settings_state: Default::default(),
             //settings_view: Arc::new(RwLock::new(Default::default())),
             scale_state: Default::default(),
@@ -62,42 +57,9 @@ impl Default for Ajour {
     }
 }
 
-impl Ajour {
-    fn create_view(&mut self, view_label: &'static str, view: Box<dyn MessageHandlingView>) {
-        let uuid = Uuid::new_v4();
-        self.view_labels.insert(view_label, uuid);
-        self.views.insert(uuid, view);
-    }
-
-    fn view_uuid_for_label(
-        view_labels: &HashMap<&'static str, Uuid>,
-        view_label: &'static str,
-    ) -> Uuid {
-        view_labels.get(view_label).unwrap().clone()
-    }
-
-    fn get_view<'a>(
-        views: &'a mut HashMap<Uuid, Box<dyn MessageHandlingView>>,
-        view_uuid: &Uuid,
-    ) -> Option<&'a mut Box<dyn MessageHandlingView>> {
-        views.get_mut(view_uuid)
-    }
-
-    fn create_views(&mut self) {
-        self.create_view(MAIN_MENU_VIEW, Box::new(element::menu::View::default()));
-        self.create_view(
-            MAIN_SETTINGS_VIEW,
-            Box::new(element::settings::View::default()),
-        );
-    }
-
-}
-
 pub trait MessageHandlingView {
-    fn set_id(&mut self, new_id: &str);
-    fn get_id(&self) -> &str;
-    fn handle_message(&mut self, message: &Message) -> crate::Result<Command<Message>>;
-    fn data_container<'a>(&'a mut self, color_palette: ColorPalette) -> Container<'a, Message>;
+    fn get_id(&self) -> String;
+    fn handle_message(&mut self, message: &str) -> crate::Result<Command<Message>>;
 }
 
 #[derive(Debug)]
@@ -116,7 +78,6 @@ impl Application for Ajour {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut ajour = Ajour::default();
-        ajour.create_views();
         (ajour, Command::batch(vec![]))
     }
 
@@ -162,7 +123,6 @@ impl Application for Ajour {
     }
 
     fn view(&mut self) -> Element<Message> {
-        let view_labels = &self.view_labels;
         let color_palette = self
             .theme_state
             .themes
@@ -174,29 +134,31 @@ impl Application for Ajour {
             .palette;
 
         let mut content = Column::new();
-        let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_MENU_VIEW);
 
-        {
-            if let Some(menu_container) = Ajour::get_view(&mut self.views, &view_uuid) {
-                content = Column::new().push(menu_container.data_container(color_palette))
-            }
-        }
+        let menu_state = self.menu_state.clone();
+
+        content = Column::new().push(element::menu::data_container(
+            &mut self.menu_state,
+            color_palette,
+        ));
 
         // Spacer between menu and content.
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
-
-        match self.mode {
-            Mode::About => {
-                let about_container =
+        match menu_state.mode {
+            element::menu::Mode::About => {
+                /*let about_container =
                     element::about::data_container(color_palette, &None, &mut self.about_state);
-                content = content.push(about_container)
+                content = content.push(about_container)*/
             }
-            /*Mode::Settings => {
-                let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_SETTINGS_VIEW);
-                if let Some(settings_container) = Ajour::get_view(&mut self.views, &view_uuid) {
-                    content = content.push(settings_container.data_container(color_palette))
-                }
-            }*/
+            element::menu::Mode::Settings => {
+                content = content.push(element::settings::data_container(
+                    &mut self.settings_state,
+                    color_palette,
+                ))
+                /*if let Some(settings_container) = views.get_mut(settings_view_index) {
+                    content = content.push(settings_container.view.data_container(color_palette))
+                }*/
+            }
             _ => {}
         }
         let container: Option<Container<Message>> = match self.mode {
@@ -315,7 +277,10 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Interaction {
-    ViewInteraction(String),
+    /// String representing view ID and enum message (specific to that view)
+    MenuViewInteraction(element::menu::LocalViewInteraction),
+    SettingsViewInteraction(element::settings::LocalViewInteraction),
+    ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
     //Expand(ExpandType),

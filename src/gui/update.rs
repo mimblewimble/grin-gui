@@ -1,10 +1,10 @@
 use {
     super::{Ajour, Interaction, Message, Mode},
-    crate::{log_error, Result},
+    crate::{log_error, Result, gui::element},
     ajour_core::fs::PersistentData,
+    iced::Command,
     //ajour_widgets::header::ResizeEvent,
     std::path::PathBuf,
-    iced::Command,
 };
 
 #[cfg(target_os = "windows")]
@@ -13,11 +13,14 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Message>> {
-    for m in ajour.views.values_mut() {
-        m.handle_message(&message);
-    }
     match message {
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
+           element::menu::handle_message(&mut ajour.menu_state, local_interaction);
+        }
+        Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
+           element::settings::handle_message(&mut ajour.settings_state, local_interaction);
+        }
+         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             ajour.mode = mode;
