@@ -66,8 +66,7 @@ impl Ajour {
     fn create_view(&mut self, view_label: &'static str, view: Box<dyn MessageHandlingView>) {
         let uuid = Uuid::new_v4();
         self.view_labels.insert(view_label, uuid);
-        self.views
-            .insert(uuid, Box::new(element::settings::View::default()));
+        self.views.insert(uuid, view);
     }
 
     fn view_uuid_for_label(
@@ -85,11 +84,11 @@ impl Ajour {
     }
 
     fn create_views(&mut self) {
+        self.create_view(MAIN_MENU_VIEW, Box::new(element::menu::View::default()));
         self.create_view(
             MAIN_SETTINGS_VIEW,
             Box::new(element::settings::View::default()),
         );
-        self.create_view(MAIN_MENU_VIEW, Box::new(element::menu::View::default()));
     }
 
 }
@@ -118,10 +117,6 @@ impl Application for Ajour {
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut ajour = Ajour::default();
         ajour.create_views();
-        /*ajour.views.insert(
-            MAIN_SETTINGS_VIEW,
-            Box::new(element::settings::View::default()),
-        );*/
         (ajour, Command::batch(vec![]))
     }
 
@@ -182,8 +177,7 @@ impl Application for Ajour {
         let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_MENU_VIEW);
 
         {
-            let views = &mut self.views;
-            if let Some(menu_container) = Ajour::get_view(views, &view_uuid) {
+            if let Some(menu_container) = Ajour::get_view(&mut self.views, &view_uuid) {
                 content = Column::new().push(menu_container.data_container(color_palette))
             }
         }
@@ -197,13 +191,12 @@ impl Application for Ajour {
                     element::about::data_container(color_palette, &None, &mut self.about_state);
                 content = content.push(about_container)
             }
-            Mode::Settings => {
-                let views = &mut self.views;
+            /*Mode::Settings => {
                 let view_uuid = Ajour::view_uuid_for_label(view_labels, MAIN_SETTINGS_VIEW);
-                if let Some(settings_container) = Ajour::get_view(views, &view_uuid) {
+                if let Some(settings_container) = Ajour::get_view(&mut self.views, &view_uuid) {
                     content = content.push(settings_container.data_container(color_palette))
                 }
-            }
+            }*/
             _ => {}
         }
         let container: Option<Container<Message>> = match self.mode {
