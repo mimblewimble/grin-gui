@@ -1,10 +1,12 @@
+pub mod wallet;
+
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     ajour_core::{theme::ColorPalette, utility::Release},
     iced::{
-        button, Alignment, Button, Command, Container, Element, Length, Row,
+        button, Alignment, Button, Command, Container, Column, Element, Length, Row,
         Space, Text,
     },
     serde::{Deserialize, Serialize},
@@ -56,8 +58,10 @@ pub fn handle_message(state: &mut StateContainer, message: LocalViewInteraction)
 
 pub fn data_container<'a>(
     state: &'a mut StateContainer,
+    wallet_settings_state: &'a mut wallet::StateContainer,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
+
     let mut selection_row = Row::new()
         .height(Length::Units(40))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(1)));
@@ -120,9 +124,21 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Fill, Length::Units(0)))
         .push(segmented_mode_control_container)
         .push(Space::new(
-            Length::Units(DEFAULT_PADDING + 4),
+            Length::Units(DEFAULT_PADDING + 5),
             Length::Units(0),
         ))
         .align_items(Alignment::Center);
-    Container::new(selection_row).style(style::BrightForegroundContainer(color_palette))
+
+    // Wrapper for submenu + actual content
+    let mut wrapper_column = Column::new().height(Length::Fill);
+    wrapper_column = wrapper_column.push(selection_row);
+    // Submenu Area + actual content
+    match state.mode {
+        Mode::Wallet => {
+            wrapper_column = wrapper_column.push(wallet::data_container(wallet_settings_state, color_palette))
+        },
+        _ => {}
+    }
+
+    Container::new(wrapper_column).style(style::BrightForegroundContainer(color_palette))
 }

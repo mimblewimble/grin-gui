@@ -20,7 +20,10 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
         Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
            element::settings::handle_message(&mut ajour.settings_state, local_interaction);
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::WalletSettingsViewInteraction(local_interaction)) => {
+           element::settings::wallet::handle_message(&mut ajour.wallet_settings_state, local_interaction);
+        }
+          Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             ajour.mode = mode;

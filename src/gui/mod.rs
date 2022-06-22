@@ -29,6 +29,7 @@ pub struct Ajour {
     config: Config,
     menu_state: element::menu::StateContainer,
     settings_state: element::settings::StateContainer,
+    wallet_settings_state: element::settings::wallet::StateContainer,
     //menu_state: element::menu::StateContainer,
     //settings_state: element::settings::StateContainer,
     //settings_view: Arc<RwLock<element::settings::View>>,
@@ -48,7 +49,7 @@ impl<'a> Default for Ajour {
             config: Config::default(),
             menu_state: Default::default(),
             settings_state: Default::default(),
-
+            wallet_settings_state: Default::default(),
             //settings_state: Default::default(),
             //settings_view: Arc::new(RwLock::new(Default::default())),
             scale_state: Default::default(),
@@ -153,6 +154,7 @@ impl Application for Ajour {
             element::menu::Mode::Settings => {
                 content = content.push(element::settings::data_container(
                     &mut self.settings_state,
+                    &mut self.wallet_settings_state,
                     color_palette,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
@@ -280,6 +282,7 @@ pub enum Interaction {
     /// String representing view ID and enum message (specific to that view)
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
+    WalletSettingsViewInteraction(element::settings::wallet::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
