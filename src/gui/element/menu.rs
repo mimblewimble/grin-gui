@@ -2,7 +2,7 @@ use isahc::http::version;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message, MessageHandlingView},
+    crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
     ajour_core::theme::ColorPalette,

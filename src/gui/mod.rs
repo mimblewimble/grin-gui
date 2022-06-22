@@ -27,12 +27,18 @@ pub struct Ajour {
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
+    /// Main menu state
     menu_state: element::menu::StateContainer,
+
+    /// Settings screen + sub-screens states
     settings_state: element::settings::StateContainer,
     wallet_settings_state: element::settings::wallet::StateContainer,
-    //menu_state: element::menu::StateContainer,
-    //settings_state: element::settings::StateContainer,
-    //settings_view: Arc<RwLock<element::settings::View>>,
+    node_settings_state: element::settings::node::StateContainer,
+    general_settings_state: element::settings::general::StateContainer,
+
+    /// About screen state
+    about_state: element::about::StateContainer,
+
     scale_state: ScaleState,
     theme_state: ThemeState,
 }
@@ -50,17 +56,14 @@ impl<'a> Default for Ajour {
             menu_state: Default::default(),
             settings_state: Default::default(),
             wallet_settings_state: Default::default(),
-            //settings_state: Default::default(),
-            //settings_view: Arc::new(RwLock::new(Default::default())),
+            node_settings_state: Default::default(),
+            general_settings_state: Default::default(),
+            about_state: Default::default(),
+
             scale_state: Default::default(),
             theme_state: Default::default(),
         }
     }
-}
-
-pub trait MessageHandlingView {
-    fn get_id(&self) -> String;
-    fn handle_message(&mut self, message: &str) -> crate::Result<Command<Message>>;
 }
 
 #[derive(Debug)]
@@ -68,6 +71,7 @@ pub trait MessageHandlingView {
 pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
+    GeneralSettingsViewThemeSelected(String),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
@@ -147,14 +151,16 @@ impl Application for Ajour {
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
         match menu_state.mode {
             element::menu::Mode::About => {
-                /*let about_container =
+                let about_container =
                     element::about::data_container(color_palette, &None, &mut self.about_state);
-                content = content.push(about_container)*/
+                content = content.push(about_container)
             }
             element::menu::Mode::Settings => {
                 content = content.push(element::settings::data_container(
                     &mut self.settings_state,
                     &mut self.wallet_settings_state,
+                    &mut self.node_settings_state,
+                    &mut self.general_settings_state,
                     color_palette,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
@@ -283,6 +289,8 @@ pub enum Interaction {
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
     WalletSettingsViewInteraction(element::settings::wallet::LocalViewInteraction),
+    NodeSettingsViewInteraction(element::settings::node::LocalViewInteraction),
+    GeneralSettingsViewInteraction(element::settings::general::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

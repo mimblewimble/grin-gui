@@ -102,6 +102,8 @@
     "channel-alpha": "Alpha",
     "weakaura-update-available": "Update verfügbar",
     "settings-general": "Allgemein",
+    "settings-wallet": "Wallet Settings",
+    "settings-node": "Node Settings",
     "catalog-results": "Ergebnisse: {number}",
     "error-fetch-changelog": "Changelog abruf fehlgeschlagen",
     "error-parse-addons": "Fehler beim parsen des Addons",

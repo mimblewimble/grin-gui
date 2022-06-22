@@ -1,6 +1,6 @@
 use {
     super::{Ajour, Interaction, Message, Mode},
-    crate::{log_error, Result, gui::element},
+    crate::{gui::element, log_error, Result},
     ajour_core::fs::PersistentData,
     iced::Command,
     //ajour_widgets::header::ResizeEvent,
@@ -15,15 +15,39 @@ use std::sync::atomic::Ordering;
 pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Message>> {
     match message {
         Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
-           element::menu::handle_message(&mut ajour.menu_state, local_interaction);
+            element::menu::handle_message(&mut ajour.menu_state, local_interaction);
         }
         Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
-           element::settings::handle_message(&mut ajour.settings_state, local_interaction);
+            element::settings::handle_message(&mut ajour.settings_state, local_interaction);
         }
+        // Wallet Settings
         Message::Interaction(Interaction::WalletSettingsViewInteraction(local_interaction)) => {
-           element::settings::wallet::handle_message(&mut ajour.wallet_settings_state, local_interaction);
+            element::settings::wallet::handle_message(
+                &mut ajour.wallet_settings_state,
+                local_interaction,
+            );
         }
-          Message::Interaction(Interaction::ModeSelected(mode)) => {
+        // Node Settings
+        Message::Interaction(Interaction::NodeSettingsViewInteraction(local_interaction)) => {
+            element::settings::node::handle_message(
+                &mut ajour.node_settings_state,
+                local_interaction,
+            );
+        }
+        // General Settings
+        Message::Interaction(Interaction::GeneralSettingsViewInteraction(local_interaction)) => {
+            element::settings::general::handle_message(
+                &mut ajour.general_settings_state,
+                local_interaction,
+            );
+        }
+        Message::GeneralSettingsViewThemeSelected(selected) => {
+            element::settings::general::handle_message(
+                &mut ajour.general_settings_state,
+                element::settings::general::LocalViewInteraction::ThemeSelected(selected),
+            );
+        }
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             ajour.mode = mode;

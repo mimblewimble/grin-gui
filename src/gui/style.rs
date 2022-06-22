@@ -669,7 +669,7 @@ impl scrollable::StyleSheet for Scrollable {
     }
 }
 
-/*pub struct PickList(pub ColorPalette);
+pub struct PickList(pub ColorPalette);
 impl pick_list::StyleSheet for PickList {
     fn menu(&self) -> pick_list::Menu {
         pick_list::Menu {
@@ -696,6 +696,10 @@ impl pick_list::StyleSheet for PickList {
             },
             border_radius: 2.0,
             icon_size: 0.5,
+            placeholder_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            },
         }
     }
 
@@ -732,7 +736,11 @@ impl pick_list::StyleSheet for SecondaryPickList {
             border_color: self.0.base.background,
             border_radius: 2.0,
             icon_size: 0.5,
-        }
+            placeholder_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            },
+         }
     }
 
     fn hovered(&self) -> pick_list::Style {
@@ -746,7 +754,7 @@ impl pick_list::StyleSheet for SecondaryPickList {
             ..active
         }
     }
-}*/
+}
 
 /*pub struct MenuPickList(pub ColorPalette);
 impl pick_list::StyleSheet for MenuPickList {
