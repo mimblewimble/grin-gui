@@ -94,7 +94,7 @@ pub fn handle_message(
     state: &mut StateContainer,
     config: &mut Config,
     message: LocalViewInteraction,
-) -> crate::Result<Command<Message>> {
+) {
     match message {
         LocalViewInteraction::ThemeSelected(theme_name) => {
             log::debug!("LocalViewInteraction::ThemeSelected({:?})", &theme_name);
@@ -105,7 +105,6 @@ pub fn handle_message(
             let _ = config.save();
         }
     }
-    Ok(Command::none())
 }
 
 pub fn data_container<'a>(

@@ -47,15 +47,14 @@ pub enum Mode {
     General,
 }
 
-pub fn handle_message(state: &mut StateContainer, message: LocalViewInteraction) -> crate::Result<Command<Message>> {
+pub fn handle_message(state: &mut StateContainer, message: LocalViewInteraction) {
     match message {
         LocalViewInteraction::SelectMode(mode) => {
             log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
             // Set Mode
-            state.mode = mode
+            state.mode = mode;
         }
     }
-    Ok(Command::none())
 }
 
 pub fn data_container<'a>(
