@@ -3,7 +3,9 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     ajour_core::{
+        config::Config,
         theme::{ColorPalette, Theme},
+        fs::PersistentData,
         utility::Release,
     },
     iced::{
@@ -90,13 +92,17 @@ pub enum Mode {
 
 pub fn handle_message(
     state: &mut StateContainer,
+    config: &mut Config,
     message: LocalViewInteraction,
 ) -> crate::Result<Command<Message>> {
     match message {
-        LocalViewInteraction::ThemeSelected(value) => {
-            log::debug!("LocalViewInteraction::ThemeSelected");
-            // Set Mode
-            //state.mode = mode
+        LocalViewInteraction::ThemeSelected(theme_name) => {
+            log::debug!("LocalViewInteraction::ThemeSelected({:?})", &theme_name);
+
+            state.theme_state.current_theme_name = theme_name.clone();
+
+            config.theme = Some(theme_name);
+            let _ = config.save();
         }
     }
     Ok(Command::none())

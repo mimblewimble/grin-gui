@@ -38,12 +38,14 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
         Message::Interaction(Interaction::GeneralSettingsViewInteraction(local_interaction)) => {
             element::settings::general::handle_message(
                 &mut ajour.general_settings_state,
+                &mut ajour.config,
                 local_interaction,
             );
         }
         Message::GeneralSettingsViewThemeSelected(selected) => {
             element::settings::general::handle_message(
                 &mut ajour.general_settings_state,
+                &mut ajour.config,
                 element::settings::general::LocalViewInteraction::ThemeSelected(selected),
             );
         }

@@ -1,6 +1,5 @@
 use super::{config_dir, FilesystemError, Result};
 use serde::{de::DeserializeOwned, Serialize};
-
 use std::fs;
 use std::path::PathBuf;
 

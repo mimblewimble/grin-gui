@@ -1,6 +1,6 @@
-pub mod wallet;
-pub mod node;
 pub mod general;
+pub mod node;
+pub mod wallet;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
