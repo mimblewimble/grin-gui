@@ -69,8 +69,8 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
         Message::RuntimeEvent(iced_native::Event::Window(
             iced_native::window::Event::Resized { width, height },
         )) => {
-            let width = (width as f64 * ajour.scale_state.scale) as u32;
-            let height = (height as f64 * ajour.scale_state.scale) as u32;
+            let width = (width as f64 * ajour.general_settings_state.scale_state.scale) as u32;
+            let height = (height as f64 * ajour.general_settings_state.scale_state.scale) as u32;
 
             // Minimizing Ajour on Windows will call this function with 0, 0.
             // We don't want to save that in config, because then it will start with zero size.

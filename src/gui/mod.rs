@@ -4,7 +4,7 @@ mod update;
 
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
-use ajour_core::{config::Config, theme::Theme};
+use ajour_core::{config::Config, fs::PersistentData, theme::Theme};
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -38,9 +38,6 @@ pub struct Ajour {
 
     /// About screen state
     about_state: element::about::StateContainer,
-
-    scale_state: ScaleState,
-    theme_state: ThemeState,
 }
 
 impl<'a> Default for Ajour {
@@ -59,9 +56,6 @@ impl<'a> Default for Ajour {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-
-            scale_state: Default::default(),
-            theme_state: Default::default(),
         }
     }
 }
@@ -83,6 +77,7 @@ impl Application for Ajour {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut ajour = Ajour::default();
+        apply_config(&mut ajour, config);
         (ajour, Command::batch(vec![]))
     }
 
@@ -91,7 +86,7 @@ impl Application for Ajour {
     }
 
     fn scale_factor(&self) -> f64 {
-        self.scale_state.scale
+        self.general_settings_state.scale_state.scale
     }
 
     #[cfg(target_os = "windows")]
@@ -129,10 +124,11 @@ impl Application for Ajour {
 
     fn view(&mut self) -> Element<Message> {
         let color_palette = self
+            .general_settings_state
             .theme_state
             .themes
             .iter()
-            .find(|(name, _)| name == &self.theme_state.current_theme_name)
+            .find(|(name, _)| name == &self.general_settings_state.theme_state.current_theme_name)
             .as_ref()
             .unwrap_or(&&("Dark".to_string(), Theme::dark()))
             .1
@@ -344,18 +340,260 @@ impl Default for ThemeState {
     }
 }
 
-pub struct ScaleState {
-    scale: f64,
-    up_btn_state: button::State,
-    down_btn_state: button::State,
-}
-
-impl Default for ScaleState {
-    fn default() -> Self {
-        ScaleState {
-            scale: 1.0,
-            up_btn_state: Default::default(),
-            down_btn_state: Default::default(),
+fn apply_config(ajour: &mut Ajour, mut config: Config) {
+    // Set column widths from the config
+    /*match &config.column_config {
+        ColumnConfig::V1 {
+            local_version_width,
+            remote_version_width,
+            status_width,
+        } => {
+            ajour
+                .header_state
+                .columns
+                .get_mut(1)
+                .as_mut()
+                .unwrap()
+                .width = Length::Units(*local_version_width);
+            ajour
+                .header_state
+                .columns
+                .get_mut(2)
+                .as_mut()
+                .unwrap()
+                .width = Length::Units(*remote_version_width);
+            ajour
+                .header_state
+                .columns
+                .get_mut(3)
+                .as_mut()
+                .unwrap()
+                .width = Length::Units(*status_width);
         }
-    }
+        ColumnConfig::V2 { columns } => {
+            ajour.header_state.columns.iter_mut().for_each(|a| {
+                if let Some((idx, column)) = columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some((idx, column))
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    a.width = column.width.map_or(Length::Fill, Length::Units);
+                    a.hidden = column.hidden;
+                    a.order = idx;
+                }
+            });
+
+            ajour.column_settings.columns.iter_mut().for_each(|a| {
+                if let Some(idx) = columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some(idx)
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    a.order = idx;
+                }
+            });
+
+            // My Addons
+            ajour.header_state.columns.sort_by_key(|c| c.order);
+            ajour.column_settings.columns.sort_by_key(|c| c.order);
+        }
+        ColumnConfig::V3 {
+            my_addons_columns,
+            catalog_columns,
+            aura_columns,
+        } => {
+            ajour.header_state.columns.iter_mut().for_each(|a| {
+                if let Some((idx, column)) = my_addons_columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some((idx, column))
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    // Always force "Title" column as Length::Fill
+                    //
+                    // Shouldn't be an issue here, as it was for catalog column fix
+                    // below, but will cover things in case anyone accidently manually
+                    // modifies their config and sets a fixed width on this column.
+                    a.width = if a.key == ColumnKey::Title {
+                        Length::Fill
+                    } else {
+                        column.width.map_or(Length::Fill, Length::Units)
+                    };
+
+                    a.hidden = column.hidden;
+                    a.order = idx;
+                }
+            });
+
+            ajour.column_settings.columns.iter_mut().for_each(|a| {
+                if let Some(idx) = my_addons_columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some(idx)
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    a.order = idx;
+                }
+            });
+
+            ajour
+                .catalog_column_settings
+                .columns
+                .iter_mut()
+                .for_each(|a| {
+                    if let Some(idx) = catalog_columns
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(idx, column)| {
+                            if column.key == a.key.as_string() {
+                                Some(idx)
+                            } else {
+                                None
+                            }
+                        })
+                        .next()
+                    {
+                        a.order = idx;
+                    }
+                });
+
+            ajour.catalog_header_state.columns.iter_mut().for_each(|a| {
+                if let Some((idx, column)) = catalog_columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some((idx, column))
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    // Always force "Title" column as Length::Fill
+                    //
+                    // An older version of ajour used a different column as the fill
+                    // column and some users have migration issues when updating to
+                    // a newer version, causing NO columns to be set as Fill and
+                    // making resizing columns work incorrectly
+                    a.width = if a.key == CatalogColumnKey::Title {
+                        Length::Fill
+                    } else {
+                        column.width.map_or(Length::Fill, Length::Units)
+                    };
+
+                    a.hidden = column.hidden;
+                    a.order = idx;
+                }
+            });
+
+            ajour.aura_header_state.columns.iter_mut().for_each(|a| {
+                if let Some((_idx, column)) = aura_columns
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, column)| {
+                        if column.key == a.key.as_string() {
+                            Some((idx, column))
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    // Always force "Title" column as Length::Fill
+                    //
+                    // An older version of ajour used a different column as the fill
+                    // column and some users have migration issues when updating to
+                    // a newer version, causing NO columns to be set as Fill and
+                    // making resizing columns work incorrectly
+                    a.width = if a.key == AuraColumnKey::Title {
+                        Length::Fill
+                    } else {
+                        column.width.map_or(Length::Fill, Length::Units)
+                    };
+                }
+            });
+
+            // My Addons
+            ajour.header_state.columns.sort_by_key(|c| c.order);
+            ajour.column_settings.columns.sort_by_key(|c| c.order);
+
+            // Catalog
+            ajour.catalog_header_state.columns.sort_by_key(|c| c.order);
+            ajour
+                .catalog_column_settings
+                .columns
+                .sort_by_key(|c| c.order);
+
+            // No sorting on Aura columns currently
+        }
+    }*/
+
+    // Use theme from config. Set to "Dark" if not defined.
+    ajour.general_settings_state.theme_state.current_theme_name = config.theme.as_deref().unwrap_or("Dark").to_string();
+
+    // Use scale from config. Set to 1.0 if not defined.
+    ajour.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);
+
+    // Migration for the new TBC client. Link ClassicEra flavor to `_classic_era_` instead of
+    // `_classic_`
+    /*{
+        if let Some(classic_era_dir) = config.wow.directories.get(&Flavor::ClassicEra) {
+            if classic_era_dir.ends_with("_classic_") {
+                if let Some(parent) = classic_era_dir.parent() {
+                    let new_path = parent.join("_classic_era_");
+
+                    config.wow.directories.insert(Flavor::ClassicEra, new_path);
+                }
+            }
+        }
+    }*/
+
+    // Set the inital mode flavor
+    //ajour.mode = Mode::MyAddons(config.wow.flavor);
+
+    ajour.config = config;
+
+    // @see (casperstorm): Migration from single World of Warcraft directory to multiple directories.
+    // This is essentially deprecrating `ajour.config.wow.directory`.
+    /*if ajour.config.wow.directory.is_some() {
+        for flavor in Flavor::ALL.iter() {
+            let path = ajour.config.wow.directory.as_ref().unwrap();
+            let flavor_path = ajour.config.get_flavor_directory_for_flavor(flavor, path);
+            if flavor_path.exists() {
+                ajour.config.wow.directories.insert(*flavor, flavor_path);
+            }
+        }
+
+        // Removing `directory`, so we don't end up here again.
+        ajour.config.wow.directory = None;
+    }*/
+
+    let _ = &ajour.config.save();
 }

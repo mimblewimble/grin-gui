@@ -19,8 +19,8 @@ use {
 
 #[derive(Debug, Clone)]
 pub struct StateContainer {
-    theme_state: ThemeState,
-    scale_state: ScaleState,
+    pub theme_state: ThemeState,
+    pub scale_state: ScaleState,
     scrollable_state: scrollable::State,
 }
 
@@ -36,8 +36,8 @@ impl Default for StateContainer {
 
 #[derive(Debug, Clone)]
 pub struct ThemeState {
-    themes: Vec<(String, Theme)>,
-    current_theme_name: String,
+    pub themes: Vec<(String, Theme)>,
+    pub current_theme_name: String,
     pick_list_state: pick_list::State<String>,
     input_state: text_input::State,
     input_url: String,
@@ -63,7 +63,7 @@ impl Default for ThemeState {
 
 #[derive(Debug, Clone)]
 pub struct ScaleState {
-    scale: f64,
+    pub scale: f64,
     up_btn_state: button::State,
     down_btn_state: button::State,
 }
