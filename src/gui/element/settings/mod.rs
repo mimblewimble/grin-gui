@@ -6,10 +6,9 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    ajour_core::{theme::ColorPalette, utility::Release},
+    ajour_core::{config::Config, theme::ColorPalette, utility::Release},
     iced::{
-        button, Alignment, Button, Command, Container, Column, Element, Length, Row,
-        Space, Text,
+        button, Alignment, Button, Column, Command, Container, Element, Length, Row, Space, Text,
     },
     serde::{Deserialize, Serialize},
     serde_json,
@@ -59,28 +58,20 @@ pub fn handle_message(state: &mut StateContainer, message: LocalViewInteraction)
 
 pub fn data_container<'a>(
     state: &'a mut StateContainer,
+    config: &'a mut Config,
     wallet_settings_state: &'a mut wallet::StateContainer,
     node_settings_state: &'a mut node::StateContainer,
     general_settings_state: &'a mut general::StateContainer,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
-
-    let title_string = 
-    match state.mode {
-        Mode::Wallet => {
-            localized_string("settings-wallet")
-        },
-        Mode::Node => {
-            localized_string("settings-node")
-        },
-        Mode::General => {
-            localized_string("settings-general")
-        },
+    let title_string = match state.mode {
+        Mode::Wallet => localized_string("settings-wallet"),
+        Mode::Node => localized_string("settings-node"),
+        Mode::General => localized_string("settings-general"),
     };
 
     // Submenu title to appear of left side of panel
-    let general_settings_title =
-        Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
+    let general_settings_title = Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
     let general_settings_title_container = Container::new(general_settings_title)
         .style(style::BrightBackgroundContainer(color_palette));
 
@@ -92,19 +83,25 @@ pub fn data_container<'a>(
         &mut state.wallet_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::SettingsViewInteraction(LocalViewInteraction::SelectMode(Mode::Wallet)));
+    .on_press(Interaction::SettingsViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::Wallet),
+    ));
 
     let mut node_button: Button<Interaction> = Button::new(
         &mut state.node_btn,
         Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::SettingsViewInteraction(LocalViewInteraction::SelectMode(Mode::Node)));
+    .on_press(Interaction::SettingsViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::Node),
+    ));
 
     let mut general_button: Button<Interaction> = Button::new(
         &mut state.general_btn,
         Text::new(localized_string("general")).size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::SettingsViewInteraction(LocalViewInteraction::SelectMode(Mode::General)));
+    .on_press(Interaction::SettingsViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::General),
+    ));
 
     match state.mode {
         Mode::Wallet => {
@@ -142,7 +139,6 @@ pub fn data_container<'a>(
         .padding(1)
         .style(style::SegmentedContainer(color_palette));
 
-
     selection_row = selection_row
         .push(Space::new(Length::Units(10), Length::Units(0)))
         .push(general_settings_title_container)
@@ -160,14 +156,20 @@ pub fn data_container<'a>(
     // Submenu Area + actual content
     match state.mode {
         Mode::Wallet => {
-            wrapper_column = wrapper_column.push(wallet::data_container(wallet_settings_state, color_palette))
-        },
+            wrapper_column =
+                wrapper_column.push(wallet::data_container(wallet_settings_state, color_palette))
+        }
         Mode::Node => {
-            wrapper_column = wrapper_column.push(node::data_container(node_settings_state, color_palette))
-        },
+            wrapper_column =
+                wrapper_column.push(node::data_container(node_settings_state, color_palette))
+        }
         Mode::General => {
-            wrapper_column = wrapper_column.push(general::data_container(general_settings_state, color_palette))
-        },
+            wrapper_column = wrapper_column.push(general::data_container(
+                general_settings_state,
+                config,
+                color_palette,
+            ))
+        }
     }
 
     Container::new(wrapper_column).style(style::NormalBackgroundContainer(color_palette))

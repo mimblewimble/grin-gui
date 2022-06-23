@@ -49,7 +49,14 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
                 element::settings::general::LocalViewInteraction::ThemeSelected(selected),
             );
         }
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::GeneralSettingsViewLanguageSelected(language) => {
+            element::settings::general::handle_message(
+                &mut ajour.general_settings_state,
+                &mut ajour.config,
+                element::settings::general::LocalViewInteraction::LanguageSelected(language),
+            );
+        }
+         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             ajour.mode = mode;

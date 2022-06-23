@@ -1,11 +1,11 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
-    crate::localization::localized_string,
+    crate::localization::{localized_string, LANG},
     ajour_core::{
-        config::Config,
-        theme::{ColorPalette, Theme},
+        config::{Config, Language},
         fs::PersistentData,
+        theme::{ColorPalette, Theme},
         utility::Release,
     },
     iced::{
@@ -22,6 +22,7 @@ pub struct StateContainer {
     pub theme_state: ThemeState,
     pub scale_state: ScaleState,
     scrollable_state: scrollable::State,
+    localization_picklist_state: pick_list::State<Language>,
 }
 
 impl Default for StateContainer {
@@ -30,6 +31,7 @@ impl Default for StateContainer {
             theme_state: Default::default(),
             scrollable_state: Default::default(),
             scale_state: Default::default(),
+            localization_picklist_state: Default::default(),
         }
     }
 }
@@ -81,6 +83,9 @@ impl Default for ScaleState {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum LocalViewInteraction {
     ThemeSelected(String),
+    LanguageSelected(Language),
+    ScaleUp,
+    ScaleDown,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -97,18 +102,62 @@ pub fn handle_message(
 ) {
     match message {
         LocalViewInteraction::ThemeSelected(theme_name) => {
-            log::debug!("LocalViewInteraction::ThemeSelected({:?})", &theme_name);
+            log::debug!(
+                "settings::general::LocalViewInteraction::ThemeSelected({:?})",
+                &theme_name
+            );
 
             state.theme_state.current_theme_name = theme_name.clone();
 
             config.theme = Some(theme_name);
             let _ = config.save();
         }
+        LocalViewInteraction::LanguageSelected(lang) => {
+            log::debug!(
+                "settings::general::LocalViewInteraction::LanguageSelected({:?})",
+                &lang
+            );
+            // Update config.
+            config.language = lang;
+            let _ = config.save();
+
+            // Update global LANG refcell.
+            *LANG.get().expect("LANG not set").write().unwrap() = lang.language_code();
+        }
+        LocalViewInteraction::ScaleUp => {
+            let prev_scale = state.scale_state.scale;
+
+            state.scale_state.scale = ((prev_scale + 0.1).min(2.0) * 10.0).round() / 10.0;
+
+            config.scale = Some(state.scale_state.scale);
+            let _ = config.save();
+
+            log::debug!(
+                "settings::general::LocalViewInteraction::ScaleUp({} -> {})",
+                prev_scale,
+                state.scale_state.scale
+            );
+        }
+        LocalViewInteraction::ScaleDown => {
+            let prev_scale = state.scale_state.scale;
+
+            state.scale_state.scale = ((prev_scale - 0.1).max(0.5) * 10.0).round() / 10.0;
+
+            config.scale = Some(state.scale_state.scale);
+            let _ = config.save();
+
+            log::debug!(
+                "settings::general::LocalViewInteraction::ScaleDown({} -> {})",
+                prev_scale,
+                state.scale_state.scale
+            );
+        }
     }
 }
 
 pub fn data_container<'a>(
     state: &'a mut StateContainer,
+    config: &mut Config,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let mut scrollable = Scrollable::new(&mut state.scrollable_state)
@@ -119,25 +168,30 @@ pub fn data_container<'a>(
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
             .style(style::NormalBackgroundContainer(color_palette));
-        /*let pick_list: Element<_> = PickList::new(
-            localization_picklist_state,
+        let pick_list: Element<_> = PickList::new(
+            &mut state.localization_picklist_state,
             &Language::ALL[..],
             Some(config.language),
-            Interaction::PickLocalizationLanguage,
+            Message::GeneralSettingsViewLanguageSelected,
         )
         .text_size(14)
         .width(Length::Units(120))
         .style(style::PickList(color_palette))
         .into();
-        let container = Container::new(pick_list.map(Message::Interaction))
-            .center_y()
-            .width(Length::Units(120))
-            .style(style::NormalForegroundContainer(color_palette));*/
+        let container = Container::new(pick_list.map(move |message: Message| match message {
+            Message::GeneralSettingsViewLanguageSelected(l) => {
+                Message::GeneralSettingsViewLanguageSelected(l)
+            }
+            _ => Message::None(()),
+        }))
+        .center_y()
+        .width(Length::Units(120))
+        .style(style::NormalForegroundContainer(color_palette));
 
         Column::new()
             .push(title)
             .push(Space::new(Length::Units(0), Length::Units(5)))
-        //.push(container)
+            .push(container)
     };
 
     let theme_column = {
@@ -186,7 +240,9 @@ pub fn data_container<'a>(
             Text::new("  -  ").size(DEFAULT_FONT_SIZE),
         )
         .style(style::DefaultBoxedButton(color_palette))
-        .on_press(Interaction::ScaleDown)
+        .on_press(Interaction::GeneralSettingsViewInteraction(
+            LocalViewInteraction::ScaleDown,
+        ))
         .into();
 
         let scale_up_button: Element<Interaction> = Button::new(
@@ -194,7 +250,9 @@ pub fn data_container<'a>(
             Text::new("  +  ").size(DEFAULT_FONT_SIZE),
         )
         .style(style::DefaultBoxedButton(color_palette))
-        .on_press(Interaction::ScaleUp)
+        .on_press(Interaction::GeneralSettingsViewInteraction(
+            LocalViewInteraction::ScaleUp,
+        ))
         .into();
 
         let current_scale_text = Text::new(format!("  {:.2}  ", state.scale_state.scale))

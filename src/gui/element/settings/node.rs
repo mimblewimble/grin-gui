@@ -2,10 +2,10 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    ajour_core::{theme::ColorPalette, utility::Release},
+    ajour_core::{config::Language, theme::ColorPalette, utility::Release},
     iced::{
-        button, scrollable, Alignment, Button, Command, Column, Container, Element, Length, Row, Scrollable, Space,
-        Text,
+        button, pick_list, scrollable, Alignment, Button, Column, Command, Container, Element,
+        Length, PickList, Row, Scrollable, Space, Text,
     },
     serde::{Deserialize, Serialize},
     serde_json,
@@ -39,10 +39,7 @@ pub enum Mode {
     General,
 }
 
-pub fn handle_message(
-    state: &mut StateContainer,
-    message: LocalViewInteraction,
-) {
+pub fn handle_message(state: &mut StateContainer, message: LocalViewInteraction) {
     match message {
         LocalViewInteraction::SelectMode(mode) => {
             log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
@@ -65,7 +62,7 @@ pub fn data_container<'a>(
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
             .style(style::NormalBackgroundContainer(color_palette));
         /*let pick_list: Element<_> = PickList::new(
-            localization_picklist_state,
+            &mut state.localization_picklist_state,
             &Language::ALL[..],
             Some(config.language),
             Interaction::PickLocalizationLanguage,
@@ -82,11 +79,10 @@ pub fn data_container<'a>(
         Column::new()
             .push(title)
             .push(Space::new(Length::Units(0), Length::Units(5)))
-            //.push(container)
+        //.push(container)
     };
 
-    scrollable = scrollable
-        .push(language_container);
+    scrollable = scrollable.push(language_container);
 
     // Colum wrapping all the settings content.
     scrollable = scrollable.height(Length::Fill).width(Length::Fill);

@@ -4,7 +4,7 @@ mod update;
 
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
-use ajour_core::{config::Config, fs::PersistentData, theme::Theme};
+use ajour_core::{config::{Config, Language}, fs::PersistentData, theme::Theme};
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -66,6 +66,7 @@ pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
     GeneralSettingsViewThemeSelected(String),
+    GeneralSettingsViewLanguageSelected(Language),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
@@ -154,6 +155,7 @@ impl Application for Ajour {
             element::menu::Mode::Settings => {
                 content = content.push(element::settings::data_container(
                     &mut self.settings_state,
+                    &mut self.config,
                     &mut self.wallet_settings_state,
                     &mut self.node_settings_state,
                     &mut self.general_settings_state,

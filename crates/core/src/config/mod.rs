@@ -151,21 +151,8 @@ impl Display for SelfUpdateChannel {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord)]
 pub enum Language {
-    Czech,
-    Norwegian,
     English,
-    Danish,
     German,
-    French,
-    Hungarian,
-    Portuguese,
-    Polish,
-    Russian,
-    Slovak,
-    Swedish,
-    Spanish,
-    Turkish,
-    Ukrainian,
 }
 
 impl std::fmt::Display for Language {
@@ -174,21 +161,8 @@ impl std::fmt::Display for Language {
             f,
             "{}",
             match self {
-                Language::Czech => "Čeština",
-                Language::Danish => "Dansk",
                 Language::English => "English",
-                Language::French => "Français",
                 Language::German => "Deutsch",
-                Language::Hungarian => "Magyar",
-                Language::Norwegian => "Norsk Bokmål",
-                Language::Portuguese => "Português",
-                Language::Polish => "Polski",
-                Language::Russian => "Pусский",
-                Language::Slovak => "Slovenčina",
-                Language::Spanish => "Español",
-                Language::Swedish => "Svenska",
-                Language::Turkish => "Türkçe",
-                Language::Ukrainian => "Yкраїнська",
             }
         )
     }
@@ -196,41 +170,15 @@ impl std::fmt::Display for Language {
 
 impl Language {
     // Alphabetically sorted based on their local name (@see `impl Display`).
-    pub const ALL: [Language; 15] = [
-        Language::Czech,
-        Language::Danish,
+    pub const ALL: [Language; 2] = [
         Language::German,
         Language::English,
-        Language::Spanish,
-        Language::French,
-        Language::Hungarian,
-        Language::Norwegian,
-        Language::Portuguese,
-        Language::Polish,
-        Language::Russian,
-        Language::Slovak,
-        Language::Swedish,
-        Language::Turkish,
-        Language::Ukrainian,
     ];
 
     pub const fn language_code(self) -> &'static str {
         match self {
-            Language::Czech => "cs_CZ",
             Language::English => "en_US",
-            Language::Danish => "da_DK",
             Language::German => "de_DE",
-            Language::French => "fr_FR",
-            Language::Russian => "ru_RU",
-            Language::Swedish => "se_SE",
-            Language::Spanish => "es_ES",
-            Language::Hungarian => "hu_HU",
-            Language::Norwegian => "nb_NO",
-            Language::Slovak => "sk_SK",
-            Language::Turkish => "tr_TR",
-            Language::Portuguese => "pt_PT",
-            Language::Polish => "pl_PL",
-            Language::Ukrainian => "uk_UA",
         }
     }
 }
