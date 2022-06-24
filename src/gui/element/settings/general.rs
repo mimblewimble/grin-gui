@@ -9,7 +9,7 @@ use {
         theme::{ColorPalette, Theme},
     },
     iced::{
-        button, pick_list, scrollable, text_input, Alignment, Button, Column, Command, Container,
+        button, pick_list, scrollable, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
 };
@@ -379,12 +379,78 @@ pub fn data_container<'a>(
         .push(import_theme_column)
         .spacing(DEFAULT_PADDING);
 
+    #[cfg(target_os = "windows")]
+    let close_to_tray_column = {
+        let checkbox = Checkbox::new(
+            config.close_to_tray,
+            localized_string("close-to-tray"),
+            Interaction::ToggleCloseToTray,
+        )
+        .style(style::DefaultCheckbox(color_palette))
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(5);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(style::NormalBackgroundContainer(color_palette));
+        Column::new().push(checkbox_container)
+    };
+
+    #[cfg(target_os = "windows")]
+    let toggle_autostart_column = {
+        let checkbox = Checkbox::new(
+            config.autostart,
+            localized_string("toggle-autostart"),
+            Interaction::ToggleAutoStart,
+        )
+        .style(style::DefaultCheckbox(color_palette))
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(5);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(style::NormalBackgroundContainer(color_palette));
+        Column::new().push(checkbox_container)
+    };
+
+    #[cfg(target_os = "windows")]
+    let start_closed_to_tray_column = {
+        let checkbox = Checkbox::new(
+            config.start_closed_to_tray,
+            localized_string("start-closed-to-tray"),
+            Interaction::ToggleStartClosedToTray,
+        )
+        .style(style::DefaultCheckbox(color_palette))
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(5);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(style::NormalBackgroundContainer(color_palette));
+        Column::new().push(checkbox_container)
+    };
+
     scrollable = scrollable
         .push(language_container)
         .push(Space::new(Length::Units(0), Length::Units(10)))
         .push(theme_scale_row)
         .push(Space::new(Length::Units(0), Length::Units(10)))
         .push(open_theme_row);
+
+    #[cfg(target_os = "windows")]
+    {
+        scrollable = scrollable
+            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(close_to_tray_column)
+            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(start_closed_to_tray_column)
+            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(toggle_autostart_column);
+    }
+
 
     // Colum wrapping all the settings content.
     scrollable = scrollable.height(Length::Fill).width(Length::Fill);

@@ -815,7 +815,7 @@ impl container::StyleSheet for ChannelBadge {
     }
 }
 
-/*pub struct DefaultCheckbox(pub ColorPalette);
+pub struct DefaultCheckbox(pub ColorPalette);
 impl checkbox::StyleSheet for DefaultCheckbox {
     fn active(&self, _is_checked: bool) -> checkbox::Style {
         checkbox::Style {
@@ -824,6 +824,7 @@ impl checkbox::StyleSheet for DefaultCheckbox {
             border_radius: 2.0,
             border_width: 1.0,
             border_color: self.0.normal.primary,
+            text_color: Some(self.0.normal.surface),
         }
     }
 
@@ -834,11 +835,12 @@ impl checkbox::StyleSheet for DefaultCheckbox {
             border_radius: 2.0,
             border_width: 2.0,
             border_color: self.0.bright.primary,
+            text_color: Some(self.0.normal.surface),
         }
     }
 }
 
-pub struct AlwaysCheckedCheckbox(pub ColorPalette);
+/*pub struct AlwaysCheckedCheckbox(pub ColorPalette);
 impl checkbox::StyleSheet for AlwaysCheckedCheckbox {
     fn active(&self, _is_checked: bool) -> checkbox::Style {
         checkbox::Style {

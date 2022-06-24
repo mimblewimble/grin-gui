@@ -1,11 +1,11 @@
 use {
     super::{Ajour, Interaction, Message, Mode},
-    crate::{localization::localized_string, gui::element, log_error, Result},
+    crate::{gui::element, localization::localized_string, log_error, Result},
     ajour_core::{error::ThemeError, fs::PersistentData},
+    anyhow::Context,
     iced::Command,
     //ajour_widgets::header::ResizeEvent,
     std::path::PathBuf,
-    anyhow::Context,
 };
 
 #[cfg(target_os = "windows")]
@@ -69,7 +69,7 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
                         element::settings::general::LocalViewInteraction::ThemeImportedError,
                         &mut ajour.error,
                     );
-                     // Assign special error message when updating failed due to
+                    // Assign special error message when updating failed due to
                     // collision
                     for cause in error.chain() {
                         if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
@@ -266,7 +266,7 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
                 Message::None,
             ));
         }
-         Message::Interaction(_) => {}
+        Message::Interaction(_) => {}
         Message::RuntimeEvent(_) => {}
         Message::None(_) => {}
     }
