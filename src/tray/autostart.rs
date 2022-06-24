@@ -13,9 +13,9 @@ use crate::str_to_wide;
 
 pub unsafe fn toggle_autostart(enabled: bool) -> Result<(), Error> {
     let mut app_path = CONFIG_DIR.lock().unwrap().to_owned();
-    app_path.push("ajour.exe");
+    app_path.push("grin-gui.exe");
 
-    // Copy Ajour to config directory so we can autostart it from there
+    // Copy Grin GUI to config directory so we can autostart it from there
     let current_path = env::current_exe()?;
     if current_path != app_path && enabled {
         fs::copy(current_path, &app_path)?;
@@ -23,7 +23,7 @@ pub unsafe fn toggle_autostart(enabled: bool) -> Result<(), Error> {
 
     let app_path = str_to_wide!(app_path.to_str().unwrap_or_default());
     let mut key_name = str_to_wide!("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
-    let mut value_name = str_to_wide!("ajour");
+    let mut value_name = str_to_wide!("grin-gui");
 
     let mut key: HKEY = mem::zeroed();
 

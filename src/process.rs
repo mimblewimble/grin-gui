@@ -27,11 +27,11 @@ impl PersistentData for Process {
 
 pub fn avoid_multiple_instances() {
     if process_already_running() {
-        log::info!("Another instance of Ajour is already running. Exiting...");
+        log::info!("Another instance of Grin GUI is already running. Exiting...");
         std::process::exit(0);
     } else {
         // Otherwise this is the only instance. Save info about this process to the
-        // pid file so future launches of Ajour can detect this running process.
+        // pid file so future launches of Grin GUI can detect this running process.
         save_current_process_file();
     }
 }

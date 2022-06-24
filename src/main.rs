@@ -37,7 +37,7 @@ pub fn main() {
     // If this is a clap error, we map to None since we are going to exit and display
     // an error message anyway and this value won't matter. If it's not an error,
     // the underlying `command` will drive this variable. If a `command` is passed
-    // on the command line, Ajour functions as a CLI instead of launching the GUI.
+    // on the command line, Grin GUI functions as a CLI instead of launching the GUI.
     let is_cli = opts_result
         .as_ref()
         .map(|o| &o.command)
@@ -69,9 +69,9 @@ pub fn main() {
 
     log_panics::init();
 
-    log::info!("Ajour {} has started.", VERSION);
+    log::info!("Grin GUI {} has started.", VERSION);
 
-    // Ensures another instance of Ajour isn't already running.
+    // Ensures another instance of Grin GUI isn't already running.
     #[cfg(target_os = "windows")]
     process::avoid_multiple_instances();
 
@@ -141,7 +141,7 @@ fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
         })
         .level(log::LevelFilter::Off)
         .level_for("panic", log::LevelFilter::Error)
-        .level_for("ajour", log::LevelFilter::Trace);
+        .level_for("grin_gui", log::LevelFilter::Trace);
 
     if !is_cli {
         logger = logger.level_for("grin_gui_core", log::LevelFilter::Trace);
@@ -161,7 +161,7 @@ fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
             .create(true)
             .append(false)
             .truncate(true)
-            .open(config_dir.join("ajour.log"))?;
+            .open(config_dir.join("grin-gui.log"))?;
 
         logger = logger.chain(log_file);
     };
@@ -202,7 +202,7 @@ fn handle_self_update_temp(cleanup_path: &Path) -> Result<()> {
         remove_file(cleanup_path)?;
     }
 
-    log::debug!("Ajour updated successfully");
+    log::debug!("Grin GUI updated successfully");
 
     Ok(())
 }

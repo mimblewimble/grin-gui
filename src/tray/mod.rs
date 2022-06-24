@@ -141,7 +141,7 @@ unsafe fn create_window(show_balloon: bool, gui_hidden: bool) {
 
         let h_instance = GetModuleHandleW(ptr::null());
 
-        let class_name = str_to_wide!("Ajour Tray");
+        let class_name = str_to_wide!("Grin GUI Tray");
 
         let mut class = mem::zeroed::<WNDCLASSEXW>();
         class.cbSize = mem::size_of::<WNDCLASSEXW>() as u32;
@@ -195,7 +195,7 @@ unsafe fn add_icon(hwnd: HWND) {
     let icon_handle = LoadIconW(h_instance, MAKEINTRESOURCEW(0x101));
 
     let mut tooltip_array = [0u16; 128];
-    let tooltip = "Ajour";
+    let tooltip = "Grin GUI";
     let mut tooltip = tooltip.encode_utf16().collect::<Vec<_>>();
     tooltip.extend(vec![0; 128 - tooltip.len()]);
     tooltip_array.swap_with_slice(&mut tooltip[..]);
@@ -247,9 +247,9 @@ unsafe fn show_popup_menu(hwnd: HWND, state: &TrayState) {
 
     let mut about = str_to_wide!(localized_string("about"));
     let mut toggle = str_to_wide!(if hidden {
-        localized_string("open-ajour")
+        localized_string("open-grin-gui")
     } else {
-        localized_string("hide-ajour")
+        localized_string("hide-grin-gui")
     });
     let mut exit = str_to_wide!(localized_string("exit"));
 
@@ -305,7 +305,7 @@ unsafe fn show_about() {
     let mut title = str_to_wide!("About");
 
     let msg = format!(
-        "Ajour - {}\n\nCopyright © 2020-2021 Casper Rogild Storm",
+        "Grin GUI - {}\n\nCopyright © 2016-2022 The Grin Developers",
         env!("CARGO_PKG_VERSION")
     );
 
@@ -434,7 +434,7 @@ unsafe extern "system" fn enum_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
         let read_len = GetWindowTextW(hwnd, title.as_mut_ptr(), 12);
         let title = String::from_utf16_lossy(&title[0..read_len.min(12) as usize]);
 
-        if title == "Ajour" {
+        if title == "Grin" {
             state.gui_handle = Some(hwnd);
 
             return 0;

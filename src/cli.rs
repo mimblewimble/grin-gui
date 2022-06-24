@@ -52,7 +52,7 @@ pub fn validate_opts_or_exit(
             #[cfg(target_os = "windows")]
             {
                 if !is_debug && e.kind == clap::ErrorKind::VersionDisplayed {
-                    print!("Ajour {}", VERSION);
+                    print!("Grin GUI {}", VERSION);
                 }
             }
 
@@ -62,7 +62,7 @@ pub fn validate_opts_or_exit(
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "Ajour",
+#[structopt(name = "GrinGUI",
             about = env!("CARGO_PKG_DESCRIPTION"),
             version = VERSION,
             author = env!("CARGO_PKG_AUTHORS"),

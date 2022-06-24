@@ -5,13 +5,13 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>ajour</string>
+  <string>grin-gui</string>
   <key>CFBundleIdentifier</key>
-  <string>com.rogildstorm.ajour</string>
+  <string>org.mimblewimble.grin.grin-gui</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>Ajour</string>
+  <string>GrinGUI</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
@@ -23,7 +23,7 @@
   <key>CFBundleVersion</key>
   <string>1</string>
   <key>CFBundleIconFile</key>
-  <string>ajour.icns</string>
+  <string>grin-gui.icns</string>
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSMainNibFile</key>
@@ -31,7 +31,7 @@
   <key>NSSupportsAutomaticGraphicsSwitching</key>
   <true/>
   <key>CFBundleDisplayName</key>
-  <string>Ajour</string>
+  <string>GrinGUI</string>
   <key>NSRequiresAquaSystemAppearance</key>
   <string>NO</string>
 </dict>

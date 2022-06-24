@@ -27,7 +27,7 @@ use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
-pub struct Ajour {
+pub struct GrinGui {
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
@@ -45,7 +45,7 @@ pub struct Ajour {
     about_state: element::about::StateContainer,
 }
 
-impl<'a> Default for Ajour {
+impl<'a> Default for GrinGui {
     fn default() -> Self {
         let mut state = HashMap::new();
         state.insert(Mode::Catalog, State::Loading);
@@ -76,19 +76,19 @@ pub enum Message {
     None(()),
 }
 
-impl Application for Ajour {
+impl Application for GrinGui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = Config;
 
     fn new(config: Config) -> (Self, Command<Message>) {
-        let mut ajour = Ajour::default();
-        apply_config(&mut ajour, config);
-        (ajour, Command::batch(vec![]))
+        let mut grin_gui = GrinGui::default();
+        apply_config(&mut grin_gui, config);
+        (grin_gui, Command::batch(vec![]))
     }
 
     fn title(&self) -> String {
-        String::from("Ajour")
+        String::from("Grin")
     }
 
     fn scale_factor(&self) -> f64 {
@@ -240,7 +240,7 @@ pub fn run(opts: Opts, config: Config) {
     settings.flags = config;
 
     // Runs the GUI.
-    Ajour::run(settings).expect("running Ajour gui");
+    GrinGui::run(settings).expect("running Grin gui");
 }
 
 #[derive(Debug)]
@@ -314,7 +314,7 @@ pub enum Interaction {
     CatalogQuery(String),
     InstallScmQuery(String),
     InstallScmUrl,
-    UpdateAjour,
+    UpdateGrin,
     AlternatingRowColorToggled(bool),
     KeybindingsToggle(bool),
     #[cfg(target_os = "windows")]
@@ -351,7 +351,7 @@ impl Default for ThemeState {
     }
 }
 
-fn apply_config(ajour: &mut Ajour, mut config: Config) {
+fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
     // Set column widths from the config
     /*match &config.column_config {
         ColumnConfig::V1 {
@@ -359,21 +359,21 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
             remote_version_width,
             status_width,
         } => {
-            ajour
+            grin_gui
                 .header_state
                 .columns
                 .get_mut(1)
                 .as_mut()
                 .unwrap()
                 .width = Length::Units(*local_version_width);
-            ajour
+            grin_gui
                 .header_state
                 .columns
                 .get_mut(2)
                 .as_mut()
                 .unwrap()
                 .width = Length::Units(*remote_version_width);
-            ajour
+            grin_gui
                 .header_state
                 .columns
                 .get_mut(3)
@@ -382,7 +382,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                 .width = Length::Units(*status_width);
         }
         ColumnConfig::V2 { columns } => {
-            ajour.header_state.columns.iter_mut().for_each(|a| {
+            grin_gui.header_state.columns.iter_mut().for_each(|a| {
                 if let Some((idx, column)) = columns
                     .iter()
                     .enumerate()
@@ -401,7 +401,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                 }
             });
 
-            ajour.column_settings.columns.iter_mut().for_each(|a| {
+            grin_gui.column_settings.columns.iter_mut().for_each(|a| {
                 if let Some(idx) = columns
                     .iter()
                     .enumerate()
@@ -419,15 +419,15 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
             });
 
             // My Addons
-            ajour.header_state.columns.sort_by_key(|c| c.order);
-            ajour.column_settings.columns.sort_by_key(|c| c.order);
+            grin_gui.header_state.columns.sort_by_key(|c| c.order);
+            grin_gui.column_settings.columns.sort_by_key(|c| c.order);
         }
         ColumnConfig::V3 {
             my_addons_columns,
             catalog_columns,
             aura_columns,
         } => {
-            ajour.header_state.columns.iter_mut().for_each(|a| {
+            grin_gui.header_state.columns.iter_mut().for_each(|a| {
                 if let Some((idx, column)) = my_addons_columns
                     .iter()
                     .enumerate()
@@ -456,7 +456,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                 }
             });
 
-            ajour.column_settings.columns.iter_mut().for_each(|a| {
+            grin_gui.column_settings.columns.iter_mut().for_each(|a| {
                 if let Some(idx) = my_addons_columns
                     .iter()
                     .enumerate()
@@ -473,7 +473,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                 }
             });
 
-            ajour
+            grin_gui
                 .catalog_column_settings
                 .columns
                 .iter_mut()
@@ -494,7 +494,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                     }
                 });
 
-            ajour.catalog_header_state.columns.iter_mut().for_each(|a| {
+            grin_gui.catalog_header_state.columns.iter_mut().for_each(|a| {
                 if let Some((idx, column)) = catalog_columns
                     .iter()
                     .enumerate()
@@ -524,7 +524,7 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
                 }
             });
 
-            ajour.aura_header_state.columns.iter_mut().for_each(|a| {
+            grin_gui.aura_header_state.columns.iter_mut().for_each(|a| {
                 if let Some((_idx, column)) = aura_columns
                     .iter()
                     .enumerate()
@@ -552,12 +552,12 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
             });
 
             // My Addons
-            ajour.header_state.columns.sort_by_key(|c| c.order);
-            ajour.column_settings.columns.sort_by_key(|c| c.order);
+            grin_gui.header_state.columns.sort_by_key(|c| c.order);
+            grin_gui.column_settings.columns.sort_by_key(|c| c.order);
 
             // Catalog
-            ajour.catalog_header_state.columns.sort_by_key(|c| c.order);
-            ajour
+            grin_gui.catalog_header_state.columns.sort_by_key(|c| c.order);
+            grin_gui
                 .catalog_column_settings
                 .columns
                 .sort_by_key(|c| c.order);
@@ -567,11 +567,11 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
     }*/
 
     // Use theme from config. Set to "Dark" if not defined.
-    ajour.general_settings_state.theme_state.current_theme_name =
+    grin_gui.general_settings_state.theme_state.current_theme_name =
         config.theme.as_deref().unwrap_or("Dark").to_string();
 
     // Use scale from config. Set to 1.0 if not defined.
-    ajour.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);
+    grin_gui.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);
 
     // Migration for the new TBC client. Link ClassicEra flavor to `_classic_era_` instead of
     // `_classic_`
@@ -588,24 +588,9 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
     }*/
 
     // Set the inital mode flavor
-    //ajour.mode = Mode::MyAddons(config.wow.flavor);
+    //grin_gui.mode = Mode::MyAddons(config.wow.flavor);
 
-    ajour.config = config;
+    grin_gui.config = config;
 
-    // @see (casperstorm): Migration from single World of Warcraft directory to multiple directories.
-    // This is essentially deprecrating `ajour.config.wow.directory`.
-    /*if ajour.config.wow.directory.is_some() {
-        for flavor in Flavor::ALL.iter() {
-            let path = ajour.config.wow.directory.as_ref().unwrap();
-            let flavor_path = ajour.config.get_flavor_directory_for_flavor(flavor, path);
-            if flavor_path.exists() {
-                ajour.config.wow.directories.insert(*flavor, flavor_path);
-            }
-        }
-
-        // Removing `directory`, so we don't end up here again.
-        ajour.config.wow.directory = None;
-    }*/
-
-    let _ = &ajour.config.save();
+    let _ = &grin_gui.config.save();
 }

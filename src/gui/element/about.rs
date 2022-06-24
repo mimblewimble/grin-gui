@@ -32,9 +32,9 @@ pub fn data_container<'a>(
     release: &Option<Release>,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-    let ajour_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
+    let grin_gui_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
     let ajour_title_container =
-        Container::new(ajour_title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(grin_gui_title).style(style::BrightBackgroundContainer(color_palette));
 
     let changelog_title_text = Text::new(if let Some(release) = release {
         let mut vars = HashMap::new();
