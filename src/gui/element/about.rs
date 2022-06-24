@@ -33,7 +33,7 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     let grin_gui_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
-    let ajour_title_container =
+    let grin_gui_title_container =
         Container::new(grin_gui_title).style(style::BrightBackgroundContainer(color_palette));
 
     let changelog_title_text = Text::new(if let Some(release) = release {
@@ -86,7 +86,7 @@ pub fn data_container<'a>(
         Container::new(changelog_title_text).style(style::BrightBackgroundContainer(color_palette));
 
     scrollable = scrollable
-        .push(ajour_title_container)
+        .push(grin_gui_title_container)
         .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
         .push(button_row)
         .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
