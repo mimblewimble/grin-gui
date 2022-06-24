@@ -66,7 +66,7 @@ pub async fn backup_folders(
     let now = Local::now();
 
     dest.push(format!(
-        "ajour_backup_{}.{}",
+        "grin_gui_backup_{}.{}",
         now.format("%Y-%m-%d_%H-%M-%S"),
         compression.file_ext(),
     ));
@@ -85,8 +85,8 @@ pub async fn backup_folders(
 /// Finds the latest archive in the supplied backup folder and returns
 /// the datetime it was saved
 pub async fn latest_backup(backup_dir: PathBuf) -> Option<NaiveDateTime> {
-    let zip_pattern = format!("{}/ajour_backup_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9].zip", backup_dir.display());
-    let zstd_pattern = format!("{}/ajour_backup_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9].tar.zst", backup_dir.display());
+    let zip_pattern = format!("{}/grin_gui_backup_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9].zip", backup_dir.display());
+    let zstd_pattern = format!("{}/grin_gui_backup_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9].tar.zst", backup_dir.display());
 
     let mut backups = vec![];
 

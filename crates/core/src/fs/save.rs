@@ -4,10 +4,10 @@ use std::fs;
 use std::path::PathBuf;
 
 /// Defines a serializable struct that should persist on the filesystem inside the
-/// Ajour config directory.
+/// Grin Gui config directory.
 pub trait PersistentData: DeserializeOwned + Serialize {
     /// Only method required to implement PersistentData on an object. Always relative to
-    /// the config folder for Ajour.
+    /// the config folder for Grin GUi
     fn relative_path() -> PathBuf;
 
     /// Returns the full file path. Will create any parent directories that don't

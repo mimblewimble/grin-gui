@@ -20,11 +20,11 @@ pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {
     // Returns the location of the config directory. Will create if it doesn't
     // exist.
     //
-    // $HOME/.config/ajour
+    // $HOME/.config/grin_gui
     #[cfg(not(windows))]
     {
         let home = env::var("HOME").expect("user home directory not found.");
-        let config_dir = PathBuf::from(&home).join(".config/ajour");
+        let config_dir = PathBuf::from(&home).join(".config/grin-gui");
 
         Mutex::new(config_dir)
     }
@@ -32,11 +32,11 @@ pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {
     // Returns the location of the config directory. Will create if it doesn't
     // exist.
     //
-    // %APPDATA%\ajour
+    // %APPDATA%\grin_gui
     #[cfg(windows)]
     {
         let config_dir = dirs_next::config_dir()
-            .map(|path| path.join("ajour"))
+            .map(|path| path.join("grin-gui"))
             .expect("user home directory not found.");
 
         Mutex::new(config_dir)

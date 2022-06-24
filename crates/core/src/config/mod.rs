@@ -81,7 +81,7 @@ pub struct Config {
 
 impl PersistentData for Config {
     fn relative_path() -> PathBuf {
-        PathBuf::from("ajour.yml")
+        PathBuf::from("grin-gui.yml")
     }
 }
 

@@ -69,7 +69,7 @@ pub async fn get_latest_release(channel: SelfUpdateChannel) -> Option<Release> {
     log::debug!("checking for application update");
 
     let mut resp = request_async(
-        "https://api.github.com/repos/ajour/ajour/releases",
+        "https://api.github.com/repos/grin-gui/grin-gui/releases",
         vec![],
         None,
     )
@@ -135,7 +135,7 @@ pub async fn download_update_to_temp_file(
 
         download_file(&asset.download_url, &archive_path).await?;
 
-        extract_binary_from_tar(&archive_path, &download_path, "ajour")?;
+        extract_binary_from_tar(&archive_path, &download_path, "grin-gui")?;
 
         std::fs::remove_file(&archive_path)?;
     }
@@ -171,7 +171,7 @@ pub async fn download_update_to_temp_file(
     Ok((current_bin_path, tmp_path))
 }
 
-/// Extracts the Ajour binary from a `tar.gz` archive to temp_file path
+/// Extracts the Grin Gui binary from a `tar.gz` archive to temp_file path
 #[cfg(target_os = "macos")]
 fn extract_binary_from_tar(
     archive_path: &Path,

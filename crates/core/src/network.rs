@@ -20,9 +20,9 @@ static HTTP_CLIENT: Lazy<HttpClient> = Lazy::new(|| {
         .unwrap()
 });
 
-/// Ajour user-agent.
+/// Grin Gui user-agent.
 fn user_agent() -> String {
-    format!("ajour/{}", env!("CARGO_PKG_VERSION"))
+    format!("grin_gui/{}", env!("CARGO_PKG_VERSION"))
 }
 
 /// Generic request function.
