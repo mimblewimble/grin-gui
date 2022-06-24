@@ -3,7 +3,7 @@ use std::fs;
 use std::mem;
 use std::ptr;
 
-use ajour_core::fs::CONFIG_DIR;
+use grin_gui_core::fs::CONFIG_DIR;
 use anyhow::Error;
 use winapi::shared::minwindef::HKEY;
 use winapi::um::winnt::{KEY_SET_VALUE, REG_OPTION_NON_VOLATILE, REG_SZ};

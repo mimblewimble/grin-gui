@@ -3,7 +3,7 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::{localized_string, LANG},
     crate::Result,
-    ajour_core::{
+    grin_gui_core::{
         config::{Config, Language},
         fs::{import_theme, PersistentData},
         theme::{ColorPalette, Theme},

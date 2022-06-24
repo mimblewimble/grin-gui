@@ -4,7 +4,7 @@ mod update;
 
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
-use ajour_core::{
+use grin_gui_core::{
     config::{Config, Language},
     error::ThemeError,
     fs::PersistentData,
@@ -22,7 +22,7 @@ use image::ImageFormat;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use ajour_core::theme::ColorPalette;
+use grin_gui_core::theme::ColorPalette;
 use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");

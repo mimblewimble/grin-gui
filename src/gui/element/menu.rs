@@ -5,16 +5,14 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
-    ajour_core::theme::ColorPalette,
-    ajour_widgets::TableRow,
+    grin_gui_core::theme::ColorPalette,
+    grin_gui_widgets::TableRow,
     iced::{
         alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Space, Text,
     },
     serde::{Deserialize, Serialize},
-    serde_json,
     std::sync::{Arc, RwLock},
-    uuid::Uuid,
 };
 
 #[derive(Debug, Clone)]

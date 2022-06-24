@@ -1,5 +1,5 @@
-use ajour_core::theme::ColorPalette;
-//use ajour_widgets::table_row;
+use grin_gui_core::theme::ColorPalette;
+//use grin_gui_widgets::table_row;
 use iced::{
     button, checkbox, container, pick_list, scrollable, slider, text_input, Background, Color,
 };

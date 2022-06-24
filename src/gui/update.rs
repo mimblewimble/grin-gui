@@ -1,10 +1,10 @@
 use {
     super::{Ajour, Interaction, Message, Mode},
     crate::{gui::element, localization::localized_string, log_error, Result},
-    ajour_core::{error::ThemeError, fs::PersistentData},
+    grin_gui_core::{error::ThemeError, fs::PersistentData},
     anyhow::Context,
     iced::Command,
-    //ajour_widgets::header::ResizeEvent,
+    //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
 };
 

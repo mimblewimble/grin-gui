@@ -1,7 +1,7 @@
 use std::ffi::c_void;
 use std::path::PathBuf;
 
-use ajour_core::fs::PersistentData;
+use grin_gui_core::fs::PersistentData;
 use serde::{Deserialize, Serialize};
 use winapi::{
     shared::winerror::WAIT_TIMEOUT,

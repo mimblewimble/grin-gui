@@ -2,7 +2,7 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    ajour_core::{theme::ColorPalette, utility::Release},
+    grin_gui_core::{theme::ColorPalette, utility::Release},
     iced::{
         button, scrollable, Button, Column, Container, Element, Length, Row, Scrollable, Space,
         Text,

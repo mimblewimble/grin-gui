@@ -11,9 +11,9 @@ mod process;
 #[cfg(target_os = "windows")]
 mod tray;
 
-use ajour_core::config::Config;
-use ajour_core::fs::{PersistentData, CONFIG_DIR};
-use ajour_core::utility::{remove_file, rename};
+use grin_gui_core::config::Config;
+use grin_gui_core::fs::{PersistentData, CONFIG_DIR};
+use grin_gui_core::utility::{remove_file, rename};
 
 #[cfg(target_os = "linux")]
 use anyhow::Context;
@@ -144,7 +144,7 @@ fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
         .level_for("ajour", log::LevelFilter::Trace);
 
     if !is_cli {
-        logger = logger.level_for("ajour_core", log::LevelFilter::Trace);
+        logger = logger.level_for("grin_gui_core", log::LevelFilter::Trace);
     }
 
     if is_cli || is_debug {
@@ -154,7 +154,7 @@ fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
     if !is_cli && !is_debug {
         use std::fs::OpenOptions;
 
-        let config_dir = ajour_core::fs::config_dir();
+        let config_dir = grin_gui_core::fs::config_dir();
 
         let log_file = OpenOptions::new()
             .write(true)

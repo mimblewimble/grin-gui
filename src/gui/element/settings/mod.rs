@@ -6,12 +6,11 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    ajour_core::{config::Config, theme::ColorPalette, utility::Release},
+    grin_gui_core::{config::Config, theme::ColorPalette, utility::Release},
     iced::{
         button, Alignment, Button, Column, Command, Container, Element, Length, Row, Space, Text,
     },
     serde::{Deserialize, Serialize},
-    serde_json,
     std::sync::{Arc, RwLock},
 };
 

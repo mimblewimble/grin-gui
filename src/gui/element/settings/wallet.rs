@@ -2,13 +2,12 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    ajour_core::{theme::ColorPalette, utility::Release},
+    grin_gui_core::{theme::ColorPalette, utility::Release},
     iced::{
         button, scrollable, Alignment, Button, Command, Column, Container, Element, Length, Row, Scrollable, Space,
         Text,
     },
     serde::{Deserialize, Serialize},
-    serde_json,
     std::sync::{Arc, RwLock},
 };
 
