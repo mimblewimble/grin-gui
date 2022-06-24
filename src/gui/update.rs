@@ -1,10 +1,11 @@
 use {
     super::{Ajour, Interaction, Message, Mode},
-    crate::{gui::element, log_error, Result},
-    ajour_core::fs::PersistentData,
+    crate::{localization::localized_string, gui::element, log_error, Result},
+    ajour_core::{error::ThemeError, fs::PersistentData},
     iced::Command,
     //ajour_widgets::header::ResizeEvent,
     std::path::PathBuf,
+    anyhow::Context,
 };
 
 #[cfg(target_os = "windows")]
@@ -15,7 +16,7 @@ use std::sync::atomic::Ordering;
 pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Message>> {
     match message {
         Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
-            element::menu::handle_message(&mut ajour.menu_state, local_interaction);
+            let _ = element::menu::handle_message(&mut ajour.menu_state, local_interaction);
         }
         Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
             element::settings::handle_message(&mut ajour.settings_state, local_interaction);
@@ -36,27 +37,72 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
         }
         // General Settings
         Message::Interaction(Interaction::GeneralSettingsViewInteraction(local_interaction)) => {
-            element::settings::general::handle_message(
+            return element::settings::general::handle_message(
                 &mut ajour.general_settings_state,
                 &mut ajour.config,
                 local_interaction,
+                &mut ajour.error,
             );
         }
         Message::GeneralSettingsViewThemeSelected(selected) => {
-            element::settings::general::handle_message(
+            let _ = element::settings::general::handle_message(
                 &mut ajour.general_settings_state,
                 &mut ajour.config,
                 element::settings::general::LocalViewInteraction::ThemeSelected(selected),
+                &mut ajour.error,
             );
         }
-        Message::GeneralSettingsViewLanguageSelected(language) => {
-            element::settings::general::handle_message(
+        Message::GeneralSettingsViewThemeImported(result) => {
+            match result.context("Failed to Import Theme") {
+                Ok(result) => {
+                    let _ = element::settings::general::handle_message(
+                        &mut ajour.general_settings_state,
+                        &mut ajour.config,
+                        element::settings::general::LocalViewInteraction::ThemeImportedOk(result),
+                        &mut ajour.error,
+                    );
+                }
+                Err(mut error) => {
+                    let _ = element::settings::general::handle_message(
+                        &mut ajour.general_settings_state,
+                        &mut ajour.config,
+                        element::settings::general::LocalViewInteraction::ThemeImportedError,
+                        &mut ajour.error,
+                    );
+                     // Assign special error message when updating failed due to
+                    // collision
+                    for cause in error.chain() {
+                        if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
+                            if matches!(theme_error, ThemeError::NameCollision { .. }) {
+                                error = error
+                                    .context(localized_string("import-theme-error-name-collision"));
+                                break;
+                            }
+                        }
+                    }
+
+                    log_error(&error);
+                    ajour.error = Some(error);
+                }
+            }
+        }
+        Message::Interaction(Interaction::GeneralSettingsViewLanguageSelected(language)) => {
+            let _ = element::settings::general::handle_message(
                 &mut ajour.general_settings_state,
                 &mut ajour.config,
                 element::settings::general::LocalViewInteraction::LanguageSelected(language),
+                &mut ajour.error,
             );
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::GeneralSettingsViewThemeUrlInput(url)) => {
+            let _ = element::settings::general::handle_message(
+                &mut ajour.general_settings_state,
+                &mut ajour.config,
+                element::settings::general::LocalViewInteraction::ThemeUrlInput(url),
+                &mut ajour.error,
+            );
+        }
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             ajour.mode = mode;
@@ -210,7 +256,17 @@ pub fn handle_message(ajour: &mut Ajour, message: Message) -> Result<Command<Mes
 
             let _ = ajour.config.save();
         }
-        Message::Interaction(_) => {}
+        Message::Interaction(Interaction::OpenLink(link)) => {
+            log::debug!("Interaction::OpenLink({})", &link);
+
+            return Ok(Command::perform(
+                async {
+                    let _ = opener::open(link);
+                },
+                Message::None,
+            ));
+        }
+         Message::Interaction(_) => {}
         Message::RuntimeEvent(_) => {}
         Message::None(_) => {}
     }

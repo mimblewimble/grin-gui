@@ -4,7 +4,12 @@ mod update;
 
 use crate::cli::Opts;
 use crate::localization::{localized_string, LANG};
-use ajour_core::{config::{Config, Language}, fs::PersistentData, theme::Theme};
+use ajour_core::{
+    config::{Config, Language},
+    error::ThemeError,
+    fs::PersistentData,
+    theme::Theme,
+};
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -66,7 +71,7 @@ pub enum Message {
     Error(anyhow::Error),
     Interaction(Interaction),
     GeneralSettingsViewThemeSelected(String),
-    GeneralSettingsViewLanguageSelected(Language),
+    GeneralSettingsViewThemeImported(Result<(String, Vec<Theme>), ThemeError>),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
@@ -142,6 +147,7 @@ impl Application for Ajour {
         content = Column::new().push(element::menu::data_container(
             &mut self.menu_state,
             color_palette,
+            &mut self.error,
         ));
 
         // Spacer between menu and content.
@@ -289,6 +295,9 @@ pub enum Interaction {
     WalletSettingsViewInteraction(element::settings::wallet::LocalViewInteraction),
     NodeSettingsViewInteraction(element::settings::node::LocalViewInteraction),
     GeneralSettingsViewInteraction(element::settings::general::LocalViewInteraction),
+    GeneralSettingsViewLanguageSelected(Language),
+    GeneralSettingsViewImportTheme,
+    GeneralSettingsViewThemeUrlInput(String),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
@@ -558,7 +567,8 @@ fn apply_config(ajour: &mut Ajour, mut config: Config) {
     }*/
 
     // Use theme from config. Set to "Dark" if not defined.
-    ajour.general_settings_state.theme_state.current_theme_name = config.theme.as_deref().unwrap_or("Dark").to_string();
+    ajour.general_settings_state.theme_state.current_theme_name =
+        config.theme.as_deref().unwrap_or("Dark").to_string();
 
     // Use scale from config. Set to 1.0 if not defined.
     ajour.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);

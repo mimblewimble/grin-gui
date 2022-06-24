@@ -1,20 +1,17 @@
 use {
-    super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::{localized_string, LANG},
+    crate::Result,
     ajour_core::{
         config::{Config, Language},
-        fs::PersistentData,
+        fs::{import_theme, PersistentData},
         theme::{ColorPalette, Theme},
-        utility::Release,
     },
     iced::{
         button, pick_list, scrollable, text_input, Alignment, Button, Column, Command, Container,
-        Element, Length, PickList, Row, Scrollable, Space, Text,
+        Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
-    serde::{Deserialize, Serialize},
-    serde_json,
-    std::sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]
@@ -80,15 +77,19 @@ impl Default for ScaleState {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     ThemeSelected(String),
     LanguageSelected(Language),
     ScaleUp,
     ScaleDown,
+    ThemeUrlInput(String),
+    ImportTheme,
+    ThemeImportedOk((String, Vec<Theme>)),
+    ThemeImportedError,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum Mode {
     Wallet,
     Node,
@@ -99,7 +100,8 @@ pub fn handle_message(
     state: &mut StateContainer,
     config: &mut Config,
     message: LocalViewInteraction,
-) {
+    error: &mut Option<anyhow::Error>,
+) -> Result<Command<Message>> {
     match message {
         LocalViewInteraction::ThemeSelected(theme_name) => {
             log::debug!(
@@ -152,7 +154,44 @@ pub fn handle_message(
                 state.scale_state.scale
             );
         }
+        LocalViewInteraction::ThemeUrlInput(url) => {
+            state.theme_state.input_url = url;
+        }
+        LocalViewInteraction::ImportTheme => {
+            // Reset error
+            error.take();
+
+            let url = state.theme_state.input_url.clone();
+
+            log::debug!("Interaction::ImportTheme({})", &url);
+
+            return Ok(Command::perform(
+                import_theme(url),
+                Message::GeneralSettingsViewThemeImported,
+            ));
+        }
+        LocalViewInteraction::ThemeImportedOk((new_theme_name, mut new_themes)) => {
+            log::debug!("Message::ThemeImported({})", &new_theme_name);
+
+            state.theme_state = Default::default();
+
+            new_themes.sort();
+
+            for theme in new_themes {
+                state.theme_state.themes.push((theme.name.clone(), theme));
+            }
+
+            state.theme_state.current_theme_name = new_theme_name.clone();
+            config.theme = Some(new_theme_name);
+            let _ = config.save();
+        }
+        LocalViewInteraction::ThemeImportedError => {
+            // Reset text input
+            state.theme_state.input_url = Default::default();
+            state.theme_state.input_state = Default::default();
+        }
     }
+    Ok(Command::none())
 }
 
 pub fn data_container<'a>(
@@ -172,21 +211,16 @@ pub fn data_container<'a>(
             &mut state.localization_picklist_state,
             &Language::ALL[..],
             Some(config.language),
-            Message::GeneralSettingsViewLanguageSelected,
+            Interaction::GeneralSettingsViewLanguageSelected,
         )
         .text_size(14)
         .width(Length::Units(120))
         .style(style::PickList(color_palette))
         .into();
-        let container = Container::new(pick_list.map(move |message: Message| match message {
-            Message::GeneralSettingsViewLanguageSelected(l) => {
-                Message::GeneralSettingsViewLanguageSelected(l)
-            }
-            _ => Message::None(()),
-        }))
-        .center_y()
-        .width(Length::Units(120))
-        .style(style::NormalForegroundContainer(color_palette));
+        let container = Container::new(pick_list.map(Message::Interaction))
+            .center_y()
+            .width(Length::Units(120))
+            .style(style::NormalForegroundContainer(color_palette));
 
         Column::new()
             .push(title)
@@ -263,7 +297,6 @@ pub fn data_container<'a>(
             .center_y()
             .style(style::BrightBackgroundContainer(color_palette));
 
-        // Data row for the World of Warcraft directory selection.
         let scale_buttons_row = Row::new()
             .push(scale_down_button.map(Message::Interaction))
             .push(current_scale_container)
@@ -277,16 +310,81 @@ pub fn data_container<'a>(
             .push(scale_buttons_row)
     };
 
+    let import_theme_column = {
+        let title_container =
+            Container::new(Text::new(localized_string("import-theme")).size(DEFAULT_FONT_SIZE))
+                .style(style::NormalBackgroundContainer(color_palette));
+
+        let theme_input = TextInput::new(
+            &mut state.theme_state.input_state,
+            &localized_string("paste-url")[..],
+            &state.theme_state.input_url,
+            Interaction::GeneralSettingsViewThemeUrlInput,
+        )
+        .size(DEFAULT_FONT_SIZE)
+        .padding(6)
+        .width(Length::Units(185))
+        .style(style::AddonsQueryInput(color_palette));
+
+        let theme_input: Element<Interaction> = theme_input.into();
+
+        let mut import_button = Button::new(
+            &mut state.theme_state.import_button_state,
+            Text::new(localized_string("import-theme-button")).size(DEFAULT_FONT_SIZE),
+        )
+        .style(style::DefaultBoxedButton(color_palette));
+
+        if !state.theme_state.input_url.is_empty() {
+            import_button = import_button.on_press(Interaction::GeneralSettingsViewInteraction(
+                LocalViewInteraction::ImportTheme,
+            ));
+        }
+
+        let import_button: Element<Interaction> = import_button.into();
+
+        let theme_input_row = Row::new()
+            .push(theme_input.map(Message::Interaction))
+            .push(import_button.map(Message::Interaction))
+            .spacing(DEFAULT_PADDING)
+            .align_items(Alignment::Center)
+            .height(Length::Units(26));
+
+        Column::new()
+            .push(title_container)
+            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(theme_input_row)
+    };
+
+    let open_theme_row = {
+        let open_button = Button::new(
+            &mut state.theme_state.open_builder_button_state,
+            Text::new(localized_string("open-theme-builder")).size(DEFAULT_FONT_SIZE),
+        )
+        .on_press(Interaction::OpenLink(String::from(
+            "https://theme.getajour.com",
+        )))
+        .style(style::DefaultBoxedButton(color_palette));
+
+        let open_button: Element<Interaction> = open_button.into();
+
+        Row::new()
+            .push(open_button.map(Message::Interaction))
+            .align_items(Alignment::Center)
+            .height(Length::Units(26))
+    };
+
     let theme_scale_row = Row::new()
         .push(theme_column)
         .push(scale_column)
-        //.push(import_theme_column)
+        .push(import_theme_column)
         .spacing(DEFAULT_PADDING);
 
     scrollable = scrollable
         .push(language_container)
         .push(Space::new(Length::Units(0), Length::Units(10)))
-        .push(theme_scale_row);
+        .push(theme_scale_row)
+        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(open_theme_row);
 
     // Colum wrapping all the settings content.
     scrollable = scrollable.height(Length::Fill).width(Length::Fill);

@@ -68,6 +68,7 @@ pub fn handle_message(
 pub fn data_container<'a>(
     state: &'a mut StateContainer,
     color_palette: ColorPalette,
+    error: &mut Option<anyhow::Error>,
 ) -> Container<'a, Message> {
     /*let flavor = config.wow.flavor;
     let mut valid_flavors = config
@@ -211,13 +212,12 @@ pub fn data_container<'a>(
         .style(style::SegmentedContainer(color_palette));
 
     // Displays an error, if any has occured.
-    /*let error_text = if let Some(error) = error {
+    let error_text = if let Some(error) = error {
         Text::new(error.to_string()).size(DEFAULT_FONT_SIZE)
     } else {
         // Display nothing.
         Text::new("")
-    };*/
-    let error_text = Text::new("");
+    };
 
     let error_container: Container<Message> = Container::new(error_text)
         .center_y()
