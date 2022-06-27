@@ -153,6 +153,12 @@ impl Application for GrinGui {
         // Spacer between menu and content.
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
         match menu_state.mode {
+            element::menu::Mode::Setup => {
+                let setup_container =
+                    element::setup::data_container(color_palette, "Title", "Description", None);
+                content = content.push(setup_container)
+
+            }
             element::menu::Mode::About => {
                 let about_container =
                     element::about::data_container(color_palette, &None, &mut self.about_state);

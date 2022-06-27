@@ -27,7 +27,7 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            mode: Mode::Wallet,
+            mode: Mode::Setup,
             wallet_mode_btn: Default::default(),
             node_mode_btn: Default::default(),
             settings_mode_btn: Default::default(),
@@ -43,6 +43,7 @@ pub enum LocalViewInteraction {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Mode {
+    Setup,
     Wallet,
     Node,
     Settings,
@@ -128,6 +129,13 @@ pub fn data_container<'a>(
             about_mode_button =
                 about_mode_button.style(style::SelectedDefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
+        }
+        Mode::Setup => {
+            wallet_mode_button = wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
+            node_mode_button = node_mode_button.style(style::DisabledDefaultButton(color_palette));
+            about_mode_button =
+                about_mode_button.style(style::DisabledDefaultButton(color_palette));
+            settings_mode_button = settings_mode_button.style(style::DisabledDefaultButton(color_palette));
         }
     }
 
