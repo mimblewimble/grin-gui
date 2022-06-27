@@ -18,8 +18,8 @@ use {
 #[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
-    catalog_mode_btn: button::State,
-    install_mode_btn: button::State,
+    wallet_mode_btn: button::State,
+    node_mode_btn: button::State,
     settings_mode_btn: button::State,
     about_mode_btn: button::State,
 }
@@ -27,9 +27,9 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            mode: Mode::Catalog,
-            catalog_mode_btn: Default::default(),
-            install_mode_btn: Default::default(),
+            mode: Mode::Wallet,
+            wallet_mode_btn: Default::default(),
+            node_mode_btn: Default::default(),
             settings_mode_btn: Default::default(),
             about_mode_btn: Default::default(),
         }
@@ -43,8 +43,8 @@ pub enum LocalViewInteraction {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Mode {
-    Catalog,
-    Install,
+    Wallet,
+    Node,
     Settings,
     About,
 }
@@ -68,79 +68,21 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     error: &mut Option<anyhow::Error>,
 ) -> Container<'a, Message> {
-    /*let flavor = config.wow.flavor;
-    let mut valid_flavors = config
-        .wow
-        .directories
-        .keys()
-        .copied()
-        .collect::<Vec<Flavor>>();
-
-    valid_flavors.sort();
-
-    // State.
-    let myaddons_state = state.get(&Mode::MyAddons(flavor));*/
-    // A row contain general settings.
     let mut settings_row = Row::new()
         .height(Length::Units(50))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
 
-    let mut my_wallet_table_row = {
-        let title_container = Container::new(
-            Text::new(localized_string("my-addons"))
-                .horizontal_alignment(alignment::Horizontal::Center)
-                .size(DEFAULT_FONT_SIZE),
-        )
-        .style(style::HoverableSegmentContainer(color_palette));
-        /*let text = {
-            match updatable_addons {
-                0..=9 => format!("{}", updatable_addons),
-                _ => "9+".to_owned(),
-            }
-        };
-        let notification_row = Row::new()
-            .push(Space::new(Length::Units(7), Length::Units(0)))
-            .push(
-                Text::new(text)
-                    .horizontal_alignment(alignment::Horizontal::Center)
-                    .size(10),
-            )
-            .push(Space::new(Length::Units(7), Length::Units(0)));
-        let notification_container = Container::new(notification_row)
-            .padding(3)
-            .style(style::HoverableSegmentAlternateContainer(color_palette));*/
-        let mut row = Row::new()
-            .height(Length::Units(24))
-            .align_items(Alignment::Center)
-            .push(Space::new(Length::Units(6), Length::Units(1)))
-            .push(title_container)
-            .push(Space::new(Length::Units(6), Length::Units(1)));
-
-        // Only display the notification container if we have any updatable addons.
-        /*if updatable_addons > 0 {
-            row = row
-                .push(notification_container)
-                .push(Space::new(Length::Units(6), Length::Units(1)));
-        }*/
-
-        TableRow::new(row).inner_row_height(24).on_press(move |_| {
-            Message::Interaction(Interaction::MenuViewInteraction(
-                LocalViewInteraction::SelectMode(Mode::Catalog),
-            ))
-        })
-    };
-
-    let mut catalog_mode_button: Button<Interaction> = Button::new(
-        &mut state.catalog_mode_btn,
-        Text::new(localized_string("catalog")).size(DEFAULT_FONT_SIZE),
+    let mut wallet_mode_button: Button<Interaction> = Button::new(
+        &mut state.wallet_mode_btn,
+        Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
-    .style(style::DisabledDefaultButton(color_palette));
+    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::Wallet)));
 
-    let mut install_mode_button: Button<Interaction> = Button::new(
-        &mut state.install_mode_btn,
-        Text::new(localized_string("install-from-url")).size(DEFAULT_FONT_SIZE),
+    let mut node_mode_button: Button<Interaction> = Button::new(
+        &mut state.node_mode_btn,
+        Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
-    .style(style::DisabledDefaultButton(color_palette));
+    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::Node)));
 
     let mut settings_mode_button: Button<Interaction> = Button::new(
         &mut state.settings_mode_btn,
@@ -159,51 +101,51 @@ pub fn data_container<'a>(
     .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::About)));
 
     match state.mode {
-        Mode::Install => {
-            catalog_mode_button = catalog_mode_button.style(style::DefaultButton(color_palette));
-            install_mode_button =
-                install_mode_button.style(style::SelectedDefaultButton(color_palette));
+        Mode::Wallet => {
+            wallet_mode_button = wallet_mode_button.style(style::SelectedDefaultButton(color_palette));
+            node_mode_button =
+                node_mode_button.style(style::DefaultButton(color_palette));
             about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
-        Mode::Catalog => {
-            catalog_mode_button =
-                catalog_mode_button.style(style::SelectedDefaultButton(color_palette));
-            install_mode_button = install_mode_button.style(style::DefaultButton(color_palette));
+        Mode::Node => {
+            wallet_mode_button =
+                wallet_mode_button.style(style::DefaultButton(color_palette));
+            node_mode_button = node_mode_button.style(style::SelectedDefaultButton(color_palette));
             about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
         Mode::Settings => {
-            catalog_mode_button = catalog_mode_button.style(style::DefaultButton(color_palette));
-            install_mode_button = install_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
+            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
             about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
             settings_mode_button =
                 settings_mode_button.style(style::SelectedDefaultButton(color_palette));
         }
         Mode::About => {
-            catalog_mode_button = catalog_mode_button.style(style::DefaultButton(color_palette));
-            install_mode_button = install_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
+            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
             about_mode_button =
                 about_mode_button.style(style::SelectedDefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
     }
 
-    let catalog_mode_button: Element<Interaction> = catalog_mode_button.into();
-    let install_mode_button: Element<Interaction> = install_mode_button.into();
+    let wallet_mode_button: Element<Interaction> = wallet_mode_button.into();
+    let node_mode_button: Element<Interaction> = node_mode_button.into();
     let settings_mode_button: Element<Interaction> = settings_mode_button.into();
     let about_mode_button: Element<Interaction> = about_mode_button.into();
 
     let segmented_addons_row = Row::new()
-        .push(catalog_mode_button.map(Message::Interaction))
-        .push(install_mode_button.map(Message::Interaction))
+        .push(wallet_mode_button.map(Message::Interaction))
+        .push(node_mode_button.map(Message::Interaction))
         .spacing(1);
 
-    let mut segmented_mode_row = Row::new().push(my_wallet_table_row).spacing(1);
+    /*let mut segmented_mode_row = Row::new().push(my_wallet_table_row).spacing(1);
 
     let segmented_mode_container = Container::new(segmented_mode_row)
         .padding(2)
-        .style(style::SegmentedContainer(color_palette));
+        .style(style::SegmentedContainer(color_palette));*/
 
     let segmented_addon_container = Container::new(segmented_addons_row)
         .padding(2)
@@ -254,8 +196,8 @@ pub fn data_container<'a>(
 
     // Surrounds the elements with spacers, in order to make the GUI look good.
     settings_row = settings_row
-        .push(segmented_mode_container)
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        //.push(segmented_mode_container)
+        //.push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
         .push(segmented_addon_container)
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
         .push(error_container)
