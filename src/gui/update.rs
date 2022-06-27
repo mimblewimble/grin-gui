@@ -102,7 +102,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::SetupViewInteraction(local_interaction)) => {
+            return element::setup::handle_message(
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                local_interaction,
+                &mut grin_gui.error,
+            );
+        }
+         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;

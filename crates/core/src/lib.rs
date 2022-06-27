@@ -1,5 +1,6 @@
 pub mod backup;
 pub mod config;
+pub mod wallet;
 pub mod error;
 pub mod fs;
 pub mod network;

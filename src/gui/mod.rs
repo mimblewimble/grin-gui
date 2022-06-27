@@ -23,17 +23,24 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use grin_gui_core::theme::ColorPalette;
+use grin_gui_core::wallet::WalletInterface;
 use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
+    /// Wallet Interface
+    wallet_interface: WalletInterface, 
+
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
     /// Main menu state
     menu_state: element::menu::StateContainer,
+
+    /// Setup state
+    setup_state: element::setup::StateContainer,
 
     /// Settings screen + sub-screens states
     settings_state: element::settings::StateContainer,
@@ -51,11 +58,13 @@ impl<'a> Default for GrinGui {
         state.insert(Mode::Catalog, State::Loading);
 
         Self {
+            wallet_interface: Default::default(),
             state,
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
             menu_state: Default::default(),
+            setup_state: Default::default(),
             settings_state: Default::default(),
             wallet_settings_state: Default::default(),
             node_settings_state: Default::default(),
@@ -84,6 +93,18 @@ impl Application for GrinGui {
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
         apply_config(&mut grin_gui, config);
+
+        // Check initial wallet status
+        grin_gui.wallet_interface.set_chain_type();
+        let config_exists = match grin_gui.wallet_interface.check_initial_config() {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+        if !config_exists {
+           grin_gui.menu_state.mode = element::menu::Mode::Setup;
+        }
+        log::debug!("{}", config_exists);
+
         (grin_gui, Command::batch(vec![]))
     }
 
@@ -155,7 +176,7 @@ impl Application for GrinGui {
         match menu_state.mode {
             element::menu::Mode::Setup => {
                 let setup_container =
-                    element::setup::data_container(color_palette, "Title", "Description", None);
+                    element::setup::data_container(color_palette, &mut self.setup_state);
                 content = content.push(setup_container)
 
             }
@@ -304,6 +325,7 @@ pub enum Interaction {
     GeneralSettingsViewLanguageSelected(Language),
     GeneralSettingsViewImportTheme,
     GeneralSettingsViewThemeUrlInput(String),
+    SetupViewInteraction(element::setup::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
