@@ -1,3 +1,5 @@
+use iced_native::Widget;
+
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
@@ -6,7 +8,7 @@ use {
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{config::Config, wallet::WalletInterface},
     iced::{
-        alignment, button, text_input, Alignment, Button, Column, Command, Container, Element,
+        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container, Element,
         Length, Row, Space, Text, TextInput,
     },
 };
@@ -14,6 +16,8 @@ use {
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub back_button_state: button::State,
+    pub restore_from_seed: bool,
+    pub show_advanced_options: bool,
 }
 
 impl Default for StateContainer {
@@ -21,6 +25,8 @@ impl Default for StateContainer {
         Self {
             password_state: Default::default(),
             back_button_state: Default::default(),
+            show_advanced_options: false,
+            restore_from_seed: false,
         }
     }
 }
@@ -50,6 +56,8 @@ pub enum LocalViewInteraction {
     //TODO: ZeroingString these
     PasswordInput(String),
     PasswordRepeatInput(String),
+    ToggleRestoreFromSeed,
+    ToggleAdvancedOptions,
 }
 
 fn asterisk(input: &str) -> String {
@@ -69,12 +77,18 @@ pub fn handle_message(
             setup_state.mode = super::Mode::Init;
         }
         LocalViewInteraction::PasswordInput(password) => {
-            state.password_state.input_value = asterisk(&password);
+            state.password_state.input_value = password;
         }
         LocalViewInteraction::PasswordRepeatInput(repeat_password) => {
-            state.password_state.repeat_input_value = asterisk(&repeat_password);
+            state.password_state.repeat_input_value = repeat_password;
         }
-    }
+        LocalViewInteraction::ToggleRestoreFromSeed => {
+            state.restore_from_seed = !state.restore_from_seed
+        }
+        LocalViewInteraction::ToggleAdvancedOptions => {
+            state.show_advanced_options = !state.show_advanced_options
+        }
+     }
     Ok(Command::none())
 }
 
@@ -118,8 +132,9 @@ pub fn data_container<'a>(
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(185))
-        .style(style::AddonsQueryInput(color_palette));
+        .width(Length::Units(200))
+        .style(style::AddonsQueryInput(color_palette))
+        .password();
 
         let password_input: Element<Interaction> = password_input.into();
 
@@ -131,8 +146,9 @@ pub fn data_container<'a>(
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(185))
-        .style(style::AddonsQueryInput(color_palette));
+        .width(Length::Units(200))
+        .style(style::AddonsQueryInput(color_palette))
+        .password();
 
         let repeat_password_input: Element<Interaction> = repeat_password_input.into();
 
@@ -153,6 +169,39 @@ pub fn data_container<'a>(
         //.width(Length::Fill)
         .style(style::NormalBackgroundContainer(color_palette));
 
+    let restore_from_seed_column = {
+        let checkbox = Checkbox::new(
+            state.restore_from_seed,
+            localized_string("restore-from-seed"),
+            Interaction::SetupWalletViewToggleRestoreFromSeedInteraction)
+        .style(style::DefaultCheckbox(color_palette))
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(10);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(style::NormalBackgroundContainer(color_palette));
+        Column::new().push(checkbox_container)
+    };
+
+    let show_advanced_options_column = {
+        let checkbox = Checkbox::new(
+            state.show_advanced_options,
+            localized_string("show-advanced-options"),
+            Interaction::SetupWalletViewToggleShowAdvancedOptionsInteraction)
+        .style(style::DefaultCheckbox(color_palette))
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(10);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(style::NormalBackgroundContainer(color_palette));
+        Column::new().push(checkbox_container)
+    };
+
+
     let unit_spacing = 15;
 
     let colum = Column::new()
@@ -161,6 +210,10 @@ pub fn data_container<'a>(
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(password_column)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing + 10)))
+        .push(restore_from_seed_column)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(show_advanced_options_column)
         .align_items(Alignment::Start);
 
     Container::new(colum)

@@ -151,7 +151,27 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::SetupWalletViewToggleRestoreFromSeedInteraction(_)) => {
+            let _ = element::setup::wallet::handle_message(
+                &mut grin_gui.setup_wallet_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                element::setup::wallet::LocalViewInteraction::ToggleRestoreFromSeed,
+                &mut grin_gui.error,
+            );
+        }
+        Message::Interaction(Interaction::SetupWalletViewToggleShowAdvancedOptionsInteraction(_)) => {
+            let _ = element::setup::wallet::handle_message(
+                &mut grin_gui.setup_wallet_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                element::setup::wallet::LocalViewInteraction::ToggleAdvancedOptions,
+                &mut grin_gui.error,
+            );
+        }
+          Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;

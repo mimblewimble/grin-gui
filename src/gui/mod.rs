@@ -343,6 +343,8 @@ pub enum Interaction {
     SetupViewInteraction(element::setup::LocalViewInteraction),
     SetupInitViewInteraction(element::setup::init::LocalViewInteraction),
     SetupWalletViewInteraction(element::setup::wallet::LocalViewInteraction),
+    SetupWalletViewToggleRestoreFromSeedInteraction(bool),
+    SetupWalletViewToggleShowAdvancedOptionsInteraction(bool),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
