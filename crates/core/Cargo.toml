@@ -42,6 +42,7 @@ path-slash = "0.1.4"
 tar = "0.4.33"
 zstd = { version = "0.6.1", features = ["zstdmt"] }
 num_cpus = "1.13.0"
+dirs = "2.0"
 
 iced_native = { version = "0.5.1", optional = true }
 

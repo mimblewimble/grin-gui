@@ -4,16 +4,16 @@ use std::path::PathBuf;
 /// Struct for settings related to World of Warcraft.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 #[serde(default)]
-pub struct Wow {
+pub struct Wallet {
     #[serde(default)]
     #[allow(deprecated)]
-    pub directory: Option<PathBuf>,
+    pub toml_file_path: Option<PathBuf>,
 }
 
-impl Default for Wow {
+impl Default for Wallet {
     fn default() -> Self {
-        Wow {
-            directory: None,
+        Wallet {
+            toml_file_path: None,
         }
     }
 }

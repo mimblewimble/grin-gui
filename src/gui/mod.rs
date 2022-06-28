@@ -22,15 +22,15 @@ use image::ImageFormat;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
+use element::DEFAULT_PADDING;
 use grin_gui_core::theme::ColorPalette;
 use grin_gui_core::wallet::WalletInterface;
-use element::DEFAULT_PADDING;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
     /// Wallet Interface
-    wallet_interface: WalletInterface, 
+    wallet_interface: WalletInterface,
 
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
@@ -41,6 +41,8 @@ pub struct GrinGui {
 
     /// Setup state
     setup_state: element::setup::StateContainer,
+    setup_init_state: element::setup::init::StateContainer,
+    setup_wallet_state: element::setup::wallet::StateContainer,
 
     /// Settings screen + sub-screens states
     settings_state: element::settings::StateContainer,
@@ -65,6 +67,8 @@ impl<'a> Default for GrinGui {
             config: Config::default(),
             menu_state: Default::default(),
             setup_state: Default::default(),
+            setup_init_state: Default::default(),
+            setup_wallet_state: Default::default(),
             settings_state: Default::default(),
             wallet_settings_state: Default::default(),
             node_settings_state: Default::default(),
@@ -92,19 +96,25 @@ impl Application for GrinGui {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
-        apply_config(&mut grin_gui, config);
 
         // Check initial wallet status
         grin_gui.wallet_interface.set_chain_type();
-        let config_exists = match grin_gui.wallet_interface.check_initial_config() {
-            Ok(_) => true,
-            Err(_) => false,
-        };
-        if !config_exists {
-           grin_gui.menu_state.mode = element::menu::Mode::Setup;
-        }
-        log::debug!("{}", config_exists);
 
+        if !config.wallet.toml_file_path.is_some()
+            || !grin_gui.wallet_interface.config_exists(
+                config
+                    .wallet
+                    .toml_file_path
+                    .as_ref()
+                    .unwrap()
+                    .to_str()
+                    .unwrap(),
+            )
+        {
+            grin_gui.menu_state.mode = element::menu::Mode::Setup;
+        }
+
+        apply_config(&mut grin_gui, config);
         (grin_gui, Command::batch(vec![]))
     }
 
@@ -175,10 +185,13 @@ impl Application for GrinGui {
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
         match menu_state.mode {
             element::menu::Mode::Setup => {
-                let setup_container =
-                    element::setup::data_container(color_palette, &mut self.setup_state);
+                let setup_container = element::setup::data_container(
+                    color_palette,
+                    &mut self.setup_state,
+                    &mut self.setup_init_state,
+                    &mut self.setup_wallet_state,
+                );
                 content = content.push(setup_container)
-
             }
             element::menu::Mode::About => {
                 let about_container =
@@ -325,7 +338,11 @@ pub enum Interaction {
     GeneralSettingsViewLanguageSelected(Language),
     GeneralSettingsViewImportTheme,
     GeneralSettingsViewThemeUrlInput(String),
+    SetupWalletViewPasswordInput(String),
+    SetupWalletViewPasswordRepeatInput(String),
     SetupViewInteraction(element::setup::LocalViewInteraction),
+    SetupInitViewInteraction(element::setup::init::LocalViewInteraction),
+    SetupWalletViewInteraction(element::setup::wallet::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
@@ -595,8 +612,10 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
     }*/
 
     // Use theme from config. Set to "Dark" if not defined.
-    grin_gui.general_settings_state.theme_state.current_theme_name =
-        config.theme.as_deref().unwrap_or("Dark").to_string();
+    grin_gui
+        .general_settings_state
+        .theme_state
+        .current_theme_name = config.theme.as_deref().unwrap_or("Dark").to_string();
 
     // Use scale from config. Set to 1.0 if not defined.
     grin_gui.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);

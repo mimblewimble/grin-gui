@@ -27,7 +27,7 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            mode: Mode::Setup,
+            mode: Mode::Wallet,
             wallet_mode_btn: Default::default(),
             node_mode_btn: Default::default(),
             settings_mode_btn: Default::default(),

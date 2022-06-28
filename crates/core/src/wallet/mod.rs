@@ -9,8 +9,45 @@ use grin_wallet_controller::command::{self, GlobalArgs, InitArgs};
 use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl, HTTPNodeClient};
 use grin_wallet_util::grin_core;
 use grin_wallet_util::grin_keychain as keychain;
+use std::fs;
+
+use std::path::PathBuf;
 
 use grin_core::global;
+use dirs;
+
+/// Wallet configuration file name
+pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
+
+const WALLET_LOG_FILE_NAME: &str = "grin-wallet.log";
+
+const GRIN_HOME: &str = ".grin";
+/// Wallet data directory
+pub const GRIN_WALLET_DIR: &str = "wallet_data";
+/// Wallet top level directory
+pub const GRIN_WALLET_TOP_LEVEL_DIR: &str = "grin_wallet";
+/// Node API secret
+pub const API_SECRET_FILE_NAME: &str = ".foreign_api_secret";
+/// Owner API secret
+pub const OWNER_API_SECRET_FILE_NAME: &str = ".owner_api_secret";
+
+/// TODO - this differs from the default directory in 5.x,
+/// need to reconcile this with existing installs somehow
+
+fn get_grin_wallet_default_path(
+	chain_type: &global::ChainTypes,
+) -> PathBuf {
+	// Check if grin dir exists
+	let mut grin_path = match dirs::home_dir() {
+		Some(p) => p,
+		None => PathBuf::new(),
+	};
+	grin_path.push(GRIN_HOME);
+	grin_path.push(chain_type.shortname());
+	grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
+
+    grin_path
+}
 
 pub struct WalletInterface {
     pub chain_type: global::ChainTypes,
@@ -39,23 +76,19 @@ impl WalletInterface {
         };*/
     }
 
-    pub fn check_initial_config(&mut self) -> Result<Option<&GlobalWalletConfig>, ConfigError> {
-        let current_dir = None;
-        let create_path = false;
+    pub fn config_exists(&self, path: &str) -> bool {
+        grin_wallet_config::config_file_exists(&path)
 
-        // Load relevant config, try and load a wallet config file
-        self.config = Some(grin_wallet_config::initial_setup_wallet(
-            &self.chain_type,
-            current_dir,
-            create_path,
-        )?);
+    }
 
-        Ok(self.config.as_ref())
+    pub fn default_config_exists(&self) -> bool {
+        self.config_exists(get_grin_wallet_default_path(&self.chain_type).to_str().unwrap())
     }
 
     pub fn init(&mut self) {
+        let data_path = Some(get_grin_wallet_default_path(&self.chain_type));
         if let None = self.config {
-            self.config = Some(grin_wallet_config::initial_setup_wallet(&self.chain_type, None, false).unwrap());
+            self.config = Some(grin_wallet_config::initial_setup_wallet(&self.chain_type, data_path, true).unwrap());
         }
         let wallet_config = self.config.clone().unwrap().clone().members.unwrap().wallet;
         let node_client =
@@ -74,7 +107,7 @@ impl WalletInterface {
         {
             let mut wallet_lock = wallet.lock();
             let lc = wallet_lock.lc_provider().unwrap();
-            let _ = lc.set_top_level_directory(&wallet_config.data_file_dir);
+            let _ = lc.set_top_level_directory(&get_grin_wallet_default_path(&self.chain_type).to_str().unwrap());
         }
 
         let global_wallet_args = GlobalArgs {

@@ -1,8 +1,8 @@
 use {
     super::{GrinGui, Interaction, Message, Mode},
     crate::{gui::element, localization::localized_string, log_error, Result},
-    grin_gui_core::{error::ThemeError, fs::PersistentData},
     anyhow::Context,
+    grin_gui_core::{error::ThemeError, fs::PersistentData},
     iced::Command,
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
@@ -111,7 +111,47 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::SetupInitViewInteraction(local_interaction)) => {
+            return element::setup::init::handle_message(
+                &mut grin_gui.setup_init_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                local_interaction,
+                &mut grin_gui.error,
+            );
+        }
+        Message::Interaction(Interaction::SetupWalletViewInteraction(local_interaction)) => {
+            return element::setup::wallet::handle_message(
+                &mut grin_gui.setup_wallet_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                local_interaction,
+                &mut grin_gui.error,
+            );
+        }
+        Message::Interaction(Interaction::SetupWalletViewPasswordInput(password)) => {
+            let _ = element::setup::wallet::handle_message(
+                &mut grin_gui.setup_wallet_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                element::setup::wallet::LocalViewInteraction::PasswordInput(password),
+                &mut grin_gui.error,
+            );
+        }
+        Message::Interaction(Interaction::SetupWalletViewPasswordRepeatInput(password)) => {
+            let _ = element::setup::wallet::handle_message(
+                &mut grin_gui.setup_wallet_state,
+                &mut grin_gui.setup_state,
+                &mut grin_gui.config,
+                &mut grin_gui.wallet_interface,
+                element::setup::wallet::LocalViewInteraction::PasswordRepeatInput(password),
+                &mut grin_gui.error,
+            );
+        }
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;

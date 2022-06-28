@@ -4,17 +4,17 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::path::PathBuf;
 
-mod wow;
+mod wallet;
 
 use crate::fs::PersistentData;
 
-pub use crate::config::wow::Wow;
+pub use crate::config::wallet::Wallet;
 
 /// Config struct.
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 pub struct Config {
     #[serde(default)]
-    pub wow: Wow,
+    pub wallet: Wallet,
 
     pub theme: Option<String>,
 
@@ -26,24 +26,6 @@ pub struct Config {
     pub scale: Option<f64>,
 
     pub backup_directory: Option<PathBuf>,
-
-    #[serde(default)]
-    pub backup_addons: bool,
-
-    #[serde(default)]
-    pub backup_wtf: bool,
-
-    #[serde(default)]
-    pub backup_config: bool,
-
-    #[serde(default)]
-    pub backup_screenshots: bool,
-
-    #[serde(default)]
-    pub backup_fonts: bool,
-
-    #[serde(default)]
-    pub hide_ignored_addons: bool,
 
     #[serde(default)]
     pub self_update_channel: SelfUpdateChannel,
