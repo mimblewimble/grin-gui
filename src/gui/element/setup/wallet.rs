@@ -16,6 +16,7 @@ use {
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub back_button_state: button::State,
+    pub submit_button_state: button::State,
     pub restore_from_seed: bool,
     pub show_advanced_options: bool,
 }
@@ -25,6 +26,7 @@ impl Default for StateContainer {
         Self {
             password_state: Default::default(),
             back_button_state: Default::default(),
+            submit_button_state: Default::default(),
             show_advanced_options: false,
             restore_from_seed: false,
         }
@@ -58,6 +60,7 @@ pub enum LocalViewInteraction {
     PasswordRepeatInput(String),
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
+    Submit,
 }
 
 fn asterisk(input: &str) -> String {
@@ -86,7 +89,10 @@ pub fn handle_message(
         LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
         }
-    }
+        LocalViewInteraction::Submit => {
+            //
+        }
+     }
     Ok(Command::none())
 }
 
@@ -206,6 +212,22 @@ pub fn data_container<'a>(
         Column::new().push(checkbox_container)
     };
 
+    let submit_button_label_container = Container::new(
+        Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
+    )
+    .center_x()
+    .align_x(alignment::Horizontal::Center);
+
+    let submit_button: Element<Interaction> = Button::new(
+        &mut state.submit_button_state,
+        submit_button_label_container,
+    )
+    .style(style::DefaultBoxedButton(color_palette))
+    .on_press(Interaction::SetupWalletViewInteraction(
+        LocalViewInteraction::Submit
+    ))
+    .into();
+
     let unit_spacing = 15;
 
     let colum = Column::new()
@@ -221,6 +243,8 @@ pub fn data_container<'a>(
         .push(restore_from_seed_column)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(show_advanced_options_column)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(submit_button.map(Message::Interaction))
         .align_items(Alignment::Start);
 
     Container::new(colum)

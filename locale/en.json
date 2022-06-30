@@ -79,6 +79,7 @@
     "setup-grin-first-time": "First-Time Setup",
     "setup-grin-wallet-title": "Create New Wallet",
     "setup-grin-wallet-enter-password": "Please create a password for your new Grin wallet",
+    "setup-grin-create-wallet": "Create Wallet",
     "setup-weakauras-description": "Please select an Account to manage",
     "setup-weakauras-title": "Manage your Wago data with Ajour!",
     "show-advanced-options": "Show advanced options (TBD)",
