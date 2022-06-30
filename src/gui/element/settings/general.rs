@@ -2,7 +2,7 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::{localized_string, LANG},
-    crate::{Result, log_error},
+    crate::{log_error, Result},
     anyhow::Context,
     grin_gui_core::{
         config::{Config, Language},
@@ -14,7 +14,7 @@ use {
         button, pick_list, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
         Container, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
-    std::sync::Arc,
+    std::sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]
@@ -89,7 +89,7 @@ pub enum LocalViewInteraction {
     ThemeUrlInput(String),
     ImportTheme,
     ThemeImportedOk((String, Vec<Theme>)),
-    ThemeImportedError(Arc<anyhow::Error>),
+    ThemeImportedError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 #[derive(Debug, Clone)]
@@ -186,13 +186,11 @@ pub fn handle_message(
                                 }
                             }
                         }
-                        log_error(&e);
-                        //*error = Some(e);
-
                         Message::Interaction(Interaction::GeneralSettingsViewInteraction(
-                            LocalViewInteraction::ThemeImportedError(Arc::new(e)),
+                            LocalViewInteraction::ThemeImportedError(Arc::new(RwLock::new(Some(
+                                e,
+                            )))),
                         ))
-
                     }
                 }
             }));
@@ -213,18 +211,10 @@ pub fn handle_message(
             let _ = config.save();
         }
         LocalViewInteraction::ThemeImportedError(err) => {
-            for cause in err.chain() {
-                if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
-                    if matches!(theme_error, ThemeError::NameCollision { .. }) {
-                        *err = err.context(localized_string(
-                            "import-theme-error-name-collision",
-                        ));
-                        break;
-                    }
-                }
+            *error = err.write().unwrap().take();
+            if let Some(e) = error.as_ref() {
+                log_error(e);
             }
-            log_error(&err);
-            //*error = Some(*err);
             // Reset text input
             state.theme_state.input_url = Default::default();
             state.theme_state.input_state = Default::default();

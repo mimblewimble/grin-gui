@@ -14,6 +14,14 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
+    // Clear errors when necessary
+    match message {
+        Message::Interaction(_) => {
+            grin_gui.error.take();
+        }
+        _ => {}
+    }
+
     match message {
         // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
