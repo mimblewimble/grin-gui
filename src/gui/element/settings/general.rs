@@ -2,16 +2,19 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::{localized_string, LANG},
-    crate::Result,
+    crate::{Result, log_error},
+    anyhow::Context,
     grin_gui_core::{
         config::{Config, Language},
+        error::ThemeError,
         fs::{import_theme, PersistentData},
         theme::{ColorPalette, Theme},
     },
     iced::{
-        button, pick_list, scrollable, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
+        Container, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
+    std::sync::Arc,
 };
 
 #[derive(Debug, Clone)]
@@ -86,7 +89,7 @@ pub enum LocalViewInteraction {
     ThemeUrlInput(String),
     ImportTheme,
     ThemeImportedOk((String, Vec<Theme>)),
-    ThemeImportedError,
+    ThemeImportedError(Arc<anyhow::Error>),
 }
 
 #[derive(Debug, Clone)]
@@ -165,10 +168,34 @@ pub fn handle_message(
 
             log::debug!("Interaction::ImportTheme({})", &url);
 
-            return Ok(Command::perform(
-                import_theme(url),
-                Message::GeneralSettingsViewThemeImported,
-            ));
+            return Ok(Command::perform(import_theme(url), |r| {
+                match r.context("Failed to Import Theme") {
+                    Ok(result) => {
+                        Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                            LocalViewInteraction::ThemeImportedOk(result),
+                        ))
+                    }
+                    Err(mut e) => {
+                        for cause in e.chain() {
+                            if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
+                                if matches!(theme_error, ThemeError::NameCollision { .. }) {
+                                    e = e.context(localized_string(
+                                        "import-theme-error-name-collision",
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                        log_error(&e);
+                        //*error = Some(e);
+
+                        Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                            LocalViewInteraction::ThemeImportedError(Arc::new(e)),
+                        ))
+
+                    }
+                }
+            }));
         }
         LocalViewInteraction::ThemeImportedOk((new_theme_name, mut new_themes)) => {
             log::debug!("Message::ThemeImported({})", &new_theme_name);
@@ -185,7 +212,19 @@ pub fn handle_message(
             config.theme = Some(new_theme_name);
             let _ = config.save();
         }
-        LocalViewInteraction::ThemeImportedError => {
+        LocalViewInteraction::ThemeImportedError(err) => {
+            for cause in err.chain() {
+                if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
+                    if matches!(theme_error, ThemeError::NameCollision { .. }) {
+                        *err = err.context(localized_string(
+                            "import-theme-error-name-collision",
+                        ));
+                        break;
+                    }
+                }
+            }
+            log_error(&err);
+            //*error = Some(*err);
             // Reset text input
             state.theme_state.input_url = Default::default();
             state.theme_state.input_state = Default::default();
@@ -207,17 +246,20 @@ pub fn data_container<'a>(
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
             .style(style::NormalBackgroundContainer(color_palette));
-        let pick_list: Element<_> = PickList::new(
+        let pick_list = PickList::new(
             &mut state.localization_picklist_state,
             &Language::ALL[..],
             Some(config.language),
-            Interaction::GeneralSettingsViewLanguageSelected,
+            |l| {
+                Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                    LocalViewInteraction::LanguageSelected(l),
+                ))
+            },
         )
         .text_size(14)
         .width(Length::Units(120))
-        .style(style::PickList(color_palette))
-        .into();
-        let container = Container::new(pick_list.map(Message::Interaction))
+        .style(style::PickList(color_palette));
+        let container = Container::new(pick_list)
             .center_y()
             .width(Length::Units(120))
             .style(style::NormalForegroundContainer(color_palette));
@@ -244,7 +286,11 @@ pub fn data_container<'a>(
             &mut state.theme_state.pick_list_state,
             theme_names,
             Some(state.theme_state.current_theme_name.clone()),
-            Message::GeneralSettingsViewThemeSelected,
+            |t| {
+                Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                    LocalViewInteraction::ThemeSelected(t),
+                ))
+            },
         )
         .text_size(DEFAULT_FONT_SIZE)
         .width(Length::Units(120))
@@ -319,7 +365,7 @@ pub fn data_container<'a>(
             &mut state.theme_state.input_state,
             &localized_string("paste-url")[..],
             &state.theme_state.input_url,
-            Interaction::GeneralSettingsViewThemeUrlInput,
+            |s| Interaction::GeneralSettingsViewInteraction(LocalViewInteraction::ThemeUrlInput(s)),
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
@@ -450,7 +496,6 @@ pub fn data_container<'a>(
             .push(Space::new(Length::Units(0), Length::Units(10)))
             .push(toggle_autostart_column);
     }
-
 
     // Colum wrapping all the settings content.
     scrollable = scrollable.height(Length::Fill).width(Length::Fill);

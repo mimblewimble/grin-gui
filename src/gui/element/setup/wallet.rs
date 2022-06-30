@@ -8,8 +8,8 @@ use {
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{config::Config, wallet::WalletInterface},
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container, Element,
-        Length, Row, Space, Text, TextInput,
+        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
+        Element, Length, Row, Space, Text, TextInput,
     },
 };
 
@@ -56,8 +56,8 @@ pub enum LocalViewInteraction {
     //TODO: ZeroingString these
     PasswordInput(String),
     PasswordRepeatInput(String),
-    ToggleRestoreFromSeed,
-    ToggleAdvancedOptions,
+    ToggleRestoreFromSeed(bool),
+    ToggleAdvancedOptions(bool),
 }
 
 fn asterisk(input: &str) -> String {
@@ -82,13 +82,13 @@ pub fn handle_message(
         LocalViewInteraction::PasswordRepeatInput(repeat_password) => {
             state.password_state.repeat_input_value = repeat_password;
         }
-        LocalViewInteraction::ToggleRestoreFromSeed => {
+        LocalViewInteraction::ToggleRestoreFromSeed(_) => {
             state.restore_from_seed = !state.restore_from_seed
         }
-        LocalViewInteraction::ToggleAdvancedOptions => {
+        LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
         }
-     }
+    }
     Ok(Command::none())
 }
 
@@ -97,10 +97,11 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     // Title row and back button
-    let back_button_label_container = Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-        .height(Length::Units(20))
-        .align_y(alignment::Vertical::Bottom)
-        .align_x(alignment::Horizontal::Center);
+    let back_button_label_container =
+        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
+            .height(Length::Units(20))
+            .align_y(alignment::Vertical::Bottom)
+            .align_x(alignment::Horizontal::Center);
 
     let back_button: Element<Interaction> =
         Button::new(&mut state.back_button_state, back_button_label_container)
@@ -128,7 +129,7 @@ pub fn data_container<'a>(
             &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            Interaction::SetupWalletViewPasswordInput,
+            |s| Interaction::SetupWalletViewInteraction(LocalViewInteraction::PasswordInput(s)),
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
@@ -142,7 +143,11 @@ pub fn data_container<'a>(
             &mut state.password_state.repeat_input_state,
             &localized_string("password-repeat")[..],
             &state.password_state.repeat_input_value,
-            Interaction::SetupWalletViewPasswordRepeatInput,
+            |s| {
+                Interaction::SetupWalletViewInteraction(LocalViewInteraction::PasswordRepeatInput(
+                    s,
+                ))
+            },
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
@@ -173,7 +178,8 @@ pub fn data_container<'a>(
         let checkbox = Checkbox::new(
             state.restore_from_seed,
             localized_string("restore-from-seed"),
-            Interaction::SetupWalletViewToggleRestoreFromSeedInteraction)
+            |b| Interaction::SetupWalletViewInteraction(LocalViewInteraction::ToggleRestoreFromSeed(b)),
+        )
         .style(style::DefaultCheckbox(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(10);
@@ -189,7 +195,8 @@ pub fn data_container<'a>(
         let checkbox = Checkbox::new(
             state.show_advanced_options,
             localized_string("show-advanced-options"),
-            Interaction::SetupWalletViewToggleShowAdvancedOptionsInteraction)
+            |b| Interaction::SetupWalletViewInteraction(LocalViewInteraction::ToggleAdvancedOptions(b)),
+        )
         .style(style::DefaultCheckbox(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(10);
@@ -201,7 +208,6 @@ pub fn data_container<'a>(
         Column::new().push(checkbox_container)
     };
 
-
     let unit_spacing = 15;
 
     let colum = Column::new()
@@ -210,7 +216,10 @@ pub fn data_container<'a>(
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(password_column)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing + 10)))
+        .push(Space::new(
+            Length::Units(0),
+            Length::Units(unit_spacing + 10),
+        ))
         .push(restore_from_seed_column)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(show_advanced_options_column)

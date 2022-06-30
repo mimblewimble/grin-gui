@@ -15,27 +15,29 @@ use std::sync::atomic::Ordering;
 
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
     match message {
+        // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
             let _ = element::menu::handle_message(&mut grin_gui.menu_state, local_interaction);
         }
+        // Top level settings view
         Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
             element::settings::handle_message(&mut grin_gui.settings_state, local_interaction);
         }
-        // Wallet Settings
+        // Settings -> Wallet Settings
         Message::Interaction(Interaction::WalletSettingsViewInteraction(local_interaction)) => {
             element::settings::wallet::handle_message(
                 &mut grin_gui.wallet_settings_state,
                 local_interaction,
             );
         }
-        // Node Settings
+        // Settings -> Node Settings
         Message::Interaction(Interaction::NodeSettingsViewInteraction(local_interaction)) => {
             element::settings::node::handle_message(
                 &mut grin_gui.node_settings_state,
                 local_interaction,
             );
         }
-        // General Settings
+        // Settings -> General Settings
         Message::Interaction(Interaction::GeneralSettingsViewInteraction(local_interaction)) => {
             return element::settings::general::handle_message(
                 &mut grin_gui.general_settings_state,
@@ -44,64 +46,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
-        Message::GeneralSettingsViewThemeSelected(selected) => {
-            let _ = element::settings::general::handle_message(
-                &mut grin_gui.general_settings_state,
-                &mut grin_gui.config,
-                element::settings::general::LocalViewInteraction::ThemeSelected(selected),
-                &mut grin_gui.error,
-            );
-        }
-        Message::GeneralSettingsViewThemeImported(result) => {
-            match result.context("Failed to Import Theme") {
-                Ok(result) => {
-                    let _ = element::settings::general::handle_message(
-                        &mut grin_gui.general_settings_state,
-                        &mut grin_gui.config,
-                        element::settings::general::LocalViewInteraction::ThemeImportedOk(result),
-                        &mut grin_gui.error,
-                    );
-                }
-                Err(mut error) => {
-                    let _ = element::settings::general::handle_message(
-                        &mut grin_gui.general_settings_state,
-                        &mut grin_gui.config,
-                        element::settings::general::LocalViewInteraction::ThemeImportedError,
-                        &mut grin_gui.error,
-                    );
-                    // Assign special error message when updating failed due to
-                    // collision
-                    for cause in error.chain() {
-                        if let Some(theme_error) = cause.downcast_ref::<ThemeError>() {
-                            if matches!(theme_error, ThemeError::NameCollision { .. }) {
-                                error = error
-                                    .context(localized_string("import-theme-error-name-collision"));
-                                break;
-                            }
-                        }
-                    }
-
-                    log_error(&error);
-                    grin_gui.error = Some(error);
-                }
-            }
-        }
-        Message::Interaction(Interaction::GeneralSettingsViewLanguageSelected(language)) => {
-            let _ = element::settings::general::handle_message(
-                &mut grin_gui.general_settings_state,
-                &mut grin_gui.config,
-                element::settings::general::LocalViewInteraction::LanguageSelected(language),
-                &mut grin_gui.error,
-            );
-        }
-        Message::Interaction(Interaction::GeneralSettingsViewThemeUrlInput(url)) => {
-            let _ = element::settings::general::handle_message(
-                &mut grin_gui.general_settings_state,
-                &mut grin_gui.config,
-                element::settings::general::LocalViewInteraction::ThemeUrlInput(url),
-                &mut grin_gui.error,
-            );
-        }
+        // Setup Top Level
         Message::Interaction(Interaction::SetupViewInteraction(local_interaction)) => {
             return element::setup::handle_message(
                 &mut grin_gui.setup_state,
@@ -111,6 +56,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
+        // Setup -> Initial View (To appear when no wallet toml file is set)
         Message::Interaction(Interaction::SetupInitViewInteraction(local_interaction)) => {
             return element::setup::init::handle_message(
                 &mut grin_gui.setup_init_state,
@@ -121,6 +67,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
+        // Setup -> Wallet Init Settings
         Message::Interaction(Interaction::SetupWalletViewInteraction(local_interaction)) => {
             return element::setup::wallet::handle_message(
                 &mut grin_gui.setup_wallet_state,
@@ -131,47 +78,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 &mut grin_gui.error,
             );
         }
-        Message::Interaction(Interaction::SetupWalletViewPasswordInput(password)) => {
-            let _ = element::setup::wallet::handle_message(
-                &mut grin_gui.setup_wallet_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                element::setup::wallet::LocalViewInteraction::PasswordInput(password),
-                &mut grin_gui.error,
-            );
-        }
-        Message::Interaction(Interaction::SetupWalletViewPasswordRepeatInput(password)) => {
-            let _ = element::setup::wallet::handle_message(
-                &mut grin_gui.setup_wallet_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                element::setup::wallet::LocalViewInteraction::PasswordRepeatInput(password),
-                &mut grin_gui.error,
-            );
-        }
-        Message::Interaction(Interaction::SetupWalletViewToggleRestoreFromSeedInteraction(_)) => {
-            let _ = element::setup::wallet::handle_message(
-                &mut grin_gui.setup_wallet_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                element::setup::wallet::LocalViewInteraction::ToggleRestoreFromSeed,
-                &mut grin_gui.error,
-            );
-        }
-        Message::Interaction(Interaction::SetupWalletViewToggleShowAdvancedOptionsInteraction(_)) => {
-            let _ = element::setup::wallet::handle_message(
-                &mut grin_gui.setup_wallet_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                element::setup::wallet::LocalViewInteraction::ToggleAdvancedOptions,
-                &mut grin_gui.error,
-            );
-        }
-          Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;
