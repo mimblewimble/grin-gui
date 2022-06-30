@@ -1,3 +1,4 @@
+use iced::button::StyleSheet;
 use iced_native::Widget;
 
 use {
@@ -57,14 +58,12 @@ pub enum LocalViewInteraction {
     Back,
     //TODO: ZeroingString these
     PasswordInput(String),
+    PasswordInputEnterPressed,
     PasswordRepeatInput(String),
+    PasswordRepeatInputEnterPressed,
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
     Submit,
-}
-
-fn asterisk(input: &str) -> String {
-    input.chars().map(|_| '*').collect()
 }
 
 pub fn handle_message(
@@ -80,8 +79,15 @@ pub fn handle_message(
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
         }
+        LocalViewInteraction::PasswordInputEnterPressed => {
+            state.password_state.input_state.unfocus();
+            state.password_state.repeat_input_state.focus();
+        }
         LocalViewInteraction::PasswordRepeatInput(repeat_password) => {
             state.password_state.repeat_input_value = repeat_password;
+        }
+        LocalViewInteraction::PasswordRepeatInputEnterPressed => {
+            state.password_state.repeat_input_state.unfocus();
         }
         LocalViewInteraction::ToggleRestoreFromSeed(_) => {
             state.restore_from_seed = !state.restore_from_seed
@@ -92,7 +98,7 @@ pub fn handle_message(
         LocalViewInteraction::Submit => {
             //
         }
-     }
+    }
     Ok(Command::none())
 }
 
@@ -100,6 +106,16 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
+    let check_password = || {
+        state.password_state.input_value == state.password_state.repeat_input_value
+            && !state.password_state.input_value.is_empty()
+    };
+
+    let disp_password_status = || {
+        !state.password_state.input_value.is_empty()
+            && !state.password_state.repeat_input_value.is_empty()
+    };
+
     // Title row and back button
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -135,6 +151,9 @@ pub fn data_container<'a>(
             &state.password_state.input_value,
             |s| Interaction::SetupWalletViewInteraction(LocalViewInteraction::PasswordInput(s)),
         )
+        .on_submit(Interaction::SetupWalletViewInteraction(
+            LocalViewInteraction::PasswordInputEnterPressed,
+        ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(200))
@@ -153,6 +172,9 @@ pub fn data_container<'a>(
                 ))
             },
         )
+        .on_submit(Interaction::SetupWalletViewInteraction(
+            LocalViewInteraction::PasswordRepeatInputEnterPressed,
+        ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(200))
@@ -161,12 +183,30 @@ pub fn data_container<'a>(
 
         let repeat_password_input: Element<Interaction> = repeat_password_input.into();
 
-        let password_input_col = Column::new()
+        let mut password_entry_value = localized_string("setup-grin-passwords-dont-match");
+        if check_password() {
+            password_entry_value = localized_string("setup-grin-passwords-okay")
+        }
+        let password_entry_status = Text::new(password_entry_value)
+            .size(DEFAULT_FONT_SIZE)
+            .horizontal_alignment(alignment::Horizontal::Left);
+        let mut password_entry_status_container = Container::new(password_entry_status)
+            //.width(Length::Fill)
+            .style(style::NormalErrorBackgroundContainer(color_palette));
+
+        let mut password_input_col = Column::new()
             .push(password_input.map(Message::Interaction))
             .push(repeat_password_input.map(Message::Interaction))
             .spacing(DEFAULT_PADDING)
-            .align_items(Alignment::Center);
+            .align_items(Alignment::Start);
 
+        if !check_password() && disp_password_status() {
+            password_input_col = password_input_col.push(password_entry_status_container)
+        } else if check_password() {
+            password_entry_status_container = password_entry_status_container
+                .style(style::NormalSuccessBackgroundContainer(color_palette));
+            password_input_col = password_input_col.push(password_entry_status_container)
+        }
         Column::new().push(password_input_col)
     };
 
@@ -182,7 +222,11 @@ pub fn data_container<'a>(
         let checkbox = Checkbox::new(
             state.restore_from_seed,
             localized_string("restore-from-seed"),
-            |b| Interaction::SetupWalletViewInteraction(LocalViewInteraction::ToggleRestoreFromSeed(b)),
+            |b| {
+                Interaction::SetupWalletViewInteraction(
+                    LocalViewInteraction::ToggleRestoreFromSeed(b),
+                )
+            },
         )
         .style(style::DefaultCheckbox(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
@@ -199,7 +243,11 @@ pub fn data_container<'a>(
         let checkbox = Checkbox::new(
             state.show_advanced_options,
             localized_string("show-advanced-options"),
-            |b| Interaction::SetupWalletViewInteraction(LocalViewInteraction::ToggleAdvancedOptions(b)),
+            |b| {
+                Interaction::SetupWalletViewInteraction(
+                    LocalViewInteraction::ToggleAdvancedOptions(b),
+                )
+            },
         )
         .style(style::DefaultCheckbox(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
@@ -218,15 +266,18 @@ pub fn data_container<'a>(
     .center_x()
     .align_x(alignment::Horizontal::Center);
 
-    let submit_button: Element<Interaction> = Button::new(
+    let mut submit_button = Button::new(
         &mut state.submit_button_state,
         submit_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
-    .on_press(Interaction::SetupWalletViewInteraction(
-        LocalViewInteraction::Submit
-    ))
-    .into();
+    .style(style::DefaultBoxedButton(color_palette));
+    if check_password() {
+        submit_button = submit_button.on_press(Interaction::SetupWalletViewInteraction(
+            LocalViewInteraction::Submit,
+        ));
+    }
+
+    let submit_button: Element<Interaction> = submit_button.into();
 
     let unit_spacing = 15;
 
@@ -243,7 +294,10 @@ pub fn data_container<'a>(
         .push(restore_from_seed_column)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(show_advanced_options_column)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(
+            Length::Units(0),
+            Length::Units(unit_spacing + 10),
+        ))
         .push(submit_button.map(Message::Interaction))
         .align_items(Alignment::Start);
 

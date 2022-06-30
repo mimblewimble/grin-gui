@@ -159,6 +159,17 @@ impl container::StyleSheet for NormalErrorBackgroundContainer {
     }
 }
 
+pub struct NormalSuccessBackgroundContainer(pub ColorPalette);
+impl container::StyleSheet for NormalSuccessBackgroundContainer {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(self.0.base.background)),
+            text_color: Some(self.0.normal.secondary),
+            ..container::Style::default()
+        }
+    }
+}
+
 pub struct NormalErrorForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalErrorForegroundContainer {
     fn style(&self) -> container::Style {
@@ -169,6 +180,17 @@ impl container::StyleSheet for NormalErrorForegroundContainer {
         }
     }
 }
+pub struct NormalSuccessForegroundContainer(pub ColorPalette);
+impl container::StyleSheet for NormalSuccessForegroundContainer {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.secondary),
+            ..container::Style::default()
+        }
+    }
+}
+
 
 pub struct BrightTextButton(pub ColorPalette);
 impl button::StyleSheet for BrightTextButton {
@@ -293,7 +315,7 @@ impl button::StyleSheet for DefaultBoxedButton {
             })),
             text_color: Color {
                 a: 0.50,
-                ..self.0.bright.primary
+                ..self.0.normal.primary
             },
             ..self.active()
         }

@@ -54,10 +54,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         }
         // Setup -> Wallet Init Settings
         Message::Interaction(Interaction::SetupWalletViewInteraction(l)) => {
-            return element::setup::wallet::handle_message(
-                grin_gui,
-                l,
-            );
+            return element::setup::wallet::handle_message(grin_gui, l);
         }
         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
