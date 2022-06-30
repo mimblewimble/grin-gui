@@ -3,7 +3,7 @@ pub mod wallet;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Message},
+    crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{config::Config, wallet::WalletInterface},
@@ -35,11 +35,8 @@ pub enum LocalViewInteraction {
 }
 
 pub fn handle_message(
-    state: &mut StateContainer,
-    config: &mut Config,
-    wallet_interface: &mut WalletInterface,
+    grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
-    error: &mut Option<anyhow::Error>,
 ) -> Result<Command<Message>> {
     Ok(Command::none())
 }

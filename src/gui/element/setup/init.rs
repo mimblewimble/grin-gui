@@ -1,6 +1,6 @@
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
@@ -36,15 +36,12 @@ pub enum LocalViewInteraction {
 }
 
 pub fn handle_message(
-    state: &mut StateContainer,
-    setup_state: &mut super::StateContainer,
-    config: &mut Config,
-    wallet_interface: &mut WalletInterface,
+    grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
-    error: &mut Option<anyhow::Error>,
 ) -> Result<Command<Message>> {
+    let state = &mut grin_gui.setup_state;
     match message {
-        LocalViewInteraction::WalletSetup => setup_state.mode = super::Mode::CreateWallet,
+        LocalViewInteraction::WalletSetup => state.mode = super::Mode::CreateWallet,
         LocalViewInteraction::SelectWalletTomlFile => {}
     }
     Ok(Command::none())

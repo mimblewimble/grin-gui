@@ -1,6 +1,6 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     grin_gui_core::{theme::ColorPalette, utility::Release},
     iced::{
@@ -39,14 +39,14 @@ pub enum Mode {
 }
 
 pub fn handle_message(
-    state: &mut StateContainer,
+    grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) {
     match message {
         LocalViewInteraction::SelectMode(mode) => {
             log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
             // Set Mode
-            state.mode = mode;
+            grin_gui.wallet_settings_state.mode = mode;
         }
     }
 }

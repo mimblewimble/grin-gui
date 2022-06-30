@@ -1,6 +1,6 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::{localized_string, LANG},
     crate::{log_error, Result},
     anyhow::Context,
@@ -100,11 +100,10 @@ pub enum Mode {
 }
 
 pub fn handle_message(
-    state: &mut StateContainer,
-    config: &mut Config,
+    grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
-    error: &mut Option<anyhow::Error>,
 ) -> Result<Command<Message>> {
+    let state = &mut grin_gui.general_settings_state;
     match message {
         LocalViewInteraction::ThemeSelected(theme_name) => {
             log::debug!(
@@ -114,8 +113,8 @@ pub fn handle_message(
 
             state.theme_state.current_theme_name = theme_name.clone();
 
-            config.theme = Some(theme_name);
-            let _ = config.save();
+            grin_gui.config.theme = Some(theme_name);
+            let _ = grin_gui.config.save();
         }
         LocalViewInteraction::LanguageSelected(lang) => {
             log::debug!(
@@ -123,8 +122,8 @@ pub fn handle_message(
                 &lang
             );
             // Update config.
-            config.language = lang;
-            let _ = config.save();
+            grin_gui.config.language = lang;
+            let _ = grin_gui.config.save();
 
             // Update global LANG refcell.
             *LANG.get().expect("LANG not set").write().unwrap() = lang.language_code();
@@ -134,8 +133,8 @@ pub fn handle_message(
 
             state.scale_state.scale = ((prev_scale + 0.1).min(2.0) * 10.0).round() / 10.0;
 
-            config.scale = Some(state.scale_state.scale);
-            let _ = config.save();
+            grin_gui.config.scale = Some(state.scale_state.scale);
+            let _ = grin_gui.config.save();
 
             log::debug!(
                 "settings::general::LocalViewInteraction::ScaleUp({} -> {})",
@@ -148,8 +147,8 @@ pub fn handle_message(
 
             state.scale_state.scale = ((prev_scale - 0.1).max(0.5) * 10.0).round() / 10.0;
 
-            config.scale = Some(state.scale_state.scale);
-            let _ = config.save();
+            grin_gui.config.scale = Some(state.scale_state.scale);
+            let _ = grin_gui.config.save();
 
             log::debug!(
                 "settings::general::LocalViewInteraction::ScaleDown({} -> {})",
@@ -162,7 +161,7 @@ pub fn handle_message(
         }
         LocalViewInteraction::ImportTheme => {
             // Reset error
-            error.take();
+            grin_gui.error.take();
 
             let url = state.theme_state.input_url.clone();
 
@@ -207,12 +206,12 @@ pub fn handle_message(
             }
 
             state.theme_state.current_theme_name = new_theme_name.clone();
-            config.theme = Some(new_theme_name);
-            let _ = config.save();
+            grin_gui.config.theme = Some(new_theme_name);
+            let _ = grin_gui.config.save();
         }
         LocalViewInteraction::ThemeImportedError(err) => {
-            *error = err.write().unwrap().take();
-            if let Some(e) = error.as_ref() {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
             // Reset text input

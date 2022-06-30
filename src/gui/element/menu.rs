@@ -2,7 +2,7 @@ use isahc::http::version;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{GrinGui, style, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,
@@ -51,14 +51,14 @@ pub enum Mode {
 }
 
 pub fn handle_message(
-    state: &mut StateContainer,
+    grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> crate::Result<Command<Message>> {
     match message {
         LocalViewInteraction::SelectMode(mode) => {
             log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
             // Set Mode
-            state.mode = mode
+            grin_gui.menu_state.mode = mode
         }
     }
     Ok(Command::none())

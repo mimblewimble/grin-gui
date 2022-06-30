@@ -24,66 +24,39 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
     match message {
         // Top level menu
-        Message::Interaction(Interaction::MenuViewInteraction(local_interaction)) => {
-            let _ = element::menu::handle_message(&mut grin_gui.menu_state, local_interaction);
+        Message::Interaction(Interaction::MenuViewInteraction(l)) => {
+            let _ = element::menu::handle_message(grin_gui, l);
         }
         // Top level settings view
-        Message::Interaction(Interaction::SettingsViewInteraction(local_interaction)) => {
-            element::settings::handle_message(&mut grin_gui.settings_state, local_interaction);
+        Message::Interaction(Interaction::SettingsViewInteraction(l)) => {
+            element::settings::handle_message(grin_gui, l);
         }
         // Settings -> Wallet Settings
-        Message::Interaction(Interaction::WalletSettingsViewInteraction(local_interaction)) => {
-            element::settings::wallet::handle_message(
-                &mut grin_gui.wallet_settings_state,
-                local_interaction,
-            );
+        Message::Interaction(Interaction::WalletSettingsViewInteraction(l)) => {
+            element::settings::wallet::handle_message(grin_gui, l);
         }
         // Settings -> Node Settings
-        Message::Interaction(Interaction::NodeSettingsViewInteraction(local_interaction)) => {
-            element::settings::node::handle_message(
-                &mut grin_gui.node_settings_state,
-                local_interaction,
-            );
+        Message::Interaction(Interaction::NodeSettingsViewInteraction(l)) => {
+            element::settings::node::handle_message(grin_gui, l);
         }
+
         // Settings -> General Settings
-        Message::Interaction(Interaction::GeneralSettingsViewInteraction(local_interaction)) => {
-            return element::settings::general::handle_message(
-                &mut grin_gui.general_settings_state,
-                &mut grin_gui.config,
-                local_interaction,
-                &mut grin_gui.error,
-            );
+        Message::Interaction(Interaction::GeneralSettingsViewInteraction(l)) => {
+            return element::settings::general::handle_message(grin_gui, l);
         }
         // Setup Top Level
-        Message::Interaction(Interaction::SetupViewInteraction(local_interaction)) => {
-            return element::setup::handle_message(
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                local_interaction,
-                &mut grin_gui.error,
-            );
+        Message::Interaction(Interaction::SetupViewInteraction(l)) => {
+            return element::setup::handle_message(grin_gui, l);
         }
         // Setup -> Initial View (To appear when no wallet toml file is set)
-        Message::Interaction(Interaction::SetupInitViewInteraction(local_interaction)) => {
-            return element::setup::init::handle_message(
-                &mut grin_gui.setup_init_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                local_interaction,
-                &mut grin_gui.error,
-            );
+        Message::Interaction(Interaction::SetupInitViewInteraction(l)) => {
+            return element::setup::init::handle_message(grin_gui, l);
         }
         // Setup -> Wallet Init Settings
-        Message::Interaction(Interaction::SetupWalletViewInteraction(local_interaction)) => {
+        Message::Interaction(Interaction::SetupWalletViewInteraction(l)) => {
             return element::setup::wallet::handle_message(
-                &mut grin_gui.setup_wallet_state,
-                &mut grin_gui.setup_state,
-                &mut grin_gui.config,
-                &mut grin_gui.wallet_interface,
-                local_interaction,
-                &mut grin_gui.error,
+                grin_gui,
+                l,
             );
         }
         Message::Interaction(Interaction::ModeSelected(mode)) => {
