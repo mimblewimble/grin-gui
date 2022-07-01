@@ -50,3 +50,9 @@ See [Grin project contribution](https://github.com/mimblewimble/grin/blob/master
 
 * Thanks to [iced-rs](https://github.com/iced-rs/iced) for a workable native Rust GUI
 * Thank you to [ajour](https://github.com/ajour/ajour) for a completely working, non-trivial and tested-in-the-wild iced-rs project to use as a base for development.
+
+# License
+
+GPL 3.0 (for the time being)
+
+Note this differs from the rest of the Grin codebase (which uses Apache 2) due to [ajour](https://github.com/ajour/ajour)'s licensing. Currently attempting to get copyright holder's permission to change this to Apache 2.
