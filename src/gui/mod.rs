@@ -614,23 +614,6 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
     // Use scale from config. Set to 1.0 if not defined.
     grin_gui.general_settings_state.scale_state.scale = config.scale.unwrap_or(1.0);
 
-    // Migration for the new TBC client. Link ClassicEra flavor to `_classic_era_` instead of
-    // `_classic_`
-    /*{
-        if let Some(classic_era_dir) = config.wow.directories.get(&Flavor::ClassicEra) {
-            if classic_era_dir.ends_with("_classic_") {
-                if let Some(parent) = classic_era_dir.parent() {
-                    let new_path = parent.join("_classic_era_");
-
-                    config.wow.directories.insert(Flavor::ClassicEra, new_path);
-                }
-            }
-        }
-    }*/
-
-    // Set the inital mode flavor
-    //grin_gui.mode = Mode::MyAddons(config.wow.flavor);
-
     grin_gui.config = config;
 
     let _ = &grin_gui.config.save();

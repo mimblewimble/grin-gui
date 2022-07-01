@@ -116,43 +116,23 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
             match key_code {
                 iced::keyboard::KeyCode::A => {
-                    /*let flavor = grin_gui.config.wow.flavor;
-                    grin_gui.mode = Mode::MyAddons(flavor);*/
                 }
                 iced::keyboard::KeyCode::C => {
                     grin_gui.mode = Mode::Catalog;
                 }
                 iced::keyboard::KeyCode::R => {
-                    /*let mode = grin_gui.mode.clone();
-                    return handle_message(grin_gui, Message::Interaction(Interaction::Refresh(mode)));*/
                 }
                 iced::keyboard::KeyCode::S => {
                     grin_gui.mode = Mode::Settings;
                 }
                 iced::keyboard::KeyCode::U => {
-                    /*let mode = grin_gui.mode.clone();
-                    return handle_message(
-                        grin_gui,
-                        Message::Interaction(Interaction::UpdateAll(mode)),
-                    );*/
                 }
                 iced::keyboard::KeyCode::W => {
-                    /*let flavor = grin_gui.config.wow.flavor;
-                    grin_gui.mode = Mode::MyWeakAuras(flavor);*/
                 }
                 iced::keyboard::KeyCode::I => {
                     grin_gui.mode = Mode::Install;
                 }
                 iced::keyboard::KeyCode::Escape => match grin_gui.mode {
-                    /*Mode::Settings | Mode::About => {
-                        grin_gui.mode = Mode::MyAddons(grin_gui.config.wow.flavor);
-                    }
-                    Mode::MyAddons(_) => {
-                        grin_gui.addons_search_state.query = None;
-                    }
-                    Mode::Catalog => {
-                        grin_gui.catalog_search_state.query = None;
-                    }*/
                     _ => (),
                 },
                 _ => (),
