@@ -141,6 +141,7 @@ pub async fn init(
     };
 
     let mut owner_api = Owner::new(wallet, None);
+    global::set_local_chain_type(w.chain_type);
 
     // Assume global chain type has already been initialized.
     let chain_type = global::get_chain_type();
