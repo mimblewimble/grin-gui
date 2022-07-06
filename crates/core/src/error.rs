@@ -1,5 +1,13 @@
 use std::path::PathBuf;
 
+use grin_wallet_controller;
+
+#[derive(thiserror::Error, Debug)]
+pub enum GrinWalletControllerError {
+    #[error(transparent)]
+    Wallet(#[from] grin_wallet_controller::Error)
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum FilesystemError {
     #[error(transparent)]

@@ -82,6 +82,7 @@
     "setup-grin-create-wallet": "Create Wallet",
     "setup-grin-passwords-dont-match": "Passwords do not match",
     "setup-grin-passwords-okay": "Password okay",
+    "setup-grin-wallet-success": "Wallet Created!",
     "setup-weakauras-description": "Bitte wähle ein Konto zum Verwalten aus",
     "setup-weakauras-title": "Verwalten Sie Ihre Wago-Daten mit Ajour!",
     "show-advanced-options": "Show advanced options",

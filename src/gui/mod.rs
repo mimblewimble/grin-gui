@@ -30,7 +30,7 @@ static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
     /// Wallet Interface
-    wallet_interface: WalletInterface,
+    wallet_interface: Arc<RwLock<WalletInterface>>,
 
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
@@ -60,7 +60,7 @@ impl<'a> Default for GrinGui {
         state.insert(Mode::Catalog, State::Loading);
 
         Self {
-            wallet_interface: Default::default(),
+            wallet_interface: Arc::new(RwLock::new(Default::default())),
             state,
             error: None,
             mode: Mode::Catalog,
@@ -94,12 +94,14 @@ impl Application for GrinGui {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
+        let wallet_interface = grin_gui.wallet_interface.clone();
+        let mut w = wallet_interface.write().unwrap();
 
         // Check initial wallet status
-        grin_gui.wallet_interface.set_chain_type();
+        w.set_chain_type();
 
         if !config.wallet.toml_file_path.is_some()
-            || !grin_gui.wallet_interface.config_exists(
+            || !w.config_exists(
                 config
                     .wallet
                     .toml_file_path
@@ -337,6 +339,7 @@ pub enum Interaction {
     SetupViewInteraction(element::setup::LocalViewInteraction),
     SetupInitViewInteraction(element::setup::init::LocalViewInteraction),
     SetupWalletViewInteraction(element::setup::wallet::LocalViewInteraction),
+    SetupWalletSuccessViewInteraction(element::setup::wallet_success::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

@@ -5,16 +5,19 @@ use std::path::Path;
 use grin_wallet::cmd::wallet_args::inst_wallet;
 use grin_wallet_api::Owner;
 use grin_wallet_config::{self, ConfigError, GlobalWalletConfig};
-use grin_wallet_controller::command::{self, GlobalArgs, InitArgs};
+use grin_wallet_controller::command::{GlobalArgs, InitArgs};
 use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl, HTTPNodeClient};
 use grin_wallet_util::grin_core;
 use grin_wallet_util::grin_keychain as keychain;
-use std::fs;
+use std::{
+    fs,
+    sync::{Arc, RwLock},
+};
 
 use std::path::PathBuf;
 
-use grin_core::global;
 use dirs;
+use grin_core::global;
 
 /// Wallet configuration file name
 pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
@@ -34,17 +37,15 @@ pub const OWNER_API_SECRET_FILE_NAME: &str = ".owner_api_secret";
 /// TODO - this differs from the default directory in 5.x,
 /// need to reconcile this with existing installs somehow
 
-fn get_grin_wallet_default_path(
-	chain_type: &global::ChainTypes,
-) -> PathBuf {
-	// Check if grin dir exists
-	let mut grin_path = match dirs::home_dir() {
-		Some(p) => p,
-		None => PathBuf::new(),
-	};
-	grin_path.push(GRIN_HOME);
-	grin_path.push(chain_type.shortname());
-	grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
+fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf {
+    // Check if grin dir exists
+    let mut grin_path = match dirs::home_dir() {
+        Some(p) => p,
+        None => PathBuf::new(),
+    };
+    grin_path.push(GRIN_HOME);
+    grin_path.push(chain_type.shortname());
+    grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
 
     grin_path
 }
@@ -78,56 +79,85 @@ impl WalletInterface {
 
     pub fn config_exists(&self, path: &str) -> bool {
         grin_wallet_config::config_file_exists(&path)
-
     }
 
     pub fn default_config_exists(&self) -> bool {
-        self.config_exists(get_grin_wallet_default_path(&self.chain_type).to_str().unwrap())
+        self.config_exists(
+            get_grin_wallet_default_path(&self.chain_type)
+                .to_str()
+                .unwrap(),
+        )
+    }
+}
+
+pub async fn init(
+    wallet_interface: Arc<RwLock<WalletInterface>>,
+    password: String,
+) -> Result<(), grin_wallet_controller::Error> {
+    let mut w = wallet_interface.write().unwrap();
+    let data_path = Some(get_grin_wallet_default_path(&w.chain_type));
+    if let None = w.config {
+        w.config =
+            Some(grin_wallet_config::initial_setup_wallet(&w.chain_type, data_path, true).unwrap());
+    }
+    let wallet_config = w.config.clone().unwrap().clone().members.unwrap().wallet;
+    let node_client = HTTPNodeClient::new(&wallet_config.check_node_api_http_addr, None).unwrap(); // Instantiate wallet (doesn't open the wallet)
+
+    let wallet = inst_wallet::<
+        DefaultLCProvider<HTTPNodeClient, keychain::ExtKeychain>,
+        HTTPNodeClient,
+        keychain::ExtKeychain,
+    >(wallet_config.clone(), node_client)
+    .unwrap_or_else(|e| {
+        println!("{}", e);
+        std::process::exit(1);
+    });
+
+    {
+        let mut wallet_lock = wallet.lock();
+        let lc = wallet_lock.lc_provider().unwrap();
+        let _ = lc.set_top_level_directory(
+            &get_grin_wallet_default_path(&w.chain_type)
+                .to_str()
+                .unwrap(),
+        );
     }
 
-    pub fn init(&mut self) {
-        let data_path = Some(get_grin_wallet_default_path(&self.chain_type));
-        if let None = self.config {
-            self.config = Some(grin_wallet_config::initial_setup_wallet(&self.chain_type, data_path, true).unwrap());
-        }
-        let wallet_config = self.config.clone().unwrap().clone().members.unwrap().wallet;
-        let node_client =
-            HTTPNodeClient::new(&wallet_config.check_node_api_http_addr, None).unwrap(); // Instantiate wallet (doesn't open the wallet)
+    let global_wallet_args = GlobalArgs {
+        account: "default".to_owned(),
+        api_secret: None,
+        node_api_secret: None,
+        show_spent: false,
+        password: None,
+        tls_conf: None,
+    };
 
-        let wallet = inst_wallet::<
-            DefaultLCProvider<HTTPNodeClient, keychain::ExtKeychain>,
-            HTTPNodeClient,
-            keychain::ExtKeychain,
-        >(wallet_config.clone(), node_client)
-        .unwrap_or_else(|e| {
-            println!("{}", e);
-            std::process::exit(1);
-        });
+    let args = InitArgs {
+        list_length: 32,
+        password: password.into(),
+        config: wallet_config,
+        recovery_phrase: None,
+        restore: false,
+    };
 
-        {
-            let mut wallet_lock = wallet.lock();
-            let lc = wallet_lock.lc_provider().unwrap();
-            let _ = lc.set_top_level_directory(&get_grin_wallet_default_path(&self.chain_type).to_str().unwrap());
-        }
+    let mut owner_api = Owner::new(wallet, None);
 
-        let global_wallet_args = GlobalArgs {
-            account: "default".to_owned(),
-            api_secret: None,
-            node_api_secret: None,
-            show_spent: false,
-            password: None,
-            tls_conf: None,
-        };
+    // Assume global chain type has already been initialized.
+    let chain_type = global::get_chain_type();
 
-        let args = InitArgs {
-            list_length: 32,
-            password: "password".into(),
-            config: wallet_config,
-            recovery_phrase: None,
-            restore: false,
-        };
+    let mut w_lock = owner_api.wallet_inst.lock();
+    let p = w_lock.lc_provider()?;
+    p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, None, None, None)?;
+    p.create_wallet(
+        None,
+        args.recovery_phrase,
+        args.list_length,
+        args.password.clone(),
+        false,
+    )?;
 
-        let mut owner_api = Owner::new(wallet, None);
-        command::init(&mut owner_api, &global_wallet_args, args, false);
-    }
+    /*let m = p.get_mnemonic(None, args.password)?;
+    show_recovery_phrase(m);*/
+
+    Ok(())
 }

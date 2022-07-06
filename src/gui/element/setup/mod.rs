@@ -1,5 +1,6 @@
 pub mod init;
 pub mod wallet;
+pub mod wallet_success;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},

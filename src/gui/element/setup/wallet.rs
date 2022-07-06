@@ -1,3 +1,4 @@
+use crate::{gui::element::settings::wallet, log_error};
 use iced::button::StyleSheet;
 use iced_native::Widget;
 
@@ -6,12 +7,14 @@ use {
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
+    anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
+    grin_gui_core::{config::Config, wallet::{init, WalletInterface}},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
     },
+    std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
@@ -63,7 +66,9 @@ pub enum LocalViewInteraction {
     PasswordRepeatInputEnterPressed,
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
-    Submit,
+    CreateWallet,
+    WalletCreatedOk,
+    WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 pub fn handle_message(
@@ -95,10 +100,39 @@ pub fn handle_message(
         LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
         }
-        LocalViewInteraction::Submit => {
-            //
+        LocalViewInteraction::CreateWallet => {
+            grin_gui.error.take();
+
+            log::debug!("setup::wallet::LocalViewInteraction::CreateWallet");
+
+            let password = state.password_state.input_value.clone();
+            let wallet_interface = grin_gui.wallet_interface.clone();
+            let fut = move || {
+                init(wallet_interface, password.clone())
+            };
+
+            return Ok(Command::perform(fut(),
+                |r| match r.context("Failed to Create Wallet") {
+                    Ok(_) => Message::Interaction(Interaction::SetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreatedOk,
+                    )),
+                    Err(e) => Message::Interaction(Interaction::SetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(Some(e)))),
+                    )),
+                },
+            ));
+        }
+        LocalViewInteraction::WalletCreatedOk => {
+            // move to success phase (display recovery)
+        }
+        LocalViewInteraction::WalletCreateError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
         }
     }
+
     Ok(Command::none())
 }
 
@@ -273,7 +307,7 @@ pub fn data_container<'a>(
     .style(style::DefaultBoxedButton(color_palette));
     if check_password() {
         submit_button = submit_button.on_press(Interaction::SetupWalletViewInteraction(
-            LocalViewInteraction::Submit,
+            LocalViewInteraction::CreateWallet,
         ));
     }
 

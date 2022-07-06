@@ -14,12 +14,21 @@ gui = ['iced_native']
 no-self-update = []
 
 [dependencies]
-grin_wallet = { version = "5.1.0" }
-grin_wallet_config = { version = "5.1.0"}
-grin_wallet_util = { version = "5.1.0"}
-grin_wallet_controller = { version = "5.1.0"}
-grin_wallet_api = { version = "5.1.0"}
-grin_wallet_impls = { version = "5.1.0"}
+#grin_wallet = { version = "5.1.0" }
+#grin_wallet_config = { version = "5.1.0"}
+#grin_wallet_util = { version = "5.1.0"}
+#grin_wallet_controller = { version = "5.1.0"}
+#grin_wallet_api = { version = "5.1.0"}
+#grin_wallet_impls = { version = "5.1.0"}
+
+# For local testing
+ grin_wallet = { path = "../../../grin-wallet-yeastplume"}
+ grin_wallet_config = { path = "../../../grin-wallet-yeastplume/config"}
+ grin_wallet_util = { path = "../../../grin-wallet-yeastplume/util"}
+ grin_wallet_controller = { path = "../../../grin-wallet-yeastplume/controller"}
+ grin_wallet_api = { path = "../../../grin-wallet-yeastplume/api"}
+ grin_wallet_impls = { path = "../../../grin-wallet-yeastplume/impls"}
+
 
 regex = "1.4.3"
 fancy-regex = "0.5.0" # Regex with backtracking
