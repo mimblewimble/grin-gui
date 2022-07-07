@@ -4,6 +4,35 @@ use iced::{
     button, checkbox, container, pick_list, scrollable, slider, text_input, Background, Color,
 };
 
+use iced_aw::{card, modal};
+
+pub struct NormalModalContainer(pub ColorPalette);
+impl modal::StyleSheet for NormalModalContainer {
+    fn active(&self) -> modal::Style {
+        modal::Style {
+            background: Background::Color(Color {
+                a: 0.6,
+                ..self.0.base.foreground
+            }),
+        }
+    }
+}
+
+pub struct NormalModalCardContainer(pub ColorPalette);
+impl card::StyleSheet for NormalModalCardContainer {
+    fn active(&self) -> card::Style {
+        card::Style {
+            background: Background::Color(self.0.base.background),
+            head_background: Background::Color(self.0.normal.primary),
+            border_color: self.0.normal.primary,
+            body_text_color: self.0.normal.surface,
+            border_radius: 5.0,
+            ..card::Style::default()
+        }
+    }
+}
+
+
 pub struct BrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for BrightForegroundContainer {
     fn style(&self) -> container::Style {
@@ -190,7 +219,6 @@ impl container::StyleSheet for NormalSuccessForegroundContainer {
         }
     }
 }
-
 
 pub struct BrightTextButton(pub ColorPalette);
 impl button::StyleSheet for BrightTextButton {
@@ -762,7 +790,7 @@ impl pick_list::StyleSheet for SecondaryPickList {
                 a: 0.5,
                 ..self.0.normal.primary
             },
-         }
+        }
     }
 
     fn hovered(&self) -> pick_list::Style {

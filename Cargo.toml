@@ -18,6 +18,7 @@ grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 iced = { version = "0.4.0", default-features = false }
 iced_futures = { version = "0.4.1", features = ["async-std"] }
 iced_native = { version = "0.5.1" }
+iced_aw = { version = "0.2.0", default-features = false, features = ["card", "modal"]}
 async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }
 image = "0.23.8"

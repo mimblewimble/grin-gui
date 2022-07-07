@@ -16,6 +16,8 @@ use std::sync::atomic::Ordering;
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
     // Clear errors when necessary
     match message {
+        Message::Interaction(Interaction::OpenErrorModal) => {}
+        Message::Interaction(Interaction::CloseErrorModal) => {}
         Message::Interaction(_) => {
             grin_gui.error.take();
         }
@@ -23,6 +25,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
+        // Error modal state
+        Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
+        Message::Interaction(Interaction::CloseErrorModal) => {
+            grin_gui.error_modal_state.show(false)
+        }
         // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(l)) => {
             let _ = element::menu::handle_message(grin_gui, l);
@@ -60,7 +67,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::SetupWalletSuccessViewInteraction(l)) => {
             return element::setup::wallet_success::handle_message(grin_gui, l);
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;
@@ -74,8 +81,12 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             //grin_gui.settings_state.mode = mode;
         }
         Message::Error(error) => {
-            log_error(&error);
-            grin_gui.error = Some(error);
+            let mut e = error.write().unwrap();
+            let err = e.take();
+            if let Some(ref e) = err {
+                log_error(e);
+            }
+            grin_gui.error = err;
         }
         Message::RuntimeEvent(iced_native::Event::Window(
             iced_native::window::Event::Resized { width, height },
@@ -119,20 +130,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             }
 
             match key_code {
-                iced::keyboard::KeyCode::A => {
-                }
+                iced::keyboard::KeyCode::A => {}
                 iced::keyboard::KeyCode::C => {
                     grin_gui.mode = Mode::Catalog;
                 }
-                iced::keyboard::KeyCode::R => {
-                }
+                iced::keyboard::KeyCode::R => {}
                 iced::keyboard::KeyCode::S => {
                     grin_gui.mode = Mode::Settings;
                 }
-                iced::keyboard::KeyCode::U => {
-                }
-                iced::keyboard::KeyCode::W => {
-                }
+                iced::keyboard::KeyCode::U => {}
+                iced::keyboard::KeyCode::W => {}
                 iced::keyboard::KeyCode::I => {
                     grin_gui.mode = Mode::Install;
                 }

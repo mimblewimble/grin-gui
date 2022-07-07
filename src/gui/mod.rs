@@ -3,7 +3,9 @@ mod style;
 mod update;
 
 use crate::cli::Opts;
+use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
+use crate::gui::element::DEFAULT_FONT_SIZE;
 use grin_gui_core::{
     config::{Config, Language},
     error::ThemeError,
@@ -16,6 +18,10 @@ use iced::{
     Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Space, Subscription,
     Text, TextInput,
 };
+
+use iced_native::alignment;
+
+use iced_aw::{modal, Card, Modal};
 
 use image::ImageFormat;
 
@@ -36,6 +42,10 @@ pub struct GrinGui {
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
+
+    /// Top-level error modal overlay
+    error_modal_state: modal::State<ModalState>,
+
     /// Main menu state
     menu_state: element::menu::StateContainer,
 
@@ -65,6 +75,7 @@ impl<'a> Default for GrinGui {
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
+            error_modal_state: Default::default(),
             menu_state: Default::default(),
             setup_state: Default::default(),
             setup_init_state: Default::default(),
@@ -78,10 +89,10 @@ impl<'a> Default for GrinGui {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
-    Error(anyhow::Error),
+    Error(Arc<RwLock<Option<anyhow::Error>>>),
     Interaction(Interaction),
     RuntimeEvent(iced_native::Event),
     None(()),
@@ -155,11 +166,11 @@ impl Application for GrinGui {
     fn update(&mut self, message: Message) -> Command<Message> {
         match update::handle_message(self, message) {
             Ok(x) => x,
-            Err(e) => Command::perform(async { e }, Message::Error),
+            Err(e) => Command::perform(async { Arc::new(RwLock::new(Some(e))) }, Message::Error),
         }
     }
 
-    fn view(&mut self) -> Element<Message> {
+    fn view(&mut self) -> Element<Self::Message> {
         let color_palette = self
             .general_settings_state
             .theme_state
@@ -213,20 +224,58 @@ impl Application for GrinGui {
             }
             _ => {}
         }
-        let container: Option<Container<Message>> = match self.mode {
-            _ => None,
-        };
 
-        if let Some(c) = container {
-            content = content.push(c);
+        let error_cause = if let Some(e) = &self.error {
+            error_cause_string(&e)
+        } else {
+            "None".into()
         };
-
-        // Finally wraps everything in a container.
+ 
+        let content: Element<Self::Message> = 
+        // Wraps everything in a container.
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .style(style::NormalBackgroundContainer(color_palette))
+            .into();
+
+        Modal::new(&mut self.error_modal_state, content, move|state| {
+            Card::new(
+                Text::new("Error Detail"),
+                Text::new(&error_cause).size(DEFAULT_FONT_SIZE)
+            )
+              .foot(
+                Row::new()
+                    .spacing(10)
+                    .padding(5)
+                    .width(Length::Fill)
+                    .push(
+                        Button::new(
+                            &mut state.cancel_state,
+                            Text::new("Cancel").horizontal_alignment(alignment::Horizontal::Center),
+                        )
+                        .width(Length::Fill)
+                        .on_press(Message::Interaction(Interaction::CloseErrorModal)),
+                    )
+                    .push(
+                        Button::new(
+                            &mut state.ok_state,
+                            Text::new("Ok").horizontal_alignment(alignment::Horizontal::Center),
+                        )
+                        .width(Length::Fill)
+                        .on_press(Message::Interaction(Interaction::CloseErrorModal)),
+                    )
+            )
+            .max_width(500)
+            .on_close(Message::Interaction(Interaction::CloseErrorModal))
+            .style(style::NormalModalCardContainer(color_palette))
             .into()
+        })
+        .backdrop(Message::Interaction(Interaction::CloseErrorModal))
+        .on_esc(Message::Interaction(Interaction::CloseErrorModal))
+        .style(style::NormalModalContainer(color_palette))
+        .into()
+
     }
 }
 
@@ -329,6 +378,9 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum Interaction {
+    /// Error modal
+    OpenErrorModal,
+    CloseErrorModal,
     /// String representing view ID and enum message (specific to that view)
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
@@ -365,6 +417,12 @@ pub enum Interaction {
     ToggleAutoStart(bool),
     #[cfg(target_os = "windows")]
     ToggleStartClosedToTray(bool),
+}
+
+#[derive(Default)]
+struct ModalState {
+    cancel_state: button::State,
+    ok_state: button::State,
 }
 
 pub struct ThemeState {

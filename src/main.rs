@@ -127,6 +127,22 @@ pub fn log_error(error: &anyhow::Error) {
     }
 }
 
+pub fn error_cause_string(error: &anyhow::Error) -> String {
+    let mut ret_val = String::new();
+    let mut causes = error.chain();
+
+    // Remove first entry since it's same as top level error
+    let top_level_cause = causes.next();
+    if let Some(t) = top_level_cause {
+        ret_val.push_str(&format!("{}\n\n", t));
+    }
+
+    for cause in causes {
+        ret_val.push_str(&format!("{}\n\n", cause));
+    }
+    ret_val
+}
+
 #[allow(clippy::unnecessary_operation)]
 fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
     let mut logger = fern::Dispatch::new()
@@ -141,7 +157,8 @@ fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
         })
         .level(log::LevelFilter::Off)
         .level_for("panic", log::LevelFilter::Error)
-        .level_for("grin_gui", log::LevelFilter::Trace);
+        .level_for("grin_gui", log::LevelFilter::Trace)
+        .level_for("grin_wallet", log::LevelFilter::Trace);
 
     if !is_cli {
         logger = logger.level_for("grin_gui_core", log::LevelFilter::Trace);

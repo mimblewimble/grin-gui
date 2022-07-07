@@ -1,8 +1,8 @@
 use isahc::http::version;
 
 use {
-    super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{GrinGui, style, Interaction, Message},
+    super::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
+    crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,
@@ -22,6 +22,7 @@ pub struct StateContainer {
     node_mode_btn: button::State,
     settings_mode_btn: button::State,
     about_mode_btn: button::State,
+    error_detail_btn: button::State,
 }
 
 impl Default for StateContainer {
@@ -32,6 +33,7 @@ impl Default for StateContainer {
             node_mode_btn: Default::default(),
             settings_mode_btn: Default::default(),
             about_mode_btn: Default::default(),
+            error_detail_btn: Default::default(),
         }
     }
 }
@@ -77,13 +79,17 @@ pub fn data_container<'a>(
         &mut state.wallet_mode_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::Wallet)));
+    .on_press(Interaction::MenuViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::Wallet),
+    ));
 
     let mut node_mode_button: Button<Interaction> = Button::new(
         &mut state.node_mode_btn,
         Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::Node)));
+    .on_press(Interaction::MenuViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::Node),
+    ));
 
     let mut settings_mode_button: Button<Interaction> = Button::new(
         &mut state.settings_mode_btn,
@@ -91,7 +97,9 @@ pub fn data_container<'a>(
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::Settings)));
+    .on_press(Interaction::MenuViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::Settings),
+    ));
 
     let mut about_mode_button: Button<Interaction> = Button::new(
         &mut state.about_mode_btn,
@@ -99,19 +107,20 @@ pub fn data_container<'a>(
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
     )
-    .on_press(Interaction::MenuViewInteraction(LocalViewInteraction::SelectMode(Mode::About)));
+    .on_press(Interaction::MenuViewInteraction(
+        LocalViewInteraction::SelectMode(Mode::About),
+    ));
 
     match state.mode {
         Mode::Wallet => {
-            wallet_mode_button = wallet_mode_button.style(style::SelectedDefaultButton(color_palette));
-            node_mode_button =
-                node_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button =
+                wallet_mode_button.style(style::SelectedDefaultButton(color_palette));
+            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
             about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
         Mode::Node => {
-            wallet_mode_button =
-                wallet_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
             node_mode_button = node_mode_button.style(style::SelectedDefaultButton(color_palette));
             about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
@@ -131,11 +140,13 @@ pub fn data_container<'a>(
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
         Mode::Setup => {
-            wallet_mode_button = wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
+            wallet_mode_button =
+                wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
             node_mode_button = node_mode_button.style(style::DisabledDefaultButton(color_palette));
             about_mode_button =
                 about_mode_button.style(style::DisabledDefaultButton(color_palette));
-            settings_mode_button = settings_mode_button.style(style::DisabledDefaultButton(color_palette));
+            settings_mode_button =
+                settings_mode_button.style(style::DisabledDefaultButton(color_palette));
         }
     }
 
@@ -159,18 +170,35 @@ pub fn data_container<'a>(
         .padding(2)
         .style(style::SegmentedContainer(color_palette));
 
-    // Displays an error, if any has occured.
-    let error_text = if let Some(error) = error {
-        Text::new(error.to_string()).size(DEFAULT_FONT_SIZE)
-    } else {
-        // Display nothing.
-        Text::new("")
-    };
+    // Empty container shown if no error message
+    let mut error_column= Column::new();
 
-    let error_container: Container<Message> = Container::new(error_text)
+    if let Some(e) = error {
+        // Displays an error + detail button, if any has occured.
+        let error_text = Text::new(e.to_string()).size(DEFAULT_FONT_SIZE);
+
+        let error_detail_button: Button<Interaction> = Button::new(
+            &mut state.error_detail_btn,
+            Text::new(localized_string("more-error-detail"))
+                .horizontal_alignment(alignment::Horizontal::Center)
+                .vertical_alignment(alignment::Vertical::Center)
+                .size(SMALLER_FONT_SIZE),
+        )
+        .style(style::NormalTextButton(color_palette))
+        .on_press(Interaction::OpenErrorModal);
+
+        let error_detail_button: Element<Interaction> = error_detail_button.into();
+
+        error_column = Column::new()
+            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(error_text)
+            .push(error_detail_button.map(Message::Interaction))
+            .align_items(Alignment::Center)
+    }
+
+    let error_container: Container<Message> = Container::new(error_column)
         .center_y()
         .center_x()
-        .padding(5)
         .width(Length::Fill)
         .style(style::NormalErrorForegroundContainer(color_palette));
 
