@@ -3,7 +3,7 @@ use {
     crate::{gui::element, localization::localized_string, log_error, Result},
     anyhow::Context,
     grin_gui_core::{error::ThemeError, fs::PersistentData},
-    iced::Command,
+    iced::{Command, clipboard},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
 };
@@ -18,6 +18,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     match message {
         Message::Interaction(Interaction::OpenErrorModal) => {}
         Message::Interaction(Interaction::CloseErrorModal) => {}
+        Message::Interaction(Interaction::WriteToClipboard(_)) => {}
         Message::Interaction(_) => {
             grin_gui.error.take();
         }
@@ -25,12 +26,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
-        // Error modal state
+       // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
         Message::Interaction(Interaction::CloseErrorModal) => {
             grin_gui.error_modal_state.show(false)
         }
-        // Top level menu
+        // Clipboard messages
+        Message::Interaction(Interaction::WriteToClipboard(contents)) => {
+            return Ok(clipboard::write::<Message>(contents));
+        }
+         // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(l)) => {
             let _ = element::menu::handle_message(grin_gui, l);
         }

@@ -5,7 +5,7 @@ mod update;
 use crate::cli::Opts;
 use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
-use crate::gui::element::DEFAULT_FONT_SIZE;
+use crate::gui::element::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE};
 use grin_gui_core::{
     config::{Config, Language},
     error::ThemeError,
@@ -31,6 +31,8 @@ use std::sync::{Arc, RwLock};
 use element::DEFAULT_PADDING;
 use grin_gui_core::theme::ColorPalette;
 use grin_gui_core::wallet::WalletInterface;
+
+use self::element::DEFAULT_HEADER_FONT_SIZE;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -241,29 +243,30 @@ impl Application for GrinGui {
 
         Modal::new(&mut self.error_modal_state, content, move|state| {
             Card::new(
-                Text::new("Error Detail"),
+                Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
                 Text::new(&error_cause).size(DEFAULT_FONT_SIZE)
             )
               .foot(
-                Row::new()
+                Column::new()
                     .spacing(10)
                     .padding(5)
                     .width(Length::Fill)
+                    .align_items(Alignment::Center)
                     .push(
                         Button::new(
                             &mut state.cancel_state,
-                            Text::new("Cancel").horizontal_alignment(alignment::Horizontal::Center),
+                            Text::new(localized_string("ok-caps")).size(DEFAULT_FONT_SIZE).horizontal_alignment(alignment::Horizontal::Center),
                         )
-                        .width(Length::Fill)
+                        .style(style::DefaultButton(color_palette))
                         .on_press(Message::Interaction(Interaction::CloseErrorModal)),
                     )
                     .push(
                         Button::new(
                             &mut state.ok_state,
-                            Text::new("Ok").horizontal_alignment(alignment::Horizontal::Center),
+                            Text::new(localized_string("copy-to-clipboard")).size(SMALLER_FONT_SIZE).horizontal_alignment(alignment::Horizontal::Center),
                         )
-                        .width(Length::Fill)
-                        .on_press(Message::Interaction(Interaction::CloseErrorModal)),
+                        .style(style::NormalTextButton(color_palette))
+                        .on_press(Message::Interaction(Interaction::WriteToClipboard(error_cause.clone()))),
                     )
             )
             .max_width(500)
@@ -381,6 +384,9 @@ pub enum Interaction {
     /// Error modal
     OpenErrorModal,
     CloseErrorModal,
+    /// Clipboard copy
+    WriteToClipboard(String),
+    ReadFromClipboard(String),
     /// String representing view ID and enum message (specific to that view)
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
