@@ -1,7 +1,7 @@
 pub mod menu;
 pub mod about;
 pub mod settings;
-pub mod setup;
+pub mod wallet;
 
 // Default values used on multiple elements.
 pub static SMALLER_FONT_SIZE: u16 = 12;

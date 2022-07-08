@@ -57,20 +57,20 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             return element::settings::general::handle_message(grin_gui, l);
         }
         // Setup Top Level
-        Message::Interaction(Interaction::SetupViewInteraction(l)) => {
-            return element::setup::handle_message(grin_gui, l);
+        Message::Interaction(Interaction::WalletSetupViewInteraction(l)) => {
+            return element::wallet::setup::handle_message(grin_gui, l);
         }
         // Setup -> Initial View (To appear when no wallet toml file is set)
-        Message::Interaction(Interaction::SetupInitViewInteraction(l)) => {
-            return element::setup::init::handle_message(grin_gui, l);
+        Message::Interaction(Interaction::WalletSetupInitViewInteraction(l)) => {
+            return element::wallet::setup::init::handle_message(grin_gui, l);
         }
         // Setup -> Wallet Init Settings
-        Message::Interaction(Interaction::SetupWalletViewInteraction(l)) => {
-            return element::setup::wallet::handle_message(grin_gui, l);
+        Message::Interaction(Interaction::WalletSetupWalletViewInteraction(l)) => {
+            return element::wallet::setup::wallet_setup::handle_message(grin_gui, l);
         }
         // Setup -> Wallet Success Settings
-        Message::Interaction(Interaction::SetupWalletSuccessViewInteraction(l)) => {
-            return element::setup::wallet_success::handle_message(grin_gui, l);
+        Message::Interaction(Interaction::WalletSetupWalletSuccessViewInteraction(l)) => {
+            return element::wallet::setup::wallet_success::handle_message(grin_gui, l);
         }
         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);

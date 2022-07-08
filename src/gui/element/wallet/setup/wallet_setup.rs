@@ -1,17 +1,20 @@
+use crate::{gui::element::settings::wallet, log_error};
 use iced::button::StyleSheet;
 use iced_native::Widget;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
+    anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
+    grin_gui_core::{config::Config, wallet::{init, WalletInterface}},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
     },
+    std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
@@ -63,18 +66,19 @@ pub enum LocalViewInteraction {
     PasswordRepeatInputEnterPressed,
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
-    Submit,
+    CreateWallet,
+    WalletCreatedOk,
+    WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.setup_wallet_state;
-    let setup_state = &mut grin_gui.setup_state;
+    let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
     match message {
         LocalViewInteraction::Back => {
-            setup_state.mode = super::Mode::Init;
+            grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
@@ -95,10 +99,39 @@ pub fn handle_message(
         LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
         }
-        LocalViewInteraction::Submit => {
-            //
+        LocalViewInteraction::CreateWallet => {
+            grin_gui.error.take();
+
+            log::debug!("setup::wallet::LocalViewInteraction::CreateWallet");
+
+            let password = state.password_state.input_value.clone();
+            let wallet_interface = grin_gui.wallet_interface.clone();
+            let fut = move || {
+                init(wallet_interface, password.clone())
+            };
+
+            return Ok(Command::perform(fut(),
+                |r| match r.context("Failed to Create Wallet") {
+                    Ok(_) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreatedOk,
+                    )),
+                    Err(e) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(Some(e)))),
+                    )),
+                },
+            ));
+        }
+        LocalViewInteraction::WalletCreatedOk => {
+            // move to success phase (display recovery)
+        }
+        LocalViewInteraction::WalletCreateError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
         }
     }
+
     Ok(Command::none())
 }
 
@@ -126,12 +159,12 @@ pub fn data_container<'a>(
     let back_button: Element<Interaction> =
         Button::new(&mut state.back_button_state, back_button_label_container)
             .style(style::NormalTextButton(color_palette))
-            /* .on_press(Interaction::SetupWalletSuccessViewInteraction(
+            .on_press(Interaction::WalletSetupWalletViewInteraction(
                 LocalViewInteraction::Back,
-            ))*/
+            ))
             .into();
 
-    let title = Text::new(localized_string("setup-grin-wallet-success"))
+    let title = Text::new(localized_string("setup-grin-wallet-title"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let title_container =
@@ -149,9 +182,9 @@ pub fn data_container<'a>(
             &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            |s| Interaction::SetupWalletSuccessViewInteraction(LocalViewInteraction::PasswordInput(s)),
+            |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::PasswordInput(s)),
         )
-        .on_submit(Interaction::SetupWalletSuccessViewInteraction(
+        .on_submit(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,
         ))
         .size(DEFAULT_FONT_SIZE)
@@ -167,12 +200,12 @@ pub fn data_container<'a>(
             &localized_string("password-repeat")[..],
             &state.password_state.repeat_input_value,
             |s| {
-                Interaction::SetupWalletSuccessViewInteraction(LocalViewInteraction::PasswordRepeatInput(
+                Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::PasswordRepeatInput(
                     s,
                 ))
             },
         )
-        .on_submit(Interaction::SetupWalletSuccessViewInteraction(
+        .on_submit(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::PasswordRepeatInputEnterPressed,
         ))
         .size(DEFAULT_FONT_SIZE)
@@ -223,7 +256,7 @@ pub fn data_container<'a>(
             state.restore_from_seed,
             localized_string("restore-from-seed"),
             |b| {
-                Interaction::SetupWalletSuccessViewInteraction(
+                Interaction::WalletSetupWalletViewInteraction(
                     LocalViewInteraction::ToggleRestoreFromSeed(b),
                 )
             },
@@ -244,7 +277,7 @@ pub fn data_container<'a>(
             state.show_advanced_options,
             localized_string("show-advanced-options"),
             |b| {
-                Interaction::SetupWalletSuccessViewInteraction(
+                Interaction::WalletSetupWalletViewInteraction(
                     LocalViewInteraction::ToggleAdvancedOptions(b),
                 )
             },
@@ -272,8 +305,8 @@ pub fn data_container<'a>(
     )
     .style(style::DefaultBoxedButton(color_palette));
     if check_password() {
-        submit_button = submit_button.on_press(Interaction::SetupWalletSuccessViewInteraction(
-            LocalViewInteraction::Submit,
+        submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
+            LocalViewInteraction::CreateWallet,
         ));
     }
 

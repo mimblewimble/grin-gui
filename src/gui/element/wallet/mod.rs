@@ -1,9 +1,7 @@
-pub mod init;
-pub mod wallet;
-pub mod wallet_success;
+pub mod setup;
 
 use {
-    super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
+    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
@@ -13,9 +11,6 @@ use {
     },
 };
 
-pub struct StateContainer {
-    pub mode: Mode,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
@@ -23,39 +18,31 @@ pub enum Mode {
     CreateWallet,
 }
 
+pub struct StateContainer {
+    pub mode: Mode,
+    pub setup_state: setup::StateContainer,
+}
+
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             mode: Mode::Init,
+            setup_state: Default::default(),
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum LocalViewInteraction {
-}
-
-pub fn handle_message(
-    grin_gui: &mut GrinGui,
-    message: LocalViewInteraction,
-) -> Result<Command<Message>> {
-    Ok(Command::none())
 }
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
-    init_state: &'a mut init::StateContainer,
-    wallet_state: &'a mut wallet::StateContainer,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Init => {
-           init::data_container(color_palette, init_state)
-        }
-        Mode::CreateWallet => {
-           wallet::data_container(color_palette, wallet_state)
-        }
-     };
+        Mode::Init => setup::data_container(
+            color_palette,
+            &mut state.setup_state,
+        ),
+        _ => Container::new(Column::new())
+    };
 
     let column = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(20)))
@@ -65,5 +52,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-    .style(style::NormalBackgroundContainer(color_palette))
+        .style(style::NormalBackgroundContainer(color_palette))
 }

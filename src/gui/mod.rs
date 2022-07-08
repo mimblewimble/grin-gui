@@ -51,10 +51,8 @@ pub struct GrinGui {
     /// Main menu state
     menu_state: element::menu::StateContainer,
 
-    /// Setup state
-    setup_state: element::setup::StateContainer,
-    setup_init_state: element::setup::init::StateContainer,
-    setup_wallet_state: element::setup::wallet::StateContainer,
+    /// Top-Level Wallet area state
+    wallet_state: element::wallet::StateContainer,
 
     /// Settings screen + sub-screens states
     settings_state: element::settings::StateContainer,
@@ -79,9 +77,7 @@ impl<'a> Default for GrinGui {
             config: Config::default(),
             error_modal_state: Default::default(),
             menu_state: Default::default(),
-            setup_state: Default::default(),
-            setup_init_state: Default::default(),
-            setup_wallet_state: Default::default(),
+            wallet_state: Default::default(),
             settings_state: Default::default(),
             wallet_settings_state: Default::default(),
             node_settings_state: Default::default(),
@@ -124,7 +120,7 @@ impl Application for GrinGui {
                     .unwrap(),
             )
         {
-            grin_gui.menu_state.mode = element::menu::Mode::Setup;
+            grin_gui.menu_state.mode = element::menu::Mode::Wallet;
         }
 
         apply_config(&mut grin_gui, config);
@@ -197,12 +193,10 @@ impl Application for GrinGui {
         // Spacer between menu and content.
         //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
         match menu_state.mode {
-            element::menu::Mode::Setup => {
-                let setup_container = element::setup::data_container(
+            element::menu::Mode::Wallet => {
+                let setup_container = element::wallet::data_container(
                     color_palette,
-                    &mut self.setup_state,
-                    &mut self.setup_init_state,
-                    &mut self.setup_wallet_state,
+                    &mut self.wallet_state,
                 );
                 content = content.push(setup_container)
             }
@@ -394,10 +388,10 @@ pub enum Interaction {
     NodeSettingsViewInteraction(element::settings::node::LocalViewInteraction),
     GeneralSettingsViewInteraction(element::settings::general::LocalViewInteraction),
     GeneralSettingsViewImportTheme,
-    SetupViewInteraction(element::setup::LocalViewInteraction),
-    SetupInitViewInteraction(element::setup::init::LocalViewInteraction),
-    SetupWalletViewInteraction(element::setup::wallet::LocalViewInteraction),
-    SetupWalletSuccessViewInteraction(element::setup::wallet_success::LocalViewInteraction),
+    WalletSetupViewInteraction(element::wallet::setup::LocalViewInteraction),
+    WalletSetupInitViewInteraction(element::wallet::setup::init::LocalViewInteraction),
+    WalletSetupWalletViewInteraction(element::wallet::setup::wallet_setup::LocalViewInteraction),
+    WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

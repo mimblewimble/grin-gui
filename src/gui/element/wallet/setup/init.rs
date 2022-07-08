@@ -1,5 +1,5 @@
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
@@ -39,7 +39,7 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.setup_state;
+    let state = &mut grin_gui.wallet_state.setup_state;
     match message {
         LocalViewInteraction::WalletSetup => state.mode = super::Mode::CreateWallet,
         LocalViewInteraction::SelectWalletTomlFile => {}
@@ -91,7 +91,7 @@ pub fn data_container<'a>(
         create_default_wallet_button_label_container,
     )
     .style(style::DefaultBoxedButton(color_palette))
-    .on_press(Interaction::SetupInitViewInteraction(
+    .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletSetup,
     ))
     .into();
@@ -106,7 +106,7 @@ pub fn data_container<'a>(
         select_wallet_button_label_container,
     )
     .style(style::DefaultBoxedButton(color_palette))
-    .on_press(Interaction::SetupInitViewInteraction(
+    .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletSetup,
     ))
     .into();

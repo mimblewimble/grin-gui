@@ -45,7 +45,6 @@ pub enum LocalViewInteraction {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Mode {
-    Setup,
     Wallet,
     Node,
     Settings,
@@ -139,7 +138,7 @@ pub fn data_container<'a>(
                 about_mode_button.style(style::SelectedDefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
         }
-        Mode::Setup => {
+        /*Mode::Setup => {
             wallet_mode_button =
                 wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
             node_mode_button = node_mode_button.style(style::DisabledDefaultButton(color_palette));
@@ -147,7 +146,7 @@ pub fn data_container<'a>(
                 about_mode_button.style(style::DisabledDefaultButton(color_palette));
             settings_mode_button =
                 settings_mode_button.style(style::DisabledDefaultButton(color_palette));
-        }
+        }*/
     }
 
     let wallet_mode_button: Element<Interaction> = wallet_mode_button.into();
