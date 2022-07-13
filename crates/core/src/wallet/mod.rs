@@ -4,7 +4,7 @@ use std::path::Path;
 
 use grin_wallet::cmd::wallet_args::inst_wallet;
 use grin_wallet_api::Owner;
-use grin_wallet_config::{self, ConfigError, GlobalWalletConfig};
+use grin_wallet_config::{self, ConfigError, WalletConfig, GlobalWalletConfig};
 use grin_wallet_controller::command::{GlobalArgs, InitArgs};
 use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl, HTTPNodeClient};
 use grin_wallet_util::grin_core;
@@ -29,6 +29,8 @@ const GRIN_HOME: &str = ".grin";
 pub const GRIN_WALLET_DIR: &str = "wallet_data";
 /// Wallet top level directory
 pub const GRIN_WALLET_TOP_LEVEL_DIR: &str = "grin_wallet";
+/// Wallet top level directory
+pub const GRIN_WALLET_DEFAULT_DIR: &str = "default";
 /// Node API secret
 pub const API_SECRET_FILE_NAME: &str = ".foreign_api_secret";
 /// Owner API secret
@@ -46,6 +48,7 @@ fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf {
     grin_path.push(GRIN_HOME);
     grin_path.push(chain_type.shortname());
     grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
+    grin_path.push(GRIN_WALLET_DEFAULT_DIR);
 
     grin_path
 }
@@ -90,10 +93,15 @@ impl WalletInterface {
     }
 }
 
+/*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface>>) -> String {
+    let mut w = wallet_interface.read().unwrap();
+    w.
+}*/
+
 pub async fn init(
     wallet_interface: Arc<RwLock<WalletInterface>>,
     password: String,
-) -> Result<(), grin_wallet_controller::Error> {
+) -> Result<String, grin_wallet_controller::Error> {
     let mut w = wallet_interface.write().unwrap();
     let data_path = Some(get_grin_wallet_default_path(&w.chain_type));
     if let None = w.config {
@@ -135,7 +143,7 @@ pub async fn init(
     let args = InitArgs {
         list_length: 32,
         password: password.into(),
-        config: wallet_config,
+        config: wallet_config.clone(),
         recovery_phrase: None,
         restore: false,
     };
@@ -160,5 +168,5 @@ pub async fn init(
     /*let m = p.get_mnemonic(None, args.password)?;
     show_recovery_phrase(m);*/
 
-    Ok(())
+    Ok(p.get_top_level_directory()?)
 }

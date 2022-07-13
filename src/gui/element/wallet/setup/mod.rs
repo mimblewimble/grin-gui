@@ -8,9 +8,7 @@ use {
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{config::Config, wallet::WalletInterface},
-    iced::{
-        Command, Column, Container, Length, Space
-    },
+    iced::{Column, Command, Container, Length, Space},
 };
 
 pub struct StateContainer {
@@ -24,6 +22,7 @@ pub struct StateContainer {
 pub enum Mode {
     Init,
     CreateWallet,
+    WalletCreateSuccess,
 }
 
 impl Default for StateContainer {
@@ -38,8 +37,7 @@ impl Default for StateContainer {
 }
 
 #[derive(Debug, Clone)]
-pub enum LocalViewInteraction {
-}
+pub enum LocalViewInteraction {}
 
 pub fn handle_message(
     grin_gui: &mut GrinGui,
@@ -53,13 +51,14 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Init => {
-           init::data_container(color_palette, &mut state.setup_init_state)
-        }
+        Mode::Init => init::data_container(color_palette, &mut state.setup_init_state),
         Mode::CreateWallet => {
-           wallet_setup::data_container(color_palette, &mut state.setup_wallet_state)
+            wallet_setup::data_container(color_palette, &mut state.setup_wallet_state)
         }
-     };
+        Mode::WalletCreateSuccess => {
+            wallet_success::data_container(color_palette, &mut state.setup_wallet_success_state)
+        }
+    };
 
     let column = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(20)))
@@ -69,5 +68,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-    .style(style::NormalBackgroundContainer(color_palette))
+        .style(style::NormalBackgroundContainer(color_palette))
 }

@@ -106,10 +106,10 @@ impl Application for GrinGui {
         let wallet_interface = grin_gui.wallet_interface.clone();
         let mut w = wallet_interface.write().unwrap();
 
-        // Check initial wallet status
         w.set_chain_type();
 
-        if !config.wallet.toml_file_path.is_some()
+        // Check initial wallet status
+        /*if !config.wallet.toml_file_path.is_some()
             || !w.config_exists(
                 config
                     .wallet
@@ -121,7 +121,7 @@ impl Application for GrinGui {
             )
         {
             grin_gui.menu_state.mode = element::menu::Mode::Wallet;
-        }
+        }*/
 
         apply_config(&mut grin_gui, config);
         (grin_gui, Command::batch(vec![]))

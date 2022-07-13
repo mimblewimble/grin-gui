@@ -1,6 +1,7 @@
 use crate::{gui::element::settings::wallet, log_error};
 use iced::button::StyleSheet;
 use iced_native::Widget;
+use std::path::PathBuf;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -9,7 +10,7 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::{init, WalletInterface}},
+    grin_gui_core::{fs::PersistentData, wallet::{init, WalletInterface}},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
@@ -67,7 +68,7 @@ pub enum LocalViewInteraction {
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
     CreateWallet,
-    WalletCreatedOk,
+    WalletCreatedOk(String),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -112,8 +113,8 @@ pub fn handle_message(
 
             return Ok(Command::perform(fut(),
                 |r| match r.context("Failed to Create Wallet") {
-                    Ok(_) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
-                        LocalViewInteraction::WalletCreatedOk,
+                    Ok(tld) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreatedOk(tld),
                     )),
                     Err(e) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
                         LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(Some(e)))),
@@ -121,8 +122,11 @@ pub fn handle_message(
                 },
             ));
         }
-        LocalViewInteraction::WalletCreatedOk => {
-            // move to success phase (display recovery)
+        LocalViewInteraction::WalletCreatedOk(tld) => {
+            grin_gui.config.wallet.current_tld = Some(PathBuf::from(&tld));
+            grin_gui.wallet_state.clear_config_missing();
+            grin_gui.wallet_state.setup_state.mode = crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+            let _ = grin_gui.config.save();
         }
         LocalViewInteraction::WalletCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();

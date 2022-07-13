@@ -7,13 +7,13 @@ use std::path::PathBuf;
 pub struct Wallet {
     #[serde(default)]
     #[allow(deprecated)]
-    pub toml_file_path: Option<PathBuf>,
+    pub current_tld: Option<PathBuf>,
 }
 
 impl Default for Wallet {
     fn default() -> Self {
         Wallet {
-            toml_file_path: None,
+            current_tld: None,
         }
     }
 }

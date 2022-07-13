@@ -14,6 +14,23 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
+
+    // Take opportunity to check if we don't have a wallet config file for some reason
+    if !grin_gui.wallet_state.config_missing() {
+        match &grin_gui.config.wallet.current_tld {
+            Some(t) => {
+                let wallet_interface = grin_gui.wallet_interface.clone();
+                let w = wallet_interface.read().unwrap();
+                if !w.config_exists(t.to_str().unwrap()) {
+                    grin_gui.wallet_state.set_config_missing();
+                }
+            },
+            None => {
+                grin_gui.wallet_state.set_config_missing();
+            }
+        }
+    }
+
     // Clear errors when necessary
     match message {
         Message::Interaction(Interaction::OpenErrorModal) => {}
