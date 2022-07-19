@@ -10,7 +10,7 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{fs::PersistentData, wallet::{init, WalletInterface}},
+    grin_gui_core::{fs::PersistentData, wallet::WalletInterface},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
@@ -68,11 +68,11 @@ pub enum LocalViewInteraction {
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
     CreateWallet,
-    WalletCreatedOk(String),
+    WalletCreatedOk((String, String)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
-pub fn handle_message(
+pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
@@ -106,15 +106,15 @@ pub fn handle_message(
             log::debug!("setup::wallet::LocalViewInteraction::CreateWallet");
 
             let password = state.password_state.input_value.clone();
-            let wallet_interface = grin_gui.wallet_interface.clone();
+            let w = grin_gui.wallet_interface.clone();
             let fut = move || {
-                init(wallet_interface, password.clone())
+                WalletInterface::init(w, password.clone())
             };
 
             return Ok(Command::perform(fut(),
                 |r| match r.context("Failed to Create Wallet") {
-                    Ok(tld) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
-                        LocalViewInteraction::WalletCreatedOk(tld),
+                    Ok(ret) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+                        LocalViewInteraction::WalletCreatedOk(ret),
                     )),
                     Err(e) => Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
                         LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(Some(e)))),
@@ -122,9 +122,11 @@ pub fn handle_message(
                 },
             ));
         }
-        LocalViewInteraction::WalletCreatedOk(tld) => {
+        LocalViewInteraction::WalletCreatedOk((tld, mnemonic)) => {
+            let wallet_interface = grin_gui.wallet_interface.clone();
             grin_gui.config.wallet.current_tld = Some(PathBuf::from(&tld));
             grin_gui.wallet_state.clear_config_missing();
+            grin_gui.wallet_state.setup_state.setup_wallet_success_state.recovery_phrase = mnemonic;
             grin_gui.wallet_state.setup_state.mode = crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
             let _ = grin_gui.config.save();
         }

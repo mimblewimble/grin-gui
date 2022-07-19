@@ -28,6 +28,7 @@ no-self-update = []
  grin_wallet_controller = { path = "../../../grin-wallet-yeastplume/controller"}
  grin_wallet_api = { path = "../../../grin-wallet-yeastplume/api"}
  grin_wallet_impls = { path = "../../../grin-wallet-yeastplume/impls"}
+ grin_wallet_libwallet = { path = "../../../grin-wallet-yeastplume/libwallet"}
 
 
 regex = "1.4.3"

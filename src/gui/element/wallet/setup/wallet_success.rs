@@ -75,7 +75,7 @@ pub fn data_container<'a>(
  
     let recovery_phrase_card = Card::new(
         Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
-        Text::new("Recovery phrase here").size(DEFAULT_FONT_SIZE),
+        Text::new(&state.recovery_phrase).size(DEFAULT_FONT_SIZE),
     )
     .foot(
         Column::new()

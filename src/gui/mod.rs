@@ -30,7 +30,7 @@ use std::sync::{Arc, RwLock};
 
 use element::DEFAULT_PADDING;
 use grin_gui_core::theme::ColorPalette;
-use grin_gui_core::wallet::WalletInterface;
+use grin_gui_core::wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, ChainTypes};
 
 use self::element::DEFAULT_HEADER_FONT_SIZE;
 
@@ -38,7 +38,7 @@ static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
     /// Wallet Interface
-    wallet_interface: Arc<RwLock<WalletInterface>>,
+    wallet_interface: Arc<RwLock<WalletInterfaceHttpNodeClient>>,
 
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
@@ -69,8 +69,13 @@ impl<'a> Default for GrinGui {
         let mut state = HashMap::new();
         state.insert(Mode::Catalog, State::Loading);
 
+        // Instantiate wallet node client
+        // TODO: Fill out 
+        let node_url = "http://localhost:8080";
+    	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
+
         Self {
-            wallet_interface: Arc::new(RwLock::new(Default::default())),
+            wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, ChainTypes::Mainnet))),
             state,
             error: None,
             mode: Mode::Catalog,
