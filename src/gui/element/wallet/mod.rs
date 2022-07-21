@@ -1,3 +1,4 @@
+pub mod operation;
 pub mod setup;
 
 use {
@@ -6,22 +7,20 @@ use {
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{config::Config, wallet::WalletInterface},
-    iced::{
-        Command, Column, Container, Length, Space
-    },
+    iced::{Column, Command, Container, Length, Space},
 };
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
     Init,
     CreateWallet,
-    WalletOperation,
+    Operation,
 }
 
 pub struct StateContainer {
     pub mode: Mode,
     pub setup_state: setup::StateContainer,
+    pub operation_state: operation::StateContainer,
     // When changed to true, this should stay false until a config exists
     has_config_check_failed_one_time: bool,
 }
@@ -29,15 +28,15 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            mode: Mode::WalletOperation,
+            mode: Mode::Operation,
             setup_state: Default::default(),
+            operation_state: Default::default(),
             has_config_check_failed_one_time: false,
         }
     }
 }
 
 impl StateContainer {
-
     pub fn config_missing(&self) -> bool {
         self.has_config_check_failed_one_time
     }
@@ -57,13 +56,10 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-
     let content = match state.mode {
-        Mode::Init => setup::data_container(
-            color_palette,
-            &mut state.setup_state,
-        ),
-        _ => Container::new(Column::new())
+        Mode::Init => setup::data_container(color_palette, &mut state.setup_state),
+        Mode::Operation => operation::data_container(color_palette, &mut state.operation_state),
+        _ => Container::new(Column::new()),
     };
 
     let column = Column::new()

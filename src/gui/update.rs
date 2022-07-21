@@ -3,7 +3,7 @@ use {
     crate::{gui::element, localization::localized_string, log_error, Result},
     anyhow::Context,
     grin_gui_core::{error::ThemeError, fs::PersistentData},
-    iced::{Command, clipboard},
+    iced::{clipboard, Command},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
 };
@@ -14,7 +14,6 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
-
     // Take opportunity to check if we don't have a wallet config file for some reason
     if !grin_gui.wallet_state.config_missing() {
         match &grin_gui.config.wallet.current_tld {
@@ -24,10 +23,18 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 if !w.config_exists(t.to_str().unwrap()) {
                     grin_gui.wallet_state.set_config_missing();
                 }
-            },
+            }
             None => {
                 grin_gui.wallet_state.set_config_missing();
             }
+        }
+    }
+
+    // Check if password needs entering in wallet mode
+    if !grin_gui.wallet_state.config_missing() &&! grin_gui.wallet_state.operation_state.wallet_not_open() {
+        let w = grin_gui.wallet_interface.read().unwrap();
+        if !w.wallet_is_open() {
+            grin_gui.wallet_state.operation_state.set_wallet_not_open()
         }
     }
 
@@ -43,7 +50,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
-       // Error modal state
+        // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
         Message::Interaction(Interaction::CloseErrorModal) => {
             grin_gui.error_modal_state.show(false)
@@ -52,7 +59,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WriteToClipboard(contents)) => {
             return Ok(clipboard::write::<Message>(contents));
         }
-         // Top level menu
+        // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(l)) => {
             let _ = element::menu::handle_message(grin_gui, l);
         }
@@ -88,6 +95,14 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Setup -> Wallet Success Settings
         Message::Interaction(Interaction::WalletSetupWalletSuccessViewInteraction(l)) => {
             return element::wallet::setup::wallet_success::handle_message(grin_gui, l);
+        }
+        // Wallet -> Operation -> Open Settings
+        Message::Interaction(Interaction::WalletOperationOpenViewInteraction(l)) => {
+            return element::wallet::operation::open::handle_message(grin_gui, l);
+        }
+        // Wallet -> Operation -> Home Settings
+        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(l)) => {
+            return element::wallet::operation::home::handle_message(grin_gui, l);
         }
         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);

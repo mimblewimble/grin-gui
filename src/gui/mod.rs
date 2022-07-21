@@ -386,7 +386,7 @@ pub enum Interaction {
     /// Clipboard copy
     WriteToClipboard(String),
     ReadFromClipboard(String),
-    /// String representing view ID and enum message (specific to that view)
+    /// View interactions
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
     WalletSettingsViewInteraction(element::settings::wallet::LocalViewInteraction),
@@ -397,6 +397,8 @@ pub enum Interaction {
     WalletSetupInitViewInteraction(element::wallet::setup::init::LocalViewInteraction),
     WalletSetupWalletViewInteraction(element::wallet::setup::wallet_setup::LocalViewInteraction),
     WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
+    WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
+    WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

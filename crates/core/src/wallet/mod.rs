@@ -73,6 +73,8 @@ where
     pub config: Arc<RwLock<Option<GlobalWalletConfig>>>,
     // owner api will hold instantiated/opened wallets
     pub owner_api: Option<Owner<L, C, keychain::ExtKeychain>>,
+    // Simple flag to check whether wallet has been opened
+    wallet_is_open: bool,
     node_client: C,
 }
 
@@ -86,6 +88,7 @@ where
             chain_type,
             config: Arc::new(RwLock::new(None)),
             owner_api: None,
+            wallet_is_open: false,
             node_client,
         }
     }
@@ -112,6 +115,10 @@ where
                 .to_str()
                 .unwrap(),
         )
+    }
+
+    pub fn wallet_is_open(&self) -> bool {
+        self.wallet_is_open
     }
 
     pub async fn init(
