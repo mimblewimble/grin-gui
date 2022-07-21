@@ -52,24 +52,54 @@ pub enum LocalViewInteraction {
     //TODO: ZeroingString these
     PasswordInput(String),
     PasswordInputEnterPressed,
-    Submit,
+    OpenWallet,
+    WalletOpenedOkay,
+    WalletOpenError(Arc<RwLock<Option<anyhow::Error>>>)
 }
 
 pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
+    let state = &mut grin_gui.wallet_state.operation_state.open_state;
     match message {
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
         }
         LocalViewInteraction::PasswordInputEnterPressed => {
             state.password_state.input_state.unfocus();
-            state.password_state.repeat_input_state.focus();
         }
-        LocalViewInteraction::Submit => {
+        LocalViewInteraction::OpenWallet => {
+            grin_gui.error.take();
 
+            log::debug!("setup::wallet::operation::open::OpenWallet");
+
+            let password = state.password_state.input_value.clone();
+            let w = grin_gui.wallet_interface.clone();
+            let fut = move || {
+                WalletInterface::open_wallet(w, password.clone())
+            };
+
+            return Ok(Command::perform(fut(),
+                |r| match r.context("Failed to Open Wallet") {
+                    Ok(()) => Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
+                        LocalViewInteraction::WalletOpenedOkay,
+                    )),
+                    Err(e) => Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
+                        LocalViewInteraction::WalletOpenError(Arc::new(RwLock::new(Some(e)))),
+                    )),
+                },
+            ));
+        }
+        LocalViewInteraction::WalletOpenedOkay => {
+            grin_gui.wallet_state.operation_state.clear_wallet_not_open();
+            grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::Home;
+        }
+        LocalViewInteraction::WalletOpenError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
         }
     }
     Ok(Command::none())
@@ -80,7 +110,7 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     // Title row
-    let title = Text::new(localized_string("setup-grin-first-time"))
+    let title = Text::new(localized_string("open-wallet"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -89,9 +119,7 @@ pub fn data_container<'a>(
 
     let title_row = Row::new()
         .push(title_container)
-        .align_items(Alignment::Center)
-        .padding(6)
-        .spacing(20);
+        .align_items(Alignment::Center);
 
     let password_column = {
         let password_input = TextInput::new(
@@ -114,12 +142,12 @@ pub fn data_container<'a>(
         let mut password_input_col = Column::new()
             .push(password_input.map(Message::Interaction))
             .spacing(DEFAULT_PADDING)
-            .align_items(Alignment::Start);
+            .align_items(Alignment::Center);
 
         Column::new().push(password_input_col)
     };
 
-    let description = Text::new(localized_string("setup-grin-wallet-enter-password"))
+    let description = Text::new(localized_string("open-wallet-password"))
         .size(DEFAULT_FONT_SIZE)
         //.width(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Center);
@@ -129,7 +157,7 @@ pub fn data_container<'a>(
         .style(style::NormalBackgroundContainer(color_palette));
 
     let submit_button_label_container = Container::new(
-        Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
+        Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE),
     )
     .center_x()
     .align_x(alignment::Horizontal::Center);
@@ -141,7 +169,7 @@ pub fn data_container<'a>(
     .style(style::DefaultBoxedButton(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
-        LocalViewInteraction::Submit
+        LocalViewInteraction::OpenWallet
     ));
 
     let submit_button: Element<Interaction> = submit_button.into();
@@ -159,10 +187,11 @@ pub fn data_container<'a>(
             Length::Units(unit_spacing + 10),
         ))
         .push(submit_button.map(Message::Interaction))
-        .align_items(Alignment::Start);
+        .align_items(Alignment::Center);
 
     Container::new(colum)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Fill)
 }

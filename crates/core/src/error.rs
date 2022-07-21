@@ -3,9 +3,13 @@ use std::path::PathBuf;
 use grin_wallet_controller;
 
 #[derive(thiserror::Error, Debug)]
-pub enum GrinWalletControllerError {
+pub enum GrinWalletInterfaceError {
     #[error(transparent)]
-    Wallet(#[from] grin_wallet_controller::Error)
+    WalletController(#[from] grin_wallet_controller::Error),
+    #[error(transparent)]
+    WalletLibWallet(#[from] grin_wallet_libwallet::Error),
+    #[error("Owner API not Instantiated")]
+    OwnerAPINotInstantiated,
 }
 
 #[derive(thiserror::Error, Debug)]
