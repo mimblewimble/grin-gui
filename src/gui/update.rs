@@ -50,6 +50,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
+        // Ticks, for stuff that happens frequently, like checking wallet status
+        Message::Tick(time) => {
+            // Call all views 'registered' for ticks
+            return element::wallet::operation::home::handle_tick(grin_gui, time)
+        }
         // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
         Message::Interaction(Interaction::CloseErrorModal) => {

@@ -24,6 +24,7 @@ use grin_core::global;
 // Re-exports
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
+pub use grin_wallet_libwallet::{WalletInfo, StatusMessage};
 
 use crate::error::GrinWalletInterfaceError;
 
@@ -230,12 +231,27 @@ where
         if let Some(o) = &w.owner_api {
             // ignoring secret key
             let _ = o.open_wallet(None, password.into(), false)?;
+            // Start the updater
+            o.start_updater(None, std::time::Duration::from_secs(60))?;
             w.wallet_is_open = true;
             return Ok(())
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated)
         }
     }
+
+    pub fn get_wallet_updater_status(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+    ) -> Result<Vec<StatusMessage>, GrinWalletInterfaceError> {
+        let w = wallet_interface.read().unwrap();
+        if let Some(o) = &w.owner_api {
+            let res = o.get_updater_messages(1)?;
+            return Ok(res)
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated)
+        }
+    }
+
 
     /*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface<L, C>>>, password: String) -> String {
         let mut w = wallet_interface.read().unwrap();

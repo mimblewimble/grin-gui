@@ -1,6 +1,7 @@
 mod element;
 mod style;
 mod update;
+mod time;
 
 use crate::cli::Opts;
 use crate::error_cause_string;
@@ -97,6 +98,7 @@ impl<'a> Default for GrinGui {
 pub enum Message {
     Error(Arc<RwLock<Option<anyhow::Error>>>),
     Interaction(Interaction),
+    Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
     None(()),
 }
@@ -163,7 +165,8 @@ impl Application for GrinGui {
 
     fn subscription(&self) -> Subscription<Message> {
         let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
-        iced::Subscription::batch(vec![runtime_subscription])
+        let tick_subscription = time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
+        iced::Subscription::batch(vec![runtime_subscription, tick_subscription])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
