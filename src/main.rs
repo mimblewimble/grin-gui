@@ -6,14 +6,21 @@
 mod cli;
 mod gui;
 mod localization;
+mod logger;
 #[cfg(target_os = "windows")]
 mod process;
 #[cfg(target_os = "windows")]
 mod tray;
 
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate log;
+
 use grin_gui_core::config::Config;
 use grin_gui_core::fs::{PersistentData, CONFIG_DIR};
 use grin_gui_core::utility::{remove_file, rename};
+use grin_gui_core::{LogEntry, LoggingConfig};
 
 #[cfg(target_os = "linux")]
 use anyhow::Context;
@@ -50,13 +57,24 @@ pub fn main() {
     // fix that allows us to print to the console when not using the GUI.
     let opts = cli::validate_opts_or_exit(opts_result, is_cli, is_debug);
 
-    if let Some(data_dir) = &opts.data_directory {
+    let config_dir_local = {
         let mut config_dir = CONFIG_DIR.lock().unwrap();
+        if let Some(data_dir) = &opts.data_directory {
+            *config_dir = data_dir.clone();
+        }
+        config_dir.clone()
+    };
 
-        *config_dir = data_dir.clone();
-    }
+    // Set up logging config for grin-gui code itself
+    let mut gui_logging_config = LoggingConfig::default();
+    gui_logging_config.tui_running = Some(false);
+    gui_logging_config.stdout_log_level = log::Level::Debug;
+    gui_logging_config.file_log_level = log::Level::Debug;
+    let mut gui_log_dir = config_dir_local.clone();
+    gui_log_dir.push("grin-gui.log");
+    gui_logging_config.log_file_path = gui_log_dir.into_os_string().into_string().unwrap();
 
-    setup_logger(is_cli, is_debug).expect("setup logging");
+    logger::update_logging_config(logger::LogArea::Gui, gui_logging_config);
 
     // Called when we launch from the temp (new release) binary during the self update
     // process. We will rename the temp file (running process) to the original binary
@@ -76,41 +94,40 @@ pub fn main() {
     process::avoid_multiple_instances();
 
     /*match opts.command {
-        Some(command) => {
-            // Process the command and exit
-            if let Err(e) = match command {
-                cli::Command::Backup {
-                    backup_folder,
-                    destination,
-                    flavors,
-                    compression_format,
-                    level,
-                } => command::backup(
-                    backup_folder,
-                    destination,
-                    flavors,
-                    compression_format,
-                    level,
-                ),
-                cli::Command::Update => command::update_both(),
-                cli::Command::UpdateAddons => command::update_all_addons(),
-                cli::Command::UpdateAuras => command::update_all_auras(),
-                cli::Command::Install { url, flavor } => command::install_from_source(url, flavor),
-                cli::Command::PathAdd { path, flavor } => command::path_add(path, flavor),
-            } {
-                log_error(&e);
-            }
+    Some(command) => {
+        // Process the command and exit
+        if let Err(e) = match command {
+            cli::Command::Backup {
+                backup_folder,
+                destination,
+                flavors,
+                compression_format,
+                level,
+            } => command::backup(
+                backup_folder,
+                destination,
+                flavors,
+                compression_format,
+                level,
+            ),
+            cli::Command::Update => command::update_both(),
+            cli::Command::UpdateAddons => command::update_all_addons(),
+            cli::Command::UpdateAuras => command::update_all_auras(),
+            cli::Command::Install { url, flavor } => command::install_from_source(url, flavor),
+            cli::Command::PathAdd { path, flavor } => command::path_add(path, flavor),
+        } {
+            log_error(&e);
         }
-        None => {*/
-            let config: Config =
-                Config::load_or_default().expect("loading config on application startup");
+    }
+    None => {*/
+    let config: Config = Config::load_or_default().expect("loading config on application startup");
 
-            #[cfg(target_os = "windows")]
-            tray::spawn_sys_tray(config.close_to_tray, config.start_closed_to_tray);
+    #[cfg(target_os = "windows")]
+    tray::spawn_sys_tray(config.close_to_tray, config.start_closed_to_tray);
 
-            // Start the GUI
-            gui::run(opts, config);
-        /*
+    // Start the GUI
+    gui::run(opts, config);
+    /*
     }*/
 }
 
@@ -141,50 +158,6 @@ pub fn error_cause_string(error: &anyhow::Error) -> String {
         ret_val.push_str(&format!("{}\n\n", cause));
     }
     ret_val
-}
-
-#[allow(clippy::unnecessary_operation)]
-fn setup_logger(is_cli: bool, is_debug: bool) -> Result<()> {
-    let mut logger = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%H:%M:%S%.3f"),
-                record.target(),
-                record.level(),
-                message
-            ))
-        })
-        .level(log::LevelFilter::Off)
-        .level_for("panic", log::LevelFilter::Error)
-        .level_for("grin_gui", log::LevelFilter::Trace)
-        .level_for("grin_wallet", log::LevelFilter::Trace);
-
-    if !is_cli {
-        logger = logger.level_for("grin_gui_core", log::LevelFilter::Trace);
-    }
-
-    if is_cli || is_debug {
-        logger = logger.chain(std::io::stdout());
-    }
-
-    if !is_cli && !is_debug {
-        use std::fs::OpenOptions;
-
-        let config_dir = grin_gui_core::fs::config_dir();
-
-        let log_file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .append(false)
-            .truncate(true)
-            .open(config_dir.join("grin-gui.log"))?;
-
-        logger = logger.chain(log_file);
-    };
-
-    logger.apply()?;
-    Ok(())
 }
 
 fn handle_self_update_temp(cleanup_path: &Path) -> Result<()> {

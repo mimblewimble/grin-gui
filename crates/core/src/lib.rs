@@ -8,3 +8,6 @@ pub mod network;
 #[cfg(feature = "gui")]
 pub mod theme;
 pub mod utility;
+
+// Re-exports
+pub use grin_util::logger::{LoggingConfig, LogEntry};
