@@ -21,6 +21,11 @@ no-self-update = []
 #grin_wallet_api = { version = "5.1.0"}
 #grin_wallet_impls = { version = "5.1.0"}
 
+grin_config = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+
 # For local testing
  grin_wallet = { path = "../../../grin-wallet-yeastplume"}
  grin_wallet_config = { path = "../../../grin-wallet-yeastplume/config"}
@@ -53,6 +58,7 @@ tar = "0.4.33"
 zstd = { version = "0.6.1", features = ["zstdmt"] }
 num_cpus = "1.13.0"
 dirs = "2.0"
+futures = "0.3"
 
 iced_native = { version = "0.5.1", optional = true }
 

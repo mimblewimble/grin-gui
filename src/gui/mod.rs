@@ -11,7 +11,9 @@ use grin_gui_core::{
     config::{Config, Language},
     error::ThemeError,
     fs::PersistentData,
-    theme::Theme,
+    theme::{ColorPalette, Theme},
+    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, ChainTypes},
+    node::NodeInterface,
 };
 
 use iced::{
@@ -29,17 +31,16 @@ use image::ImageFormat;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use element::DEFAULT_PADDING;
-use grin_gui_core::theme::ColorPalette;
-use grin_gui_core::wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, ChainTypes};
-
-use self::element::DEFAULT_HEADER_FONT_SIZE;
+use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
     /// Wallet Interface
     wallet_interface: Arc<RwLock<WalletInterfaceHttpNodeClient>>,
+
+    /// Node Interface
+    node_interface: Arc<RwLock<NodeInterface>>,
 
     state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
@@ -77,6 +78,7 @@ impl<'a> Default for GrinGui {
 
         Self {
             wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, ChainTypes::Mainnet))),
+            node_interface: Arc::new(RwLock::new(NodeInterface::new(ChainTypes::Mainnet))),
             state,
             error: None,
             mode: Mode::Catalog,
@@ -131,6 +133,13 @@ impl Application for GrinGui {
         }*/
 
         apply_config(&mut grin_gui, config);
+
+        // Also just dumbly sping up a node for now
+        let node_interface = grin_gui.node_interface.clone();
+        let mut n = node_interface.write().unwrap();
+        n.set_chain_type();
+        n.start_server();
+
         (grin_gui, Command::batch(vec![]))
     }
 
