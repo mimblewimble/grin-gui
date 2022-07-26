@@ -13,13 +13,11 @@
 
 //! Logging wrapper to be used throughout all crates in the workspace
 use parking_lot::Mutex;
-use serde::{Deserialize, Serialize};
-use std::ops::Deref;
 
 use backtrace::Backtrace;
 use std::{panic, thread};
 
-use log::{Level, LevelFilter, Log, Record};
+use log::{LevelFilter, Record};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::append::file::FileAppender;
 use log4rs::append::rolling_file::{
@@ -37,7 +35,7 @@ use std::error::Error;
 use std::sync::mpsc;
 use std::sync::mpsc::SyncSender;
 
-use grin_gui_core::{LogEntry, LoggingConfig};
+use crate::{LogEntry, LoggingConfig};
 
 pub enum LogArea {
     Gui,
@@ -68,6 +66,8 @@ lazy_static! {
             config: None,
         }
     ]);
+    /// Handle to logger to change it at runtime
+    static ref LOGGER_HANDLE: Mutex<Option<log4rs::Handle>> = Mutex::new(None);
 }
 
 const LOGGING_PATTERN: &str = "{d(%Y%m%d %H:%M:%S%.3f)} {h({l})} {M} - {m}{n}";
@@ -82,7 +82,10 @@ struct GrinGuiFilter;
 impl Filter for GrinGuiFilter {
     fn filter(&self, record: &Record<'_>) -> Response {
         if let Some(module_path) = record.module_path() {
-            if module_path.starts_with("grin_gui") {
+            if module_path.starts_with("grin_gui")
+                && !module_path.starts_with("grin_gui_core::node")
+                && !module_path.starts_with("grin_gui_core::wallet")
+            {
                 return Response::Neutral;
             }
         }
@@ -98,9 +101,10 @@ struct GrinFilter;
 impl Filter for GrinFilter {
     fn filter(&self, record: &Record<'_>) -> Response {
         if let Some(module_path) = record.module_path() {
-            if module_path.starts_with("grin")
+            if (module_path.starts_with("grin")
                 && !module_path.starts_with("grin_gui")
-                && !module_path.starts_with("grin_wallet")
+                && !module_path.starts_with("grin_wallet"))
+                || module_path.starts_with("grin_gui_core::node")
             {
                 return Response::Neutral;
             }
@@ -117,7 +121,9 @@ struct GrinWalletFilter;
 impl Filter for GrinWalletFilter {
     fn filter(&self, record: &Record<'_>) -> Response {
         if let Some(module_path) = record.module_path() {
-            if module_path.starts_with("grin_wallet") {
+            if module_path.starts_with("grin_wallet")
+                || module_path.starts_with("grin_gui_core::wallet")
+            {
                 return Response::Neutral;
             }
         }
@@ -184,7 +190,7 @@ pub fn init_loggers(_logs_tx: Option<mpsc::SyncSender<LogEntry>>) {
 
     let mut root = Root::builder();
     let mut appenders = vec![];
-    let mut info_string = format!("log4rs is initialized,",);
+    let mut info_string = "".to_owned();
 
     for la in &(*configs_ref) {
         if let Some(c) = &la.config {
@@ -202,15 +208,15 @@ pub fn init_loggers(_logs_tx: Option<mpsc::SyncSender<LogEntry>>) {
                 let name = match la.area {
                     LogArea::Gui => {
                         builder = builder.filter(Box::new(GrinGuiFilter));
-                        "stdout-gui"
+                        "gui-stdout"
                     }
                     LogArea::Node => {
                         builder = builder.filter(Box::new(GrinFilter));
-                        "stdout-node"
+                        "node-stdout"
                     }
                     LogArea::Wallet => {
                         builder = builder.filter(Box::new(GrinWalletFilter));
-                        "stdout-wallet"
+                        "wallet-stdout"
                     }
                 };
                 appenders.push(builder.build(name, Box::new(stdout)));
@@ -254,15 +260,15 @@ pub fn init_loggers(_logs_tx: Option<mpsc::SyncSender<LogEntry>>) {
                 let name = match la.area {
                     LogArea::Gui => {
                         builder = builder.filter(Box::new(GrinGuiFilter));
-                        "file-gui"
+                        "gui-file"
                     }
                     LogArea::Node => {
                         builder = builder.filter(Box::new(GrinFilter));
-                        "file-node"
+                        "node-file"
                     }
                     LogArea::Wallet => {
                         builder = builder.filter(Box::new(GrinWalletFilter));
-                        "file-wallet"
+                        "wallet-file"
                     }
                 };
 
@@ -275,12 +281,35 @@ pub fn init_loggers(_logs_tx: Option<mpsc::SyncSender<LogEntry>>) {
 
     let config = Config::builder()
         .appenders(appenders)
-        .build(root.build(level_minimum))
-        .unwrap();
+        .build(root.build(level_minimum));
 
-    let _ = log4rs::init_config(config).unwrap();
+    // Init or update config via handle
+    match config {
+        Ok(c) => {
+            // Lock handle
+            let mut log_handle = LOGGER_HANDLE.lock();
+            if let Some(l) = &*log_handle {
+                l.set_config(c);
+                info!(
+                    "log4rs configuration changed - {} min level: {}",
+                    info_string, level_minimum
+                );
+            } else {
+                match log4rs::init_config(c) {
+                    Ok(h) => {
+                        *log_handle = Some(h);
+                        info!(
+                            "log4rs configuration init - {} min level: {}",
+                            info_string, level_minimum
+                        );
+                    }
+                    Err(e) => error!("Unable to create logger: {:?}", e),
+                }
+            }
+        }
+        Err(e) => error!("Unable to create logging config: {:?}", e),
+    }
 
-    info!("log4rs is initialized, {}, {}", info_string, level_minimum);
     send_panic_to_log();
 }
 

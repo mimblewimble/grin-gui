@@ -10,6 +10,40 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Duration;
 
+use crate::logger;
+
+// include build information
+pub mod built_info {
+	include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
+pub fn info_strings() -> (String, String) {
+	(
+		format!(
+			"This is Grin version {}{}, built for {} by {}.",
+			built_info::PKG_VERSION,
+			built_info::GIT_VERSION.map_or_else(|| "".to_owned(), |v| format!(" (git {})", v)),
+			built_info::TARGET,
+			built_info::RUSTC_VERSION,
+		),
+		format!(
+			"Built with profile \"{}\", features \"{}\".",
+			built_info::PROFILE,
+			built_info::FEATURES_STR,
+		),
+	)
+}
+
+fn log_build_info() {
+	let (basic_info, detailed_info) = info_strings();
+	info!("{}", basic_info);
+	debug!("{}", detailed_info);
+}
+
+fn log_feature_flags() {
+	info!("Feature: NRD kernel enabled: {}", global::is_nrd_enabled());
+}
+
 pub struct NodeInterface {
     pub chain_type: global::ChainTypes,
     pub config: Option<GlobalConfig>,
@@ -48,20 +82,20 @@ impl NodeInterface {
             (None, None)
         };
 
-        // TODO: Need to deal with this in a manner common to wallet, node and gui
-        //init_logger(Some(logging_config), logs_tx);
+        logger::update_logging_config(logger::LogArea::Node, logging_config);
+
         if let Some(file_path) = &config.config_file_path {
-            /*info!(
+            info!(
                 "Using configuration file at {}",
                 file_path.to_str().unwrap()
-            );*/
+            );
         } else {
-            /*info!("Node configuration file not found, using default");*/
+            info!("Node configuration file not found, using default");
         };
 
-        //log_build_info();
+        log_build_info();
         global::init_global_chain_type(config.members.as_ref().unwrap().server.chain_type);
-        //info!("Chain: {:?}", global::get_chain_type());
+        info!("Chain: {:?}", global::get_chain_type());
         match global::get_chain_type() {
             global::ChainTypes::Mainnet => {
                 // Set various mainnet specific feature flags.
@@ -80,10 +114,10 @@ impl NodeInterface {
             .pool_config
             .accept_fee_base;
         global::init_global_accept_fee_base(afb);
-        //info!("Accept Fee Base: {:?}", global::get_accept_fee_base());
+        info!("Accept Fee Base: {:?}", global::get_accept_fee_base());
         global::init_global_future_time_limit(config.members.unwrap().server.future_time_limit);
-        //info!("Future Time Limit: {:?}", global::get_future_time_limit());
-        //log_feature_flags();
+        info!("Future Time Limit: {:?}", global::get_future_time_limit());
+        log_feature_flags();
 
         let mut server_config = node_config
             .unwrap()
@@ -109,7 +143,7 @@ impl NodeInterface {
 				while running.load(Ordering::SeqCst) {
 					thread::sleep(Duration::from_secs(1));
 				}
-				/*warn!("Received SIGINT (Ctrl+C) or SIGTERM (kill).");*/
+				warn!("Received SIGINT (Ctrl+C) or SIGTERM (kill).");
 				serv.stop();
 			},
 			None,

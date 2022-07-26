@@ -7,11 +7,15 @@ license = "GPL-3.0"
 homepage = "https://github.com/mimblewimble/grin-gui"
 repository = "https://github.com/mimblewimble/grin-gui"
 edition = "2018"
+build = "src/build/build.rs"
 
 [features]
 default = []
 gui = ['iced_native']
 no-self-update = []
+
+[build-dependencies]
+built = { version = "0.4", features = ["git2"]}
 
 [dependencies]
 #grin_wallet = { version = "5.1.0" }
@@ -59,6 +63,10 @@ zstd = { version = "0.6.1", features = ["zstdmt"] }
 num_cpus = "1.13.0"
 dirs = "2.0"
 futures = "0.3"
+parking_lot = "0.10"
+log4rs = { version = "0.12", features = ["rolling_file_appender", "compound_policy", "size_trigger", "fixed_window_roller"] }
+backtrace = "0.3"
+lazy_static = "1"
 
 iced_native = { version = "0.5.1", optional = true }
 

@@ -6,21 +6,18 @@
 mod cli;
 mod gui;
 mod localization;
-mod logger;
 #[cfg(target_os = "windows")]
 mod process;
 #[cfg(target_os = "windows")]
 mod tray;
 
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 
 use grin_gui_core::config::Config;
 use grin_gui_core::fs::{PersistentData, CONFIG_DIR};
 use grin_gui_core::utility::{remove_file, rename};
-use grin_gui_core::{LogEntry, LoggingConfig};
+use grin_gui_core::{LogEntry, LoggingConfig, logger};
 
 #[cfg(target_os = "linux")]
 use anyhow::Context;
