@@ -94,7 +94,14 @@ pub fn handle_message<'a>(
         LocalViewInteraction::WalletOpenedOkay => {
             grin_gui.wallet_state.operation_state.clear_wallet_not_open();
             grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::Home;
+
+            // Dumbly spin up node here, for testing
+            let node_interface = grin_gui.node_interface.clone();
+            let mut n = node_interface.write().unwrap();
+            n.set_chain_type();
+            n.start_server();
         }
+
         LocalViewInteraction::WalletOpenError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {

@@ -2,6 +2,7 @@ mod element;
 mod style;
 mod update;
 mod time;
+mod node_sub;
 
 use crate::cli::Opts;
 use crate::error_cause_string;
@@ -12,8 +13,8 @@ use grin_gui_core::{
     error::ThemeError,
     fs::PersistentData,
     theme::{ColorPalette, Theme},
-    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, ChainTypes},
-    node::NodeInterface,
+    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient},
+    node::{NodeInterface, ServerStats, ChainTypes, UIMessage},
 };
 
 use iced::{
@@ -33,6 +34,9 @@ use std::sync::{Arc, RwLock};
 
 use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
 
+use futures::channel::mpsc::{unbounded, UnboundedSender, UnboundedReceiver};
+use node_sub::node_sub;
+
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
 pub struct GrinGui {
@@ -42,7 +46,6 @@ pub struct GrinGui {
     /// Node Interface
     node_interface: Arc<RwLock<NodeInterface>>,
 
-    state: HashMap<Mode, State>,
     error: Option<anyhow::Error>,
     mode: Mode,
     config: Config,
@@ -68,8 +71,6 @@ pub struct GrinGui {
 
 impl<'a> Default for GrinGui {
     fn default() -> Self {
-        let mut state = HashMap::new();
-        state.insert(Mode::Catalog, State::Loading);
 
         // Instantiate wallet node client
         // TODO: Fill out 
@@ -79,7 +80,6 @@ impl<'a> Default for GrinGui {
         Self {
             wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, ChainTypes::Mainnet))),
             node_interface: Arc::new(RwLock::new(NodeInterface::new(ChainTypes::Mainnet))),
-            state,
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
@@ -99,6 +99,7 @@ impl<'a> Default for GrinGui {
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
     Error(Arc<RwLock<Option<anyhow::Error>>>),
+    NodeUpdate(UIMessage),
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
@@ -133,12 +134,6 @@ impl Application for GrinGui {
         }*/
 
         apply_config(&mut grin_gui, config);
-
-        // Also just dumbly sping up a node for now
-        let node_interface = grin_gui.node_interface.clone();
-        let mut n = node_interface.write().unwrap();
-        n.set_chain_type();
-        n.start_server();
 
         (grin_gui, Command::batch(vec![]))
     }
@@ -175,7 +170,14 @@ impl Application for GrinGui {
     fn subscription(&self) -> Subscription<Message> {
         let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
         let tick_subscription = time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
-        iced::Subscription::batch(vec![runtime_subscription, tick_subscription])
+        let (tx, rx) = unbounded::<UIMessage>();
+        {
+            let mut n = self.node_interface.write().unwrap();
+            n.set_ui_sender(tx);
+        }
+        let node_subscription = node_sub("node_sub_channel", rx).map(|e| Message::NodeUpdate(e));
+
+        iced::Subscription::batch(vec![runtime_subscription, tick_subscription, node_subscription])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {

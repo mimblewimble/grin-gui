@@ -25,20 +25,26 @@ built = { version = "0.4", features = ["git2"]}
 #grin_wallet_api = { version = "5.1.0"}
 #grin_wallet_impls = { version = "5.1.0"}
 
-grin_config = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+# grin_config = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+# grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+# grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+# grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+# grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 
 # For local testing
- grin_wallet = { path = "../../../grin-wallet-yeastplume"}
- grin_wallet_config = { path = "../../../grin-wallet-yeastplume/config"}
- grin_wallet_util = { path = "../../../grin-wallet-yeastplume/util"}
- grin_wallet_controller = { path = "../../../grin-wallet-yeastplume/controller"}
- grin_wallet_api = { path = "../../../grin-wallet-yeastplume/api"}
- grin_wallet_impls = { path = "../../../grin-wallet-yeastplume/impls"}
- grin_wallet_libwallet = { path = "../../../grin-wallet-yeastplume/libwallet"}
+grin_wallet = { path = "../../../grin-wallet-yeastplume"}
+grin_wallet_config = { path = "../../../grin-wallet-yeastplume/config"}
+grin_wallet_util = { path = "../../../grin-wallet-yeastplume/util"}
+grin_wallet_controller = { path = "../../../grin-wallet-yeastplume/controller"}
+grin_wallet_api = { path = "../../../grin-wallet-yeastplume/api"}
+grin_wallet_impls = { path = "../../../grin-wallet-yeastplume/impls"}
+grin_wallet_libwallet = { path = "../../../grin-wallet-yeastplume/libwallet"}
 
+grin_config = { path = "../../../grin/config" }
+grin_core = { path = "../../../grin/core" }
+grin_util = { path = "../../../grin/util" }
+grin_servers = { path = "../../../grin/servers" }
+grin_keychain = { path = "../../../grin/keychain" }
 
 regex = "1.4.3"
 fancy-regex = "0.5.0" # Regex with backtracking

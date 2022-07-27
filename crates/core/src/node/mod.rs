@@ -2,6 +2,7 @@ use grin_config::{config, GlobalConfig};
 use grin_core::global;
 use grin_servers as servers;
 use grin_util::logger::LogEntry;
+use servers::Server;
 
 use futures::channel::oneshot;
 
@@ -10,43 +11,110 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Duration;
 
+use chrono::prelude::Utc;
+
 use crate::logger;
+
+pub use global::ChainTypes;
+pub use grin_servers::ServerStats;
+
+use futures::channel::mpsc::UnboundedSender;
+
+#[derive(Clone, Debug)]
+pub enum UIMessage {
+    Ready,
+    UpdateStatus(ServerStats),
+}
 
 // include build information
 pub mod built_info {
-	include!(concat!(env!("OUT_DIR"), "/built.rs"));
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
 
 pub fn info_strings() -> (String, String) {
-	(
-		format!(
-			"This is Grin version {}{}, built for {} by {}.",
-			built_info::PKG_VERSION,
-			built_info::GIT_VERSION.map_or_else(|| "".to_owned(), |v| format!(" (git {})", v)),
-			built_info::TARGET,
-			built_info::RUSTC_VERSION,
-		),
-		format!(
-			"Built with profile \"{}\", features \"{}\".",
-			built_info::PROFILE,
-			built_info::FEATURES_STR,
-		),
-	)
+    (
+        format!(
+            "This is Grin version {}{}, built for {} by {}.",
+            built_info::PKG_VERSION,
+            built_info::GIT_VERSION.map_or_else(|| "".to_owned(), |v| format!(" (git {})", v)),
+            built_info::TARGET,
+            built_info::RUSTC_VERSION,
+        ),
+        format!(
+            "Built with profile \"{}\", features \"{}\".",
+            built_info::PROFILE,
+            built_info::FEATURES_STR,
+        ),
+    )
 }
 
 fn log_build_info() {
-	let (basic_info, detailed_info) = info_strings();
-	info!("{}", basic_info);
-	debug!("{}", detailed_info);
+    let (basic_info, detailed_info) = info_strings();
+    info!("{}", basic_info);
+    debug!("{}", detailed_info);
 }
 
 fn log_feature_flags() {
-	info!("Feature: NRD kernel enabled: {}", global::is_nrd_enabled());
+    info!("Feature: NRD kernel enabled: {}", global::is_nrd_enabled());
+}
+
+pub struct Controller {
+    rx: mpsc::Receiver<ControllerMessage>,
+    tx: UnboundedSender<UIMessage>,
+}
+
+pub enum ControllerMessage {
+    Shutdown,
+}
+
+/// This needs to provide the interface in to the server, bridging between the UI and
+/// server instance
+impl Controller {
+    /// Create a new controller
+    pub fn new(
+        logs_rx: mpsc::Receiver<LogEntry>,
+        ui_sender: UnboundedSender<UIMessage>,
+    ) -> Result<Controller, String> {
+        let (tx, rx) = mpsc::channel::<ControllerMessage>();
+        Ok(Controller { rx, tx: ui_sender })
+    }
+
+    /// Run the controller
+    pub fn run(&mut self, server: Server) {
+        let stat_update_interval = 1;
+        let mut next_stat_update = Utc::now().timestamp() + stat_update_interval;
+        let delay = Duration::from_millis(50);
+        //while self.ui.step() {
+        while true {
+            if let Some(message) = self.rx.try_iter().next() {
+                match message {
+                    ControllerMessage::Shutdown => {
+                        warn!("Shutdown in progress, please wait");
+                        //self.ui.stop();
+                        //server.stop();
+                        return;
+                    }
+                }
+            }
+
+            if Utc::now().timestamp() > next_stat_update {
+                next_stat_update = Utc::now().timestamp() + stat_update_interval;
+                if let Ok(stats) = server.get_server_stats() {
+                    if let Err(e) = self.tx.unbounded_send(UIMessage::UpdateStatus(stats)){
+                        error!("Node update could not be sent to UI: {:?}", e);
+                    }
+                }
+            }
+            thread::sleep(delay);
+        }
+        server.stop();
+    }
 }
 
 pub struct NodeInterface {
     pub chain_type: global::ChainTypes,
     pub config: Option<GlobalConfig>,
+    pub ui_sender: Option<UnboundedSender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
 }
 
 impl NodeInterface {
@@ -54,7 +122,12 @@ impl NodeInterface {
         NodeInterface {
             chain_type,
             config: None,
+            ui_sender: None,
         }
+    }
+
+    pub fn set_ui_sender(&mut self, ui_sender: UnboundedSender<UIMessage>) {
+        self.ui_sender = Some(ui_sender)
     }
 
     pub fn set_chain_type(&mut self) {
@@ -75,11 +148,9 @@ impl NodeInterface {
         let api_chan: &'static mut (oneshot::Sender<()>, oneshot::Receiver<()>) =
             Box::leak(Box::new(oneshot::channel::<()>()));
 
-        let (logs_tx, logs_rx) = if logging_config.tui_running.unwrap() {
+        let (logs_tx, logs_rx) = {
             let (logs_tx, logs_rx) = mpsc::sync_channel::<LogEntry>(200);
             (Some(logs_tx), Some(logs_rx))
-        } else {
-            (None, None)
         };
 
         logger::update_logging_config(logger::LogArea::Node, logging_config);
@@ -126,30 +197,27 @@ impl NodeInterface {
             .unwrap()
             .server
             .clone();
+
+        let ui_sender = self.ui_sender.as_ref().unwrap().clone();
+
         thread::Builder::new()
             .name("node_runner".to_string())
             .spawn(move || {
                 servers::Server::start(
-			server_config,
-			logs_rx,
-			|serv: servers::Server, _: Option<mpsc::Receiver<LogEntry>>| {
-				let running = Arc::new(AtomicBool::new(true));
-				let r = running.clone();
-                // TODO will likely need to call this on GUI exit event
-				/*ctrlc::set_handler(move || {
-					r.store(false, Ordering::SeqCst);
-				})
-				.expect("Error setting handler for both SIGINT (Ctrl+C) and SIGTERM (kill)");*/
-				while running.load(Ordering::SeqCst) {
-					thread::sleep(Duration::from_secs(1));
-				}
-				warn!("Received SIGINT (Ctrl+C) or SIGTERM (kill).");
-				serv.stop();
-			},
-			None,
-			api_chan,
-		)
-		.unwrap();
+                    server_config,
+                    logs_rx,
+                    |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
+                        let mut controller =
+                            Controller::new(logs_rx.unwrap(), ui_sender.clone()).unwrap_or_else(|e| {
+                                error!("Error loading UI controller: {}", e);
+                                panic!("Error loading UI controller: {}", e);
+                            });
+                        controller.run(serv);
+                    },
+                    None,
+                    api_chan,
+                )
+                .unwrap();
             })
             .ok();
     }

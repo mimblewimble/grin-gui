@@ -55,6 +55,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             // Call all views 'registered' for ticks
             return element::wallet::operation::home::handle_tick(grin_gui, time)
         }
+        // Update from embedded node server
+        Message::NodeUpdate(server_stats) => {
+            debug!("{:?}", server_stats);
+        }
         // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
         Message::Interaction(Interaction::CloseErrorModal) => {

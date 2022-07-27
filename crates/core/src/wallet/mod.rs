@@ -8,9 +8,11 @@ use grin_wallet_config::{self, ConfigError, GlobalWalletConfig, WalletConfig};
 use grin_wallet_controller::command::{GlobalArgs, InitArgs};
 use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl};
 use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
-use grin_wallet_util::grin_core;
-use grin_wallet_util::grin_keychain as keychain;
-use grin_wallet_util::grin_util::Mutex;
+
+use grin_core::{self, global};
+use grin_keychain as keychain;
+use grin_util::Mutex;
+
 use std::{
     fs,
     sync::{Arc, RwLock},
@@ -19,7 +21,6 @@ use std::{
 use std::path::PathBuf;
 
 use dirs;
-use grin_core::global;
 
 // Re-exports
 pub use global::ChainTypes;
@@ -72,7 +73,7 @@ where
     L: WalletLCProvider<'static, C, keychain::ExtKeychain> + 'static,
     C: NodeClient + 'static + Clone,
 {
-    pub chain_type: global::ChainTypes,
+    pub chain_type: grin_core::global::ChainTypes,
     pub config: Option<GlobalWalletConfig>,
     // owner api will hold instantiated/opened wallets
     pub owner_api: Option<Owner<L, C, keychain::ExtKeychain>>,
