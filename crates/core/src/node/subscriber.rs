@@ -3,6 +3,8 @@ use iced::futures;
 
 pub use grin_servers::ServerStats;
 
+// TODO: Check https://github.com/iced-rs/iced/issues/336 for reference
+
 #[derive(Clone, Debug)]
 pub enum UIMessage {
     Ready,
