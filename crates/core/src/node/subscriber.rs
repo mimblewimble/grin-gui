@@ -1,8 +1,16 @@
 use futures::channel::mpsc::UnboundedReceiver;
-use grin_gui_core::node::{ServerStats, UIMessage};
 use iced::futures;
 
-pub fn node_sub(id: &str, receiver: UnboundedReceiver<UIMessage>) -> iced::Subscription<UIMessage> {
+pub use grin_servers::ServerStats;
+
+#[derive(Clone, Debug)]
+pub enum UIMessage {
+    Ready,
+    UpdateStatus(ServerStats),
+}
+
+
+pub fn subscriber(id: &str, receiver: UnboundedReceiver<UIMessage>) -> iced::Subscription<UIMessage> {
     iced::Subscription::from_recipe(NodeSubscriber(id.to_owned(), receiver))
 }
 
@@ -26,7 +34,8 @@ where
         _input: futures::stream::BoxStream<'static, I>,
     ) -> futures::stream::BoxStream<'static, Self::Output> {
         use futures::stream::StreamExt;
-        let mut rx = self.1;
+        self.1.boxed()
+        /*let mut rx = self.1;
 
         Box::pin(futures::stream::unfold(
             UIMessage::Ready,
@@ -37,6 +46,6 @@ where
                     Err(_) => None
                 }
             },
-        ))
+        )*/
     }
 }

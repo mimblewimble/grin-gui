@@ -2,7 +2,6 @@ mod element;
 mod style;
 mod update;
 mod time;
-mod node_sub;
 
 use crate::cli::Opts;
 use crate::error_cause_string;
@@ -14,7 +13,7 @@ use grin_gui_core::{
     fs::PersistentData,
     theme::{ColorPalette, Theme},
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient},
-    node::{NodeInterface, ServerStats, ChainTypes, UIMessage},
+    node::{NodeInterface, subscriber::{self, ServerStats, UIMessage}, ChainTypes},
 };
 
 use iced::{
@@ -35,7 +34,6 @@ use std::sync::{Arc, RwLock};
 use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
 
 use futures::channel::mpsc::{unbounded, UnboundedSender, UnboundedReceiver};
-use node_sub::node_sub;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -175,7 +173,7 @@ impl Application for GrinGui {
             let mut n = self.node_interface.write().unwrap();
             n.set_ui_sender(tx);
         }
-        let node_subscription = node_sub("node_sub_channel", rx).map(|e| Message::NodeUpdate(e));
+        let node_subscription = subscriber::subscriber("node_sub_channel", rx).map(|e| Message::NodeUpdate(e));
 
         iced::Subscription::batch(vec![runtime_subscription, tick_subscription, node_subscription])
     }

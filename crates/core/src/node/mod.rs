@@ -16,15 +16,11 @@ use chrono::prelude::Utc;
 use crate::logger;
 
 pub use global::ChainTypes;
-pub use grin_servers::ServerStats;
 
 use futures::channel::mpsc::UnboundedSender;
+use subscriber::UIMessage;
 
-#[derive(Clone, Debug)]
-pub enum UIMessage {
-    Ready,
-    UpdateStatus(ServerStats),
-}
+pub mod subscriber;
 
 // include build information
 pub mod built_info {
