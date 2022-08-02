@@ -218,7 +218,14 @@ impl Application for GrinGui {
                 );
                 content = content.push(setup_container)
             }
-            element::menu::Mode::About => {
+            element::menu::Mode::Node => {
+                let node_container = element::node::data_container(
+                    color_palette,
+                    &mut self.node_state,
+                );
+                content = content.push(node_container)
+            }
+             element::menu::Mode::About => {
                 let about_container =
                     element::about::data_container(color_palette, &None, &mut self.about_state);
                 content = content.push(about_container)

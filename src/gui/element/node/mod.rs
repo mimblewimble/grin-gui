@@ -26,7 +26,6 @@ impl Default for StateContainer {
         Self {
             mode: Mode::Embedded,
             embedded_state: Default::default(),
-            //summary_state: Default::default(),
         }
     }
 }

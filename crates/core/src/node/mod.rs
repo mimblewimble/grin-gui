@@ -24,6 +24,7 @@ pub mod subscriber;
 
 // Re-exports
 pub use grin_servers::ServerStats;
+pub use grin_chain::types::SyncStatus;
 
 // include build information
 pub mod built_info {
