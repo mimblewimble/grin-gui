@@ -26,14 +26,14 @@ use iced_native::alignment;
 
 use iced_aw::{modal, Card, Modal};
 
+use iced_futures::futures::channel::mpsc;
+
 use image::ImageFormat;
 
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
-
-use futures::channel::mpsc::{unbounded, UnboundedSender, UnboundedReceiver};
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -97,7 +97,7 @@ impl<'a> Default for GrinGui {
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
     Error(Arc<RwLock<Option<anyhow::Error>>>),
-    NodeUpdate(UIMessage),
+    SendNodeMessage((usize, UIMessage, Option<mpsc::Sender<UIMessage>>)),
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
@@ -168,13 +168,10 @@ impl Application for GrinGui {
     fn subscription(&self) -> Subscription<Message> {
         let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
         let tick_subscription = time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
-        let (tx, rx) = unbounded::<UIMessage>();
-        {
-            let mut n = self.node_interface.write().unwrap();
-            n.set_ui_sender(tx);
-        }
-        let node_subscription = subscriber::subscriber("node_sub_channel", rx).map(|e| Message::NodeUpdate(e));
-
+        let node_subscription = subscriber::subscriber(0).map(|e| 
+            Message::SendNodeMessage(e)
+        );
+ 
         iced::Subscription::batch(vec![runtime_subscription, tick_subscription, node_subscription])
     }
 

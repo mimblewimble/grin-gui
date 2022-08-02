@@ -1,5 +1,9 @@
 use futures::channel::mpsc::UnboundedReceiver;
-use iced::futures;
+use iced_futures::{
+    self,
+    futures::{channel::mpsc, stream::StreamExt},
+};
+use std::hash::{Hash, Hasher};
 
 pub use grin_servers::ServerStats;
 
@@ -7,47 +11,75 @@ pub use grin_servers::ServerStats;
 
 #[derive(Clone, Debug)]
 pub enum UIMessage {
-    Ready,
+    None,
     UpdateStatus(ServerStats),
 }
 
-
-pub fn subscriber(id: &str, receiver: UnboundedReceiver<UIMessage>) -> iced::Subscription<UIMessage> {
-    iced::Subscription::from_recipe(NodeSubscriber(id.to_owned(), receiver))
+pub enum State {
+    Ready,
+    Listening { receiver: mpsc::Receiver<UIMessage> },
+    Finished,
 }
 
-struct NodeSubscriber(String, UnboundedReceiver<UIMessage>);
+pub fn subscriber<I: 'static + Hash + Copy + Send>(id: I) -> iced::Subscription<(I, UIMessage, Option<mpsc::Sender<UIMessage>>)> {
+    iced::Subscription::from_recipe(NodeSubscriber{
+        id
+    })
+}
 
-impl<H, I> iced_native::subscription::Recipe<H, I> for NodeSubscriber
+pub struct NodeSubscriber<I> {
+    id: I,
+}
+
+impl<H, I, T> iced_native::subscription::Recipe<H, I> for NodeSubscriber<T>
 where
+    T: 'static + Hash + Copy + Send,
     H: std::hash::Hasher,
 {
-    type Output = UIMessage;
+    type Output = (T, UIMessage, Option<mpsc::Sender<UIMessage>>);
 
     fn hash(&self, state: &mut H) {
-        use std::hash::Hash;
-
-        std::any::TypeId::of::<Self>().hash(state);
-        self.0.hash(state);
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+        self.id.hash(state);
     }
 
     fn stream(
         self: Box<Self>,
         _input: futures::stream::BoxStream<'static, I>,
     ) -> futures::stream::BoxStream<'static, Self::Output> {
-        use futures::stream::StreamExt;
-        self.1.boxed()
-        /*let mut rx = self.1;
-
+        let id = self.id;
         Box::pin(futures::stream::unfold(
-            UIMessage::Ready,
-            move |_| async move {
-                match rx.try_next() {
-                    Ok(Some(m)) => Some((m, UIMessage::Ready)),
-                    Ok(None) => None,
-                    Err(_) => None
+            State::Ready,
+            move |state| async move {
+                match state {
+                    State::Ready => {
+                        let (sender, receiver) = mpsc::channel::<UIMessage>(0);
+                        Some((
+                            (id, UIMessage::None, Some(sender)),
+                            State::Listening { receiver },
+                        ))
+                    }
+                    State::Listening { mut receiver } => match receiver.next().await {
+                        Some(msg) => {
+                            debug!("Message {:?}", msg);
+                            Some((
+                                (id, msg, None),
+                                State::Listening { receiver },
+                            ))
+                        }
+                        _ => Some((
+                            (id, UIMessage::None, None),
+                            State::Listening { receiver },
+                        )),
+                    },
+                    State::Finished => {
+                        // Don't let the stream die?
+                        let _: () = iced::futures::future::pending().await;
+                        None
+                    }
                 }
             },
-        )*/
+        ))
     }
 }

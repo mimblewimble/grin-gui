@@ -2,7 +2,7 @@ use {
     super::{GrinGui, Interaction, Message, Mode},
     crate::{gui::element, localization::localized_string, log_error, Result},
     anyhow::Context,
-    grin_gui_core::{error::ThemeError, fs::PersistentData},
+    grin_gui_core::{error::ThemeError, fs::PersistentData, node::subscriber::UIMessage},
     iced::{clipboard, Command},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
@@ -31,7 +31,9 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     // Check if password needs entering in wallet mode
-    if !grin_gui.wallet_state.config_missing() &&! grin_gui.wallet_state.operation_state.wallet_not_open() {
+    if !grin_gui.wallet_state.config_missing()
+        && !grin_gui.wallet_state.operation_state.wallet_not_open()
+    {
         let w = grin_gui.wallet_interface.read().unwrap();
         if !w.wallet_is_open() {
             grin_gui.wallet_state.operation_state.set_wallet_not_open()
@@ -53,11 +55,27 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Ticks, for stuff that happens frequently, like checking wallet status
         Message::Tick(time) => {
             // Call all views 'registered' for ticks
-            return element::wallet::operation::home::handle_tick(grin_gui, time)
+            return element::wallet::operation::home::handle_tick(grin_gui, time);
         }
         // Update from embedded node server
-        Message::NodeUpdate(server_stats) => {
-            debug!("{:?}", server_stats);
+        Message::SendNodeMessage((id, msg, sender)) => {
+            match sender {
+                Some(sender) => {
+                    let mut n = grin_gui.node_interface.write().unwrap();
+                    n.set_ui_sender(sender);
+                    return Ok(Command::none());
+                }
+                None => {
+                    match msg {
+                        UIMessage::None => {},
+                        UIMessage::UpdateStatus(stats) => {
+                            error!("{:?}", stats)
+                        }
+
+                    }
+                    return Ok(Command::none());
+                }
+            }
         }
         // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),

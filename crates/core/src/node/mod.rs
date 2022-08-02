@@ -17,7 +17,8 @@ use crate::logger;
 
 pub use global::ChainTypes;
 
-use futures::channel::mpsc::UnboundedSender;
+use iced_futures::futures::channel::mpsc as iced_mpsc;
+use iced_futures::futures::SinkExt;
 use subscriber::UIMessage;
 
 pub mod subscriber;
@@ -55,8 +56,9 @@ fn log_feature_flags() {
 }
 
 pub struct Controller {
-    rx: mpsc::Receiver<ControllerMessage>,
-    tx: UnboundedSender<UIMessage>,
+    logs_rx: mpsc::Receiver<LogEntry>,
+    rx_controller: mpsc::Receiver<ControllerMessage>,
+    tx_ui: iced_mpsc::Sender<UIMessage>,
 }
 
 pub enum ControllerMessage {
@@ -69,10 +71,10 @@ impl Controller {
     /// Create a new controller
     pub fn new(
         logs_rx: mpsc::Receiver<LogEntry>,
-        ui_sender: UnboundedSender<UIMessage>,
+        tx_ui: iced_mpsc::Sender<UIMessage>,
     ) -> Result<Controller, String> {
-        let (tx, rx) = mpsc::channel::<ControllerMessage>();
-        Ok(Controller { rx, tx: ui_sender })
+        let (tx_controller, rx_controller) = mpsc::channel::<ControllerMessage>();
+        Ok(Controller { logs_rx, rx_controller, tx_ui })
     }
 
     /// Run the controller
@@ -82,7 +84,7 @@ impl Controller {
         let delay = Duration::from_millis(50);
         //while self.ui.step() {
         while true {
-            if let Some(message) = self.rx.try_iter().next() {
+            if let Some(message) = self.rx_controller.try_iter().next() {
                 match message {
                     ControllerMessage::Shutdown => {
                         warn!("Shutdown in progress, please wait");
@@ -96,8 +98,8 @@ impl Controller {
             if Utc::now().timestamp() > next_stat_update {
                 next_stat_update = Utc::now().timestamp() + stat_update_interval;
                 if let Ok(stats) = server.get_server_stats() {
-                    if let Err(e) = self.tx.unbounded_send(UIMessage::UpdateStatus(stats)){
-                        error!("Node update could not be sent to UI: {:?}", e);
+                    if let Err(e) = self.tx_ui.try_send(UIMessage::UpdateStatus(stats)) {
+                        error!("Unable to send stat message to UI: {}", e);
                     }
                 }
             }
@@ -110,7 +112,7 @@ impl Controller {
 pub struct NodeInterface {
     pub chain_type: global::ChainTypes,
     pub config: Option<GlobalConfig>,
-    pub ui_sender: Option<UnboundedSender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
+    pub ui_sender: Option<iced_mpsc::Sender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
 }
 
 impl NodeInterface {
@@ -122,7 +124,7 @@ impl NodeInterface {
         }
     }
 
-    pub fn set_ui_sender(&mut self, ui_sender: UnboundedSender<UIMessage>) {
+    pub fn set_ui_sender(&mut self, ui_sender: iced_mpsc::Sender<UIMessage>) {
         self.ui_sender = Some(ui_sender)
     }
 
