@@ -69,7 +69,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                     match msg {
                         UIMessage::None => {},
                         UIMessage::UpdateStatus(stats) => {
-                            error!("{:?}", stats)
+                            grin_gui.node_state.embedded_state.server_stats = Some(stats);
                         }
 
                     }

@@ -57,6 +57,9 @@ pub struct GrinGui {
     /// Top-Level Wallet area state
     wallet_state: element::wallet::StateContainer,
 
+    /// Top-Level Node area state
+    node_state: element::node::StateContainer,
+
     /// Settings screen + sub-screens states
     settings_state: element::settings::StateContainer,
     wallet_settings_state: element::settings::wallet::StateContainer,
@@ -84,6 +87,7 @@ impl<'a> Default for GrinGui {
             error_modal_state: Default::default(),
             menu_state: Default::default(),
             wallet_state: Default::default(),
+            node_state: Default::default(),
             settings_state: Default::default(),
             wallet_settings_state: Default::default(),
             node_settings_state: Default::default(),

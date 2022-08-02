@@ -18,10 +18,12 @@ use crate::logger;
 pub use global::ChainTypes;
 
 use iced_futures::futures::channel::mpsc as iced_mpsc;
-use iced_futures::futures::SinkExt;
 use subscriber::UIMessage;
 
 pub mod subscriber;
+
+// Re-exports
+pub use grin_servers::ServerStats;
 
 // include build information
 pub mod built_info {
