@@ -11,7 +11,7 @@ use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
 
 use grin_core::{self, global};
 use grin_keychain as keychain;
-use grin_util::Mutex;
+use grin_util::{file, Mutex};
 
 use std::{
     fs,
@@ -25,9 +25,10 @@ use dirs;
 // Re-exports
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
-pub use grin_wallet_libwallet::{WalletInfo, StatusMessage};
+pub use grin_wallet_libwallet::{StatusMessage, WalletInfo};
 
 use crate::error::GrinWalletInterfaceError;
+use crate::logger;
 
 /// Wallet configuration file name
 pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
@@ -79,6 +80,11 @@ where
     pub owner_api: Option<Owner<L, C, keychain::ExtKeychain>>,
     // Simple flag to check whether wallet has been opened
     wallet_is_open: bool,
+    // Hold on to check node foreign API secret for now
+    pub check_node_foreign_api_secret_path: Option<String>,
+    // Whether to use embedded node for check node
+    use_embedded_node: bool,
+
     node_client: C,
 }
 
@@ -93,7 +99,9 @@ where
             config: None,
             owner_api: None,
             wallet_is_open: false,
+            check_node_foreign_api_secret_path: None,
             node_client,
+            use_embedded_node: false,
         }
     }
 
@@ -107,6 +115,10 @@ where
         } else {
             global::ChainTypes::Mainnet
         };*/
+    }
+
+    pub fn set_check_node_foreign_api_secret_path(&mut self, secret: &str) {
+        self.check_node_foreign_api_secret_path = Some(secret.to_owned())
     }
 
     pub fn config_exists(&self, path: &str) -> bool {
@@ -125,9 +137,23 @@ where
         self.wallet_is_open
     }
 
+    pub fn set_use_embedded_node(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        value: bool,
+    ) {
+        let mut w = wallet_interface.write().unwrap();
+        if w.use_embedded_node != value {
+            w.owner_api = None;
+        }
+        w.use_embedded_node = value;
+    }
+
     fn inst_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
-    ) -> Result<Arc<Mutex<Box<dyn WalletInst<'static, L, C, keychain::ExtKeychain>>>>, GrinWalletInterfaceError> {
+    ) -> Result<
+        Arc<Mutex<Box<dyn WalletInst<'static, L, C, keychain::ExtKeychain>>>>,
+        GrinWalletInterfaceError,
+    > {
         let mut w = wallet_interface.write().unwrap();
 
         let data_path = Some(get_grin_wallet_default_path(&w.chain_type));
@@ -135,7 +161,23 @@ where
         let config =
             grin_wallet_config::initial_setup_wallet(&w.chain_type, data_path, true).unwrap();
 
+        // Update logging config
+        let mut logging_config = config.members.as_ref().unwrap().logging.clone().unwrap();
+        logging_config.tui_running = Some(false);
+        logger::update_logging_config(logger::LogArea::Wallet, logging_config);
+
         let wallet_config = config.clone().members.unwrap().wallet;
+
+        // Set node client address and Foreign API Secret if needed
+        if w.use_embedded_node {
+            w.node_client
+                .set_node_url(&wallet_config.check_node_api_http_addr);
+
+            let check_node_secret =
+                file::get_first_line(w.check_node_foreign_api_secret_path.clone());
+            w.node_client.set_node_api_secret(check_node_secret);
+        }
+
         let wallet_inst =
             inst_wallet(wallet_config.clone(), w.node_client.clone()).unwrap_or_else(|e| {
                 println!("{}", e);
@@ -153,20 +195,18 @@ where
         }
 
         w.config = Some(config);
-        
+
         Ok(wallet_inst)
-        
     }
 
     fn inst_owner_api(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
     ) -> Result<(), GrinWalletInterfaceError> {
-
         {
             let mut w = wallet_interface.read().unwrap();
             if let Some(o) = &w.owner_api {
                 global::set_local_chain_type(w.chain_type);
-                return Ok(())
+                return Ok(());
             }
         }
 
@@ -177,12 +217,11 @@ where
 
         Ok(())
     }
- 
+
     pub async fn init(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
     ) -> Result<(String, String), GrinWalletInterfaceError> {
-
         WalletInterface::inst_owner_api(wallet_interface.clone())?;
 
         let w = wallet_interface.read().unwrap();
@@ -224,7 +263,6 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
     ) -> Result<(), GrinWalletInterfaceError> {
-
         WalletInterface::inst_owner_api(wallet_interface.clone())?;
 
         let mut w = wallet_interface.write().unwrap();
@@ -235,9 +273,9 @@ where
             // Start the updater
             o.start_updater(None, std::time::Duration::from_secs(60))?;
             w.wallet_is_open = true;
-            return Ok(())
+            return Ok(());
         } else {
-            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated)
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
     }
 
@@ -247,12 +285,11 @@ where
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
             let res = o.get_updater_messages(1)?;
-            return Ok(res)
+            return Ok(res);
         } else {
-            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated)
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
     }
-
 
     /*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface<L, C>>>, password: String) -> String {
         let mut w = wallet_interface.read().unwrap();

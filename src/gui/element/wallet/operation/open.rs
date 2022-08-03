@@ -76,6 +76,21 @@ pub fn handle_message<'a>(
 
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
+
+            // Set up check node accordingly
+            if let Some(i) = grin_gui.config.current_wallet_index {
+                if grin_gui.config.wallets[i].use_embedded_node {
+                   let n = grin_gui.node_interface.read().unwrap();
+                   if let Some(c) = &n.config {
+                        if let Some(m) = &c.members {
+                            WalletInterface::set_use_embedded_node(w.clone(), true);
+                            let mut w = w.write().unwrap();
+                            w.check_node_foreign_api_secret_path = m.server.foreign_api_secret_path.clone();
+                        }
+                   }
+                }
+            }
+
             let fut = move || {
                 WalletInterface::open_wallet(w, password.clone())
             };

@@ -221,6 +221,8 @@ impl NodeInterface {
 
         let node_config = self.load_or_create_default_config(); 
 
+        self.config = Some(node_config.clone());
+
         let config = node_config.clone();
         let mut logging_config = config.members.as_ref().unwrap().logging.clone().unwrap();
         logging_config.tui_running = Some(false);
