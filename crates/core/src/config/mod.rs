@@ -13,8 +13,12 @@ pub use crate::config::wallet::Wallet;
 /// Config struct.
 #[derive(Deserialize, Serialize, Debug, PartialEq, Default, Clone)]
 pub struct Config {
+    /// Configured wallet definitions
     #[serde(default)]
-    pub wallet: Wallet,
+    pub wallets: Vec<Wallet>,
+
+    /// Current wallet
+    pub current_wallet_index: Option<usize>,
 
     pub theme: Option<String>,
 
@@ -59,6 +63,13 @@ pub struct Config {
     #[serde(default)]
     #[cfg(target_os = "windows")]
     pub start_closed_to_tray: bool,
+}
+
+impl Config {
+    pub fn add_wallet(&mut self, wallet: Wallet) -> usize{
+        self.wallets.push(wallet);
+        self.wallets.len() - 1
+    }
 }
 
 impl PersistentData for Config {

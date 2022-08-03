@@ -7,14 +7,20 @@ use std::path::PathBuf;
 pub struct Wallet {
     #[serde(default)]
     #[allow(deprecated)]
-    pub current_tld: Option<PathBuf>,
+    /// Top-level directory. Should (but not always) contain grin_wallet.toml file
+    pub tld: Option<PathBuf>,
+    /// Display name in wallet selection
+    pub display_name: String,
+    /// If true, override the grin_wallet.toml configured node and use the internal one
+    pub use_embedded_node: bool,
 }
 
 impl Default for Wallet {
     fn default() -> Self {
         Wallet {
-            current_tld: None,
+            tld: None,
+            display_name: "Default".to_owned(),
+            use_embedded_node: true,
         }
     }
 }
-

@@ -10,7 +10,7 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{fs::PersistentData, wallet::WalletInterface},
+    grin_gui_core::{config::Wallet, fs::PersistentData, wallet::WalletInterface},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
@@ -123,8 +123,10 @@ pub fn handle_message<'a>(
             ));
         }
         LocalViewInteraction::WalletCreatedOk((tld, mnemonic)) => {
-            let wallet_interface = grin_gui.wallet_interface.clone();
-            grin_gui.config.wallet.current_tld = Some(PathBuf::from(&tld));
+            let mut saved_wallet = Wallet::default();
+            saved_wallet.tld = Some(PathBuf::from(&tld));
+            let index = grin_gui.config.add_wallet(saved_wallet);
+            grin_gui.config.current_wallet_index = Some(index);
             grin_gui.wallet_state.clear_config_missing();
             grin_gui.wallet_state.setup_state.setup_wallet_success_state.recovery_phrase = mnemonic;
             grin_gui.wallet_state.setup_state.mode = crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;

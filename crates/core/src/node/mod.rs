@@ -116,6 +116,7 @@ pub struct NodeInterface {
     pub chain_type: global::ChainTypes,
     pub config: Option<GlobalConfig>,
     pub ui_sender: Option<iced_mpsc::Sender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
+    pub node_started: bool,
 }
 
 impl NodeInterface {
@@ -124,6 +125,7 @@ impl NodeInterface {
             chain_type,
             config: None,
             ui_sender: None,
+            node_started: false,
         }
     }
 
@@ -200,6 +202,7 @@ impl NodeInterface {
             .clone();
 
         let ui_sender = self.ui_sender.as_ref().unwrap().clone();
+        self.node_started = true;
 
         thread::Builder::new()
             .name("node_runner".to_string())

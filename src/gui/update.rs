@@ -14,29 +14,47 @@ use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 use std::sync::atomic::Ordering;
 
 pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Command<Message>> {
-    // Take opportunity to check if we don't have a wallet config file for some reason
-    if !grin_gui.wallet_state.config_missing() {
-        match &grin_gui.config.wallet.current_tld {
-            Some(t) => {
-                let wallet_interface = grin_gui.wallet_interface.clone();
-                let w = wallet_interface.read().unwrap();
-                if !w.config_exists(t.to_str().unwrap()) {
+    if let Some(index) = grin_gui.config.current_wallet_index {
+        // Take opportunity to check if we don't have a wallet config file for some reason
+        if !grin_gui.wallet_state.config_missing() {
+            match &grin_gui.config.wallets[index].tld {
+                Some(t) => {
+                    let wallet_interface = grin_gui.wallet_interface.clone();
+                    let w = wallet_interface.read().unwrap();
+                    if !w.config_exists(t.to_str().unwrap()) {
+                        grin_gui.wallet_state.set_config_missing();
+                    }
+                }
+                None => {
                     grin_gui.wallet_state.set_config_missing();
                 }
             }
-            None => {
-                grin_gui.wallet_state.set_config_missing();
+        }
+
+        // Check if password needs entering in wallet mode
+        if !grin_gui.wallet_state.config_missing()
+            && !grin_gui.wallet_state.operation_state.wallet_not_open()
+        {
+            let w = grin_gui.wallet_interface.read().unwrap();
+            if !w.wallet_is_open() {
+                grin_gui.wallet_state.operation_state.set_wallet_not_open()
             }
         }
-    }
-
-    // Check if password needs entering in wallet mode
-    if !grin_gui.wallet_state.config_missing()
-        && !grin_gui.wallet_state.operation_state.wallet_not_open()
-    {
-        let w = grin_gui.wallet_interface.read().unwrap();
-        if !w.wallet_is_open() {
-            grin_gui.wallet_state.operation_state.set_wallet_not_open()
+        // Check if embedded node needs starting
+        if grin_gui.config.wallets[index].use_embedded_node {
+            let (node_started, has_ui_sender) = {
+                let n = grin_gui.node_interface.read().unwrap();
+                (n.node_started, n.ui_sender.is_some())
+            };
+            if !node_started && has_ui_sender {
+                let mut n = grin_gui.node_interface.write().unwrap();
+                n.set_chain_type();
+                n.start_server();
+            }
+        }
+    } else {
+        if !grin_gui.wallet_state.config_missing() {
+            grin_gui.wallet_state.set_config_missing();
         }
     }
 
@@ -58,25 +76,22 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             return element::wallet::operation::home::handle_tick(grin_gui, time);
         }
         // Update from embedded node server
-        Message::SendNodeMessage((id, msg, sender)) => {
-            match sender {
-                Some(sender) => {
-                    let mut n = grin_gui.node_interface.write().unwrap();
-                    n.set_ui_sender(sender);
-                    return Ok(Command::none());
-                }
-                None => {
-                    match msg {
-                        UIMessage::None => {},
-                        UIMessage::UpdateStatus(stats) => {
-                            grin_gui.node_state.embedded_state.server_stats = Some(stats);
-                        }
-
-                    }
-                    return Ok(Command::none());
-                }
+        Message::SendNodeMessage((id, msg, sender)) => match sender {
+            Some(sender) => {
+                let mut n = grin_gui.node_interface.write().unwrap();
+                n.set_ui_sender(sender);
+                return Ok(Command::none());
             }
-        }
+            None => {
+                match msg {
+                    UIMessage::None => {}
+                    UIMessage::UpdateStatus(stats) => {
+                        grin_gui.node_state.embedded_state.server_stats = Some(stats);
+                    }
+                }
+                return Ok(Command::none());
+            }
+        },
         // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.error_modal_state.show(true),
         Message::Interaction(Interaction::CloseErrorModal) => {
