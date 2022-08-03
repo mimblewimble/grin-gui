@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+use std::fs;
+
 use grin_config::{config, GlobalConfig};
 use grin_core::global;
 use grin_servers as servers;
@@ -25,6 +28,42 @@ pub mod subscriber;
 // Re-exports
 pub use grin_servers::ServerStats;
 pub use grin_chain::types::SyncStatus;
+
+/// TODO - this differs from the default directory in 5.x,
+/// need to reconcile this with existing installs somehow
+const GRIN_HOME: &str = ".grin";
+
+pub const GRIN_TOP_LEVEL_DIR: &str = "grin_node";
+
+pub const GRIN_DEFAULT_DIR: &str = "default";
+
+pub const SERVER_CONFIG_FILE_NAME: &str = "grin-server.toml";
+
+/// Node Rest API and V2 Owner API secret
+pub const API_SECRET_FILE_NAME: &str = ".api_secret";
+/// Foreign API secret
+pub const FOREIGN_API_SECRET_FILE_NAME: &str = ".foreign_api_secret";
+
+
+fn get_grin_node_default_path(chain_type: &global::ChainTypes) -> PathBuf {
+    // Check if grin dir exists
+    let mut grin_path = match dirs::home_dir() {
+        Some(p) => p,
+        None => PathBuf::new(),
+    };
+    grin_path.push(GRIN_HOME);
+    grin_path.push(chain_type.shortname());
+    grin_path.push(GRIN_TOP_LEVEL_DIR);
+    grin_path.push(GRIN_DEFAULT_DIR);
+
+	if !grin_path.exists() {
+		if let Err(e) = fs::create_dir_all(grin_path.clone()) {
+            panic!("Unable to create default node path: {}", e);
+        }
+	}
+	
+    grin_path
+}
 
 // include build information
 pub mod built_info {
@@ -138,13 +177,51 @@ impl NodeInterface {
         global::set_local_chain_type(self.chain_type);
     }
 
+    /// Check that the api secret files exist and are valid
+    fn check_api_secret_files(
+        &self,
+        chain_type: &global::ChainTypes,
+        secret_file_name: &str,
+    ) {
+		let grin_path = get_grin_node_default_path(&self.chain_type);
+        let mut api_secret_path = grin_path;
+        api_secret_path.push(secret_file_name);
+        if !api_secret_path.exists() {
+            config::init_api_secret(&api_secret_path);
+        } else {
+            config::check_api_secret(&api_secret_path);
+        }
+    }
+
+    fn load_or_create_default_config(&mut self) -> GlobalConfig {
+        self.check_api_secret_files(&self.chain_type, API_SECRET_FILE_NAME);
+        self.check_api_secret_files(&self.chain_type, FOREIGN_API_SECRET_FILE_NAME);
+
+		let grin_path = get_grin_node_default_path(&self.chain_type);
+	
+		// Get path to default config file
+		let mut config_path = grin_path.clone();
+		config_path.push(SERVER_CONFIG_FILE_NAME);
+
+		// Spit it out if it doesn't exist
+		if !config_path.exists() {
+			let mut default_config = GlobalConfig::for_chain(&self.chain_type);
+			// update paths relative to current dir
+			default_config.update_paths(&grin_path);
+			if let Err(e) = default_config.write_to_file(config_path.to_str().unwrap()) {
+                panic!("Unable to write default node config file: {}", e);
+            }
+
+		}
+
+		GlobalConfig::new(config_path.to_str().unwrap()).unwrap()
+    }
+
     pub fn start_server(&mut self) {
-        let node_config = Some(
-            config::initial_setup_server(&self.chain_type).unwrap_or_else(|e| {
-                panic!("Error loading server configuration: {}", e);
-            }),
-        );
-        let config = node_config.clone().unwrap();
+
+        let node_config = self.load_or_create_default_config(); 
+
+        let config = node_config.clone();
         let mut logging_config = config.members.as_ref().unwrap().logging.clone().unwrap();
         logging_config.tui_running = Some(false);
 
@@ -194,7 +271,6 @@ impl NodeInterface {
         log_feature_flags();
 
         let mut server_config = node_config
-            .unwrap()
             .members
             .as_ref()
             .unwrap()
