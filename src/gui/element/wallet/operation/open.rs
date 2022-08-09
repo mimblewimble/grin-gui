@@ -1,4 +1,5 @@
 use crate::{gui::element::settings::wallet, log_error};
+use crate::gui::element;
 use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -21,6 +22,7 @@ use {
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub submit_button_state: button::State,
+    cancel_button_state: button::State,
 }
 
 impl Default for StateContainer {
@@ -28,6 +30,7 @@ impl Default for StateContainer {
         Self {
             password_state: Default::default(),
             submit_button_state: Default::default(),
+            cancel_button_state: Default::default(),
         }
     }
 }
@@ -53,6 +56,7 @@ pub enum LocalViewInteraction {
     PasswordInput(String),
     PasswordInputEnterPressed,
     OpenWallet,
+    CancelOpenWallet,
     WalletOpenedOkay,
     WalletOpenError(Arc<RwLock<Option<anyhow::Error>>>)
 }
@@ -63,6 +67,12 @@ pub fn handle_message<'a>(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.operation_state.open_state;
     match message {
+        LocalViewInteraction::CancelOpenWallet => {
+            // TODO @sheldonth do we need to "close" any wallet interface?
+            //      @sheldonth if the wallet we're currently prompted for uses
+            //                 the node it needs to be shutdown.
+            grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+        }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
         }
@@ -190,9 +200,27 @@ pub fn data_container<'a>(
 
     let submit_button: Element<Interaction> = submit_button.into();
 
+    let cancel_button_label_container = Container::new(
+        Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE)
+    )
+    .center_x()
+    .align_x(alignment::Horizontal::Center);
+
+    let mut cancel_button = Button::new(
+        &mut state.cancel_button_state,
+        cancel_button_label_container,
+    )
+    .style(style::DefaultBoxedButton(color_palette));
+
+    cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
+        LocalViewInteraction::CancelOpenWallet
+    ));
+
+    let cancel_button: Element<Interaction> = cancel_button.into();
+
     let unit_spacing = 15;
 
-    let colum = Column::new()
+    let column = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
@@ -203,9 +231,10 @@ pub fn data_container<'a>(
             Length::Units(unit_spacing + 10),
         ))
         .push(submit_button.map(Message::Interaction))
+        .push(cancel_button.map(Message::Interaction))
         .align_items(Alignment::Center);
 
-    Container::new(colum)
+    Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)

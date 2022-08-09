@@ -30,7 +30,7 @@ use iced_futures::futures::channel::mpsc;
 
 use image::ImageFormat;
 
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
@@ -198,11 +198,11 @@ impl Application for GrinGui {
             .1
             .palette;
 
-        let mut content = Column::new();
+        //let mut content = Column::new();
 
         let menu_state = self.menu_state.clone();
 
-        content = Column::new().push(element::menu::data_container(
+        let mut content = Column::new().push(element::menu::data_container(
             &mut self.menu_state,
             color_palette,
             &mut self.error,
@@ -416,6 +416,7 @@ pub enum Interaction {
     WalletSetupViewInteraction(element::wallet::setup::LocalViewInteraction),
     WalletSetupInitViewInteraction(element::wallet::setup::init::LocalViewInteraction),
     WalletSetupWalletViewInteraction(element::wallet::setup::wallet_setup::LocalViewInteraction),
+    WalletListWalletViewInteraction(element::wallet::setup::wallet_list::LocalViewInteraction),
     WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),

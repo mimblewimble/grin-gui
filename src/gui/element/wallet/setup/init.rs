@@ -32,7 +32,7 @@ impl Default for StateContainer {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     WalletSetup,
-    SelectWalletTomlFile,
+    WalletList,
 }
 
 pub fn handle_message(
@@ -42,7 +42,7 @@ pub fn handle_message(
     let state = &mut grin_gui.wallet_state.setup_state;
     match message {
         LocalViewInteraction::WalletSetup => state.mode = super::Mode::CreateWallet,
-        LocalViewInteraction::SelectWalletTomlFile => {}
+        LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets
     }
     Ok(Command::none())
 }
@@ -107,7 +107,7 @@ pub fn data_container<'a>(
     )
     .style(style::DefaultBoxedButton(color_palette))
     .on_press(Interaction::WalletSetupInitViewInteraction(
-        LocalViewInteraction::WalletSetup,
+        LocalViewInteraction::WalletList,
     ))
     .into();
 
