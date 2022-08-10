@@ -215,6 +215,7 @@ impl Application for GrinGui {
                 let setup_container = element::wallet::data_container(
                     color_palette,
                     &mut self.wallet_state,
+                    &self.config
                 );
                 content = content.push(setup_container)
             }

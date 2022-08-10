@@ -53,6 +53,7 @@ pub fn handle_message(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    config: &Config,
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Init => init::data_container(color_palette, &mut state.setup_init_state),
@@ -63,7 +64,8 @@ pub fn data_container<'a>(
             wallet_success::data_container(color_palette, &mut state.setup_wallet_success_state)
         }
         Mode::ListWallets => {
-           wallet_list::data_container(color_palette, &mut state.setup_wallet_list_state) 
+           wallet_list::data_container(color_palette, &mut state.setup_wallet_list_state,
+                                       config)
         }
     };
 

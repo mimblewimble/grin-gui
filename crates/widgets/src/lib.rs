@@ -5,7 +5,7 @@ use iced_wgpu::Renderer;
 use iced_glow::Renderer;
 
 mod renderer;
-mod style;
+pub mod style;
 mod widget;
 
 //pub use widget::header;

@@ -114,6 +114,11 @@ where
         self.on_press = Some(Box::new(f));
         self
     }
+
+    pub fn padding(mut self, p:Padding) -> Self {
+        self.padding = p;
+        self
+    }
 }
 
 impl<'a, Message, Renderer> Widget<Message, Renderer> for TableRow<'a, Message, Renderer>

@@ -55,9 +55,10 @@ impl StateContainer {
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    config: &Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Init => setup::data_container(color_palette, &mut state.setup_state),
+        Mode::Init => setup::data_container(color_palette, &mut state.setup_state, config),
         Mode::Operation => operation::data_container(color_palette, &mut state.operation_state),
         _ => Container::new(Column::new()),
     };
