@@ -68,7 +68,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let title_container = Container::new(title)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(style::NormalBackgroundContainer(color_palette))
         .align_x(alignment::Horizontal::Center);
 
     let back_button_label_container =
@@ -101,13 +101,13 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE);
 
     let name_header_container = Container::new(name_header)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(style::NormalBackgroundContainer(color_palette));
 
     let directory_header = Text::new(localized_string("Location"))
         .size(DEFAULT_HEADER_FONT_SIZE);
 
     let directory_header_container = Container::new(directory_header)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(style::NormalBackgroundContainer(color_palette));
 
     let header_row = Row::new()
         .push(name_header_container)
@@ -135,7 +135,7 @@ pub fn data_container<'a>(
             .size(DEFAULT_HEADER_FONT_SIZE);
 
         let wallet_name_container = Container::new(wallet_name)
-            .style(style::BrightBackgroundContainer(color_palette));
+            .style(style::NormalForegroundContainer(color_palette));
 
         let tld_string = match &w.tld {
             Some(path_buf) => path_buf.display().to_string(),
@@ -145,7 +145,7 @@ pub fn data_container<'a>(
             .size(DEFAULT_HEADER_FONT_SIZE);
 
         let wallet_directory_container = Container::new(wallet_directory)
-            .style(style::BrightBackgroundContainer(color_palette));
+            .style(style::NormalForegroundContainer(color_palette));
 
         let wallet_row = Row::new()
             .push(checkbox)

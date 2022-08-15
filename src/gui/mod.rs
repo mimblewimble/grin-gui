@@ -12,9 +12,10 @@ use grin_gui_core::{
     error::ThemeError,
     fs::PersistentData,
     theme::{ColorPalette, Theme},
-    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient},
+    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
     node::{NodeInterface, subscriber::{self, ServerStats, UIMessage}, ChainTypes},
 };
+
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -119,6 +120,8 @@ impl Application for GrinGui {
         let mut w = wallet_interface.write().unwrap();
 
         w.set_chain_type();
+        grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
+            get_grin_wallet_default_path(&global::get_chain_type());
 
         // Check initial wallet status
         /*if !config.wallet.toml_file_path.is_some()

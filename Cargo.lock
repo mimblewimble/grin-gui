@@ -2351,7 +2351,8 @@ dependencies = [
  "lazy_static",
  "log",
  "log-panics",
- "native-dialog",
+ "native-dialog 0.5.8",
+ "native-dialog 0.6.3",
  "num-format",
  "once_cell",
  "open",
@@ -4031,6 +4032,26 @@ dependencies = [
  "objc_id",
  "once_cell",
  "raw-window-handle 0.3.4",
+ "thiserror",
+ "wfd",
+ "which 4.2.5",
+ "winapi 0.3.9",
+]
+
+[[package]]
+name = "native-dialog"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ab637f328b31bd0855c43bd38a4a4455e74324d9e74e0aac6a803422f43abc6"
+dependencies = [
+ "block",
+ "cocoa",
+ "dirs-next 2.0.0",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "once_cell",
+ "raw-window-handle 0.4.3",
  "thiserror",
  "wfd",
  "which 4.2.5",

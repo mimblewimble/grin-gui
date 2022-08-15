@@ -6,28 +6,6 @@ use iced::{
 
 use iced_aw::{card, modal};
 
-//pub struct TableRowListStyle(pub ColorPalette);
-
-//impl StyleSheet for TableRowListStyle {
-    //fn style(&self) -> Style {
-        //Style {
-            //text_color: None,
-            //background: None,
-            //border_radius: 0.0,
-            //border_width: 0.0,
-            //border_color: Color::TRANSPARENT,
-            //offset_right: 0.0,
-            //offset_left: 0.0,
-        //}
-    //}
-    //fn hovered(&self) -> Style {
-        //Style {
-            //background: None,
-            //..self.style()
-        //}
-    //}
-//}
-
 pub struct NormalModalContainer(pub ColorPalette);
 impl modal::StyleSheet for NormalModalContainer {
     fn active(&self) -> modal::Style {
