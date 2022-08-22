@@ -196,5 +196,7 @@
     "cancel":"Cancel",
     "display-name":"Display Name",
     "top-level-domain":"Wallet Directory",
-    "select-directory":"Choose Folder"
+    "select-directory":"Choose Folder",
+    "load-wallet":"Load Wallet",
+    "select-other":"Locate Wallet"
 }

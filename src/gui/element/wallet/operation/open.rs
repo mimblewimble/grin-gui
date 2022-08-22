@@ -17,6 +17,7 @@ use {
         Element, Length, Row, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
+    grin_gui_core::config::Config,
 };
 
 pub struct StateContainer {
@@ -134,6 +135,7 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    config:&Config
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("open-wallet"))
@@ -146,6 +148,18 @@ pub fn data_container<'a>(
     let title_row = Row::new()
         .push(title_container)
         .align_items(Alignment::Center);
+
+    let display_name_string = match config.current_wallet_index {
+        Some(index) => {
+            config.wallets[index].display_name.clone()
+        },
+        None => {"".to_owned()}
+    };
+    let display_name = Text::new(display_name_string)
+        .size(DEFAULT_HEADER_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Center);
+    let display_name_container = Container::new(display_name)
+        .style(style::BrightBackgroundContainer(color_palette));
 
     let password_column = {
         let password_input = TextInput::new(
@@ -165,7 +179,7 @@ pub fn data_container<'a>(
 
         let password_input: Element<Interaction> = password_input.into();
 
-        let mut password_input_col = Column::new()
+        let password_input_col = Column::new()
             .push(password_input.map(Message::Interaction))
             .spacing(DEFAULT_PADDING)
             .align_items(Alignment::Center);
@@ -216,12 +230,18 @@ pub fn data_container<'a>(
         LocalViewInteraction::CancelOpenWallet
     ));
 
-    let cancel_button: Element<Interaction> = cancel_button.into();
-
     let unit_spacing = 15;
+
+    let cancel_button: Element<Interaction> = cancel_button.into();
+    let button_row = Row::new()
+        .push(cancel_button.map(Message::Interaction))
+        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(submit_button.map(Message::Interaction));
 
     let column = Column::new()
         .push(title_row)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(display_name_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
@@ -230,8 +250,7 @@ pub fn data_container<'a>(
             Length::Units(0),
             Length::Units(unit_spacing + 10),
         ))
-        .push(submit_button.map(Message::Interaction))
-        .push(cancel_button.map(Message::Interaction))
+        .push(button_row)
         .align_items(Alignment::Center);
 
     Container::new(column)

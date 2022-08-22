@@ -59,7 +59,7 @@ pub fn data_container<'a>(
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Init => setup::data_container(color_palette, &mut state.setup_state, config),
-        Mode::Operation => operation::data_container(color_palette, &mut state.operation_state),
+        Mode::Operation => operation::data_container(color_palette, &mut state.operation_state, config),
         _ => Container::new(Column::new()),
     };
 

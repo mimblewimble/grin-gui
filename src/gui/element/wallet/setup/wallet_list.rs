@@ -1,28 +1,25 @@
-
-use crate::{gui::element::settings::wallet, log_error};
-//use grin_gui_core::config::Wallet;
-//use iced::button::StyleSheet;
-//use iced_native::Widget;
-
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config},
+    grin_gui_core::config::Config,
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, button, Alignment, Button, Checkbox, Column, Command, Container,
+        Element, Length, Row, Space, Text
     },
-    //std::sync::{Arc, RwLock},
+    native_dialog::FileDialog,
+    std::path::PathBuf
 };
 
 use grin_gui_widgets::{TableRow, table_row::StyleSheet};
 
 pub struct StateContainer {
     pub back_button_state: button::State,
-    selected_wallet_index: usize
+    selected_wallet_index: usize,
+    load_wallet_button_state: button::State,
+    select_folder_button_state: button::State
 
 }
 
@@ -30,7 +27,9 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             back_button_state: Default::default(),
-            selected_wallet_index:0
+            selected_wallet_index:0,
+            load_wallet_button_state: Default::default(),
+            select_folder_button_state: Default::default()
         }
     }
 }
@@ -38,9 +37,10 @@ impl Default for StateContainer {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Back,
-    WalletRowSelect(usize),
+    WalletRowSelect(bool, usize),
+    LoadWallet(usize),
+    LocateWallet
 }
-
 
 pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
@@ -50,12 +50,48 @@ pub fn handle_message<'a>(
         LocalViewInteraction::Back => {
             grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
         }
-        LocalViewInteraction::WalletRowSelect(index) => {
-            println!("Index: {}", index);
+        LocalViewInteraction::WalletRowSelect(is_selected, index) => {
+            if is_selected {
+                grin_gui.wallet_state.setup_state
+                    .setup_wallet_list_state.selected_wallet_index = index;
+            }
+        }
+        LocalViewInteraction::LoadWallet(index) => {
+            grin_gui.config.current_wallet_index = Some(index);
+            grin_gui.wallet_state.mode = crate::gui::element::wallet::Mode::Operation;
+        }
+        LocalViewInteraction::LocateWallet => {
+            match FileDialog::new().show_open_single_file(){
+                Ok(path) => {
+                    match path {
+                        Some(d) => {
+                            match validate_directory(d) {
+                                Ok(wallet_was_imported) => {
+                                    
+                                }
+                                Err(err) => {
+                                    // tell the user why this directory failed
+                                }
+                            }
+                        },
+                        None => {}
+                    }
+                }
+                Err(e) => {
+                log::debug!("wallet_list.rs::LocalViewInteraction::LocateWallet {}", e);
+                }
+            };
         }
     }
 
     Ok(Command::none())
+}
+
+struct DirectoryValidationError;
+
+fn validate_directory(_d:PathBuf) -> Result<bool, DirectoryValidationError> {
+    
+    Ok(true)
 }
 
 pub fn data_container<'a>(
@@ -119,10 +155,10 @@ pub fn data_container<'a>(
         let checkbox = Checkbox::new(
             state.selected_wallet_index == pos,
             "",
-            move |_b| {
+            move |b| {
                 Message::Interaction(
                     Interaction::WalletListWalletViewInteraction(
-                        LocalViewInteraction::WalletRowSelect(pos),
+                        LocalViewInteraction::WalletRowSelect(b, pos),
                     )
                 )
             },
@@ -159,12 +195,13 @@ pub fn data_container<'a>(
 
         let table_row = TableRow::new(wallet_row)
             .padding(iced::Padding::from(2))
-            .style(tr_style)
-            .on_press(move |_e| {
-                Message::Interaction(
-                    Interaction::WalletListWalletViewInteraction(
-                        LocalViewInteraction::WalletRowSelect(pos)))
-            });
+            .style(tr_style);
+            /*.on_press(move |_e| {*/
+                /*println!("table_row on press");*/
+                /*Message::Interaction(*/
+                    /*Interaction::WalletListWalletViewInteraction(*/
+                        /*LocalViewInteraction::WalletRowSelect(true, pos)))*/
+            /*});*/
         wallet_rows.push(table_row.into());
     }
 
@@ -179,11 +216,47 @@ pub fn data_container<'a>(
         .push(header_row)
         .push(Space::new(Length::Units(0), Length::Units(5)))
         .push(c);
+
+    let load_wallet_button_container =
+        Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
+            .height(Length::Units(20))
+            .align_y(alignment::Vertical::Center)
+            .align_x(alignment::Horizontal::Center);
+
+    let load_wallet_button : Element<Interaction> =
+        Button::new(&mut state.load_wallet_button_state, load_wallet_button_container)
+            .style(style::DefaultBoxedButton(color_palette))
+            .on_press(Interaction::WalletListWalletViewInteraction(
+                LocalViewInteraction::LoadWallet(state.selected_wallet_index),
+            ))
+            .into();
+
+    let select_folder_button_container = 
+        Container::new(Text::new(localized_string("select-other")).size(DEFAULT_FONT_SIZE))
+            .height(Length::Units(20))
+            .align_y(alignment::Vertical::Center)
+            .align_x(alignment::Horizontal::Center);
+
+    let select_other_button : Element<Interaction> = 
+        Button::new(&mut state.select_folder_button_state, select_folder_button_container)
+            .style(style::DefaultBoxedButton(color_palette))
+            .on_press(Interaction::WalletListWalletViewInteraction(
+                LocalViewInteraction::LocateWallet
+        ))
+        .into();
+
+    let button_row = Row::new()
+        .push(load_wallet_button.map(Message::Interaction))
+        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(select_other_button.map(Message::Interaction))
+        .padding(10);
         
     let parent = Column::new()
         .push(title_column)
         .push(Space::new(Length::Units(0), Length::Units(15)))
-        .push(wallet_column);
+        .push(wallet_column)
+        .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
+        .push(button_row);
 
     Container::new(parent)
         //.center_y()

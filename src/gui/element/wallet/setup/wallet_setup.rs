@@ -1,6 +1,6 @@
-use crate::{gui::element::settings::wallet, log_error};
-use iced::button::StyleSheet;
-use iced_native::Widget;
+use crate::{/*gui::element::settings::wallet, */log_error};
+//use iced::button::StyleSheet;
+//use iced_native::Widget;
 use std::path::PathBuf;
 use native_dialog::FileDialog;
 
@@ -137,7 +137,7 @@ pub fn handle_message<'a>(
                     }
                 }
                 Err(e) => {
-                    log::debug!("setup::wallet::LocalViewInteraction::ShowFolderPicker Err {}", e);
+                    log::debug!("wallet_setup.rs::LocalViewInteraction::ShowFolderPicker {}", e);
                 }
             };
         }
