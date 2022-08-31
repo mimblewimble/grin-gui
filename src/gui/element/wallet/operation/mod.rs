@@ -58,6 +58,7 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
+
     Ok(Command::none())
 }
 

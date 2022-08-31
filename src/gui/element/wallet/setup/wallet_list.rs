@@ -185,8 +185,9 @@ pub fn data_container<'a>(
 
         let wallet_row = Row::new()
             .push(checkbox)
-            .push(wallet_name_container)
-            .push(Space::new(Length::Units(80), Length::Units(0)))
+            .push(Column::new().push(wallet_name_container).width(Length::Units(80)))
+            //.push(wallet_name_container)
+            .push(Space::new(Length::Units(58), Length::Units(0)))
             .push(wallet_directory_container);
 
         let tr_style = grin_gui_widgets::style::table_row::Default;

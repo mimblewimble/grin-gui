@@ -144,7 +144,8 @@ pub fn handle_message<'a>(
         LocalViewInteraction::CreateWallet => {
             grin_gui.error.take();
 
-            log::debug!("setup::wallet::LocalViewInteraction::CreateWallet");
+            log::debug!("setup::wallet::LocalViewInteraction::CreateWallet {}", 
+                        state.advanced_options_state.display_name_value);
 
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
@@ -399,10 +400,14 @@ pub fn data_container<'a>(
     let current_tld_container = Container::new(current_tld)
         .style(style::NormalBackgroundContainer(color_palette));
 
+    let current_tld_column = Column::new()
+        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(current_tld_container);
+
     let folder_select_row = Row::new()
         .push(folder_select_button.map(Message::Interaction))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
-        .push(current_tld_container);
+        .push(current_tld_column);
 
     let display_name_input: Element<Interaction> = display_name_input.into();
 
@@ -416,6 +421,7 @@ pub fn data_container<'a>(
         .align_items(Alignment::Start);
 
     // ** end hideable advanced options
+    
     let submit_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
     )
