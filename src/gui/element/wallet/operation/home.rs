@@ -40,7 +40,9 @@ impl Default for StateContainer {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Submit,
-    UpdateWalletSummary,
+    /// was updated from node, info
+    WalletInfoUpdateSuccess(bool, WalletInfo),
+    WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 // Okay to modify state and access wallet here
@@ -70,13 +72,22 @@ pub fn handle_tick<'a>(
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(10)).unwrap()
     {
-        // update wallet here
-        state.last_summary_update == chrono::Local::now();
-        return Ok(Command::single(
-            Action::new(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::UpdateWalletSummary),
-            ),
-        ));
+        state.last_summary_update = chrono::Local::now();
+
+        let w = grin_gui.wallet_interface.clone();
+
+        let fut = move || WalletInterface::get_wallet_info(w);
+
+        return Ok(Command::perform(fut(), |r| {
+            match r.context("Failed to Open Wallet") {
+                Ok((node_success, wallet_info)) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                    LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info),
+                )),
+                Err(e) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                    LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
+                )),
+            }
+        }));
     }
     Ok(Command::none())
 }
@@ -88,9 +99,16 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::Submit => {}
-        UpdateWalletSummary => {
-            debug!("Update Wallet Summary");
+        LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info) => {
+            debug!("Update Wallet Summary: {}, {:?}", node_success, wallet_info);
         }
+        LocalViewInteraction::WalletInfoUpdateFailure(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
+        }
+
     }
     Ok(Command::none())
 }

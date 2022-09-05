@@ -297,7 +297,7 @@ where
         }
     }
 
-    pub fn get_wallet_info(
+    pub async fn get_wallet_info(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
     ) -> Result<(bool, WalletInfo), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
