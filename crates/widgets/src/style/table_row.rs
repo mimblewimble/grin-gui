@@ -21,7 +21,7 @@ pub trait StyleSheet {
     fn hovered(&self) -> Style;
 }
 
-struct Default;
+pub struct Default;
 
 impl StyleSheet for Default {
     fn style(&self) -> Style {
@@ -38,11 +38,12 @@ impl StyleSheet for Default {
 
     fn hovered(&self) -> Style {
         Style {
-            background: Some(Background::Color(Color::from_rgb(0.90, 0.90, 0.90))),
+            background: None,
             ..self.style()
         }
     }
 }
+
 
 impl<'a> std::default::Default for Box<dyn StyleSheet + 'a> {
     fn default() -> Self {

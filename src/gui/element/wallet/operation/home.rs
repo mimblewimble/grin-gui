@@ -138,13 +138,13 @@ pub fn data_container<'a>(
 
     // Overall Home screen layout column
 
-    let colum = Column::new()
+    let column = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
         .align_items(Alignment::Center);
 
-    Container::new(colum)
+    Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)

@@ -1,6 +1,7 @@
 pub mod init;
 pub mod wallet_setup;
 pub mod wallet_success;
+pub mod wallet_list;
 
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
@@ -16,12 +17,14 @@ pub struct StateContainer {
     pub setup_init_state: init::StateContainer,
     pub setup_wallet_state: wallet_setup::StateContainer,
     pub setup_wallet_success_state: wallet_success::StateContainer,
+    pub setup_wallet_list_state: wallet_list::StateContainer
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
     Init,
     CreateWallet,
+    ListWallets,
     WalletCreateSuccess,
 }
 
@@ -32,6 +35,7 @@ impl Default for StateContainer {
             setup_init_state: Default::default(),
             setup_wallet_state: Default::default(),
             setup_wallet_success_state: Default::default(),
+            setup_wallet_list_state: Default::default()
         }
     }
 }
@@ -49,6 +53,7 @@ pub fn handle_message(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    config: &Config,
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Init => init::data_container(color_palette, &mut state.setup_init_state),
@@ -57,6 +62,10 @@ pub fn data_container<'a>(
         }
         Mode::WalletCreateSuccess => {
             wallet_success::data_container(color_palette, &mut state.setup_wallet_success_state)
+        }
+        Mode::ListWallets => {
+           wallet_list::data_container(color_palette, &mut state.setup_wallet_list_state,
+                                       config)
         }
     };
 

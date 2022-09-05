@@ -9,7 +9,8 @@ use grin_wallet_controller::command::{GlobalArgs, InitArgs};
 use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl};
 use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
 
-use grin_core::{self, global};
+use grin_core::{self};
+pub use grin_core::global;
 use grin_keychain as keychain;
 use grin_util::{file, Mutex};
 
@@ -50,7 +51,7 @@ pub const OWNER_API_SECRET_FILE_NAME: &str = ".owner_api_secret";
 /// TODO - this differs from the default directory in 5.x,
 /// need to reconcile this with existing installs somehow
 
-fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf {
+pub fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf {
     // Check if grin dir exists
     let mut grin_path = match dirs::home_dir() {
         Some(p) => p,
@@ -200,7 +201,7 @@ where
     }
 
     fn inst_owner_api(
-        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>
     ) -> Result<(), GrinWalletInterfaceError> {
         {
             let mut w = wallet_interface.read().unwrap();
@@ -221,7 +222,9 @@ where
     pub async fn init(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
-    ) -> Result<(String, String), GrinWalletInterfaceError> {
+        top_level_directory:PathBuf,
+        display_name:String
+    ) -> Result<(String, String, String), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(wallet_interface.clone())?;
 
         let w = wallet_interface.read().unwrap();
@@ -241,6 +244,9 @@ where
                 let tld = {
                     let mut w_lock = o.wallet_inst.lock();
                     let p = w_lock.lc_provider()?;
+                    if let Some(s) = top_level_directory.to_str() {
+                        p.set_top_level_directory(s)?;
+                    }
                     p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, None, None, None)?;
                     p.create_wallet(
                         None,
@@ -256,7 +262,7 @@ where
             None => ("".to_string(), "".to_string()),
         };
 
-        Ok((tld, ret_phrase))
+        Ok((tld, ret_phrase, display_name))
     }
 
     pub async fn open_wallet(

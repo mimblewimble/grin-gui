@@ -12,9 +12,10 @@ use grin_gui_core::{
     error::ThemeError,
     fs::PersistentData,
     theme::{ColorPalette, Theme},
-    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient},
+    wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
     node::{NodeInterface, subscriber::{self, ServerStats, UIMessage}, ChainTypes},
 };
+
 
 use iced::{
     button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
@@ -30,7 +31,7 @@ use iced_futures::futures::channel::mpsc;
 
 use image::ImageFormat;
 
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
@@ -119,6 +120,8 @@ impl Application for GrinGui {
         let mut w = wallet_interface.write().unwrap();
 
         w.set_chain_type();
+        grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
+            get_grin_wallet_default_path(&global::get_chain_type());
 
         // Check initial wallet status
         /*if !config.wallet.toml_file_path.is_some()
@@ -198,11 +201,11 @@ impl Application for GrinGui {
             .1
             .palette;
 
-        let mut content = Column::new();
+        //let mut content = Column::new();
 
         let menu_state = self.menu_state.clone();
 
-        content = Column::new().push(element::menu::data_container(
+        let mut content = Column::new().push(element::menu::data_container(
             &mut self.menu_state,
             color_palette,
             &mut self.error,
@@ -215,6 +218,7 @@ impl Application for GrinGui {
                 let setup_container = element::wallet::data_container(
                     color_palette,
                     &mut self.wallet_state,
+                    &self.config
                 );
                 content = content.push(setup_container)
             }
@@ -416,6 +420,7 @@ pub enum Interaction {
     WalletSetupViewInteraction(element::wallet::setup::LocalViewInteraction),
     WalletSetupInitViewInteraction(element::wallet::setup::init::LocalViewInteraction),
     WalletSetupWalletViewInteraction(element::wallet::setup::wallet_setup::LocalViewInteraction),
+    WalletListWalletViewInteraction(element::wallet::setup::wallet_list::LocalViewInteraction),
     WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),

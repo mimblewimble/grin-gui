@@ -58,15 +58,17 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
+
     Ok(Command::none())
 }
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    config:&Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Open => open::data_container(color_palette, &mut state.open_state),
+        Mode::Open => open::data_container(color_palette, &mut state.open_state, config),
         Mode::Home => {
             home::data_container(color_palette, &mut state.home_state)
         }
