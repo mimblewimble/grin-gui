@@ -33,13 +33,13 @@ grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master
 grin_chain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 
 # For local testing
-grin_wallet = { path = "../../../grin-wallet2"}
-grin_wallet_config = { path = "../../../grin-wallet2/config"}
-grin_wallet_util = { path = "../../../grin-wallet2/util"}
-grin_wallet_controller = { path = "../../../grin-wallet2/controller"}
-grin_wallet_api = { path = "../../../grin-wallet2/api"}
-grin_wallet_impls = { path = "../../../grin-wallet2/impls"}
-grin_wallet_libwallet = { path = "../../../grin-wallet2/libwallet"}
+grin_wallet = { path = "../../../grin-wallet-yeastplume"}
+grin_wallet_config = { path = "../../../grin-wallet-yeastplume/config"}
+grin_wallet_util = { path = "../../../grin-wallet-yeastplume/util"}
+grin_wallet_controller = { path = "../../../grin-wallet-yeastplume/controller"}
+grin_wallet_api = { path = "../../../grin-wallet-yeastplume/api"}
+grin_wallet_impls = { path = "../../../grin-wallet-yeastplume/impls"}
+grin_wallet_libwallet = { path = "../../../grin-wallet-yeastplume/libwallet"}
 
 # grin_config = { path = "../../../grin/config" }
 # grin_core = { path = "../../../grin/core" }

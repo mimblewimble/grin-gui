@@ -24,6 +24,7 @@ use {
 pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
+    last_summary_update: chrono::DateTime<chrono::Local>,
 }
 
 impl Default for StateContainer {
@@ -31,6 +32,7 @@ impl Default for StateContainer {
         Self {
             wallet_info: Default::default(),
             wallet_status: Default::default(),
+            last_summary_update: Default::default(),
         }
     }
 }
@@ -38,6 +40,7 @@ impl Default for StateContainer {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Submit,
+    UpdateWalletSummary,
 }
 
 // Okay to modify state and access wallet here
@@ -64,6 +67,17 @@ pub fn handle_tick<'a>(
             StatusMessage::UpdateWarning(s) => format!("{}", s),
         }
     }
+    if time - state.last_summary_update
+        > chrono::Duration::from_std(std::time::Duration::from_secs(10)).unwrap()
+    {
+        // update wallet here
+        state.last_summary_update == chrono::Local::now();
+        return Ok(Command::single(
+            Action::new(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::UpdateWalletSummary),
+            ),
+        ));
+    }
     Ok(Command::none())
 }
 
@@ -74,6 +88,9 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::Submit => {}
+        UpdateWalletSummary => {
+            debug!("Update Wallet Summary");
+        }
     }
     Ok(Command::none())
 }

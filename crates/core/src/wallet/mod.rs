@@ -297,6 +297,18 @@ where
         }
     }
 
+    pub fn get_wallet_info(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+    ) -> Result<(bool, WalletInfo), GrinWalletInterfaceError> {
+        let w = wallet_interface.read().unwrap();
+        if let Some(o) = &w.owner_api {
+            let res = o.retrieve_summary_info(None, false, 2)?;
+            return Ok(res);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
     /*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface<L, C>>>, password: String) -> String {
         let mut w = wallet_interface.read().unwrap();
         w.owner_api.get_mnemonic(name, password.into())
