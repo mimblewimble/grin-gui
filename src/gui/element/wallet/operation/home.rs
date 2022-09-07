@@ -1,4 +1,6 @@
 use crate::{gui::element::settings::wallet, log_error};
+use async_std::prelude::FutureExt;
+use grin_gui_core::wallet::TxLogEntry;
 use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -41,7 +43,7 @@ impl Default for StateContainer {
 pub enum LocalViewInteraction {
     Submit,
     /// was updated from node, info
-    WalletInfoUpdateSuccess(bool, WalletInfo),
+    WalletInfoUpdateSuccess(bool, WalletInfo, Vec<TxLogEntry>),
     WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -76,17 +78,30 @@ pub fn handle_tick<'a>(
 
         let w = grin_gui.wallet_interface.clone();
 
-        let fut = move || WalletInterface::get_wallet_info(w);
+        let fut = move || WalletInterface::get_wallet_info(w.clone()).join(WalletInterface::get_txs(w));
 
-        return Ok(Command::perform(fut(), |r| {
-            match r.context("Failed to Open Wallet") {
-                Ok((node_success, wallet_info)) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                    LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info),
-                )),
-                Err(e) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+        return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
+            if wallet_info_res.is_err() {
+                let e = wallet_info_res
+                    .context("Failed to retrieve wallet info status")
+                    .unwrap_err();
+                return Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
                     LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
-                )),
+                ));
             }
+            if txs_res.is_err() {
+                let e = txs_res
+                    .context("Failed to retrieve wallet tx status")
+                    .unwrap_err();
+                return Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                    LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
+                ));
+            }
+            let (node_success, wallet_info) = wallet_info_res.unwrap();
+            let (_, txs) = txs_res.unwrap();
+            Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
+            ))
         }));
     }
     Ok(Command::none())
@@ -99,8 +114,12 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::Submit => {}
-        LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info) => {
-            debug!("Update Wallet Summary: {}, {:?}", node_success, wallet_info);
+        LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs) => {
+            debug!(
+                "Update Wallet Info Summary: {}, {:?}",
+                node_success, wallet_info
+            );
+            debug!("Update Wallet Txs Summary: {:?}", txs);
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -108,7 +127,6 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
-
     }
     Ok(Command::none())
 }
