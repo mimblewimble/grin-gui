@@ -343,7 +343,7 @@ pub fn run(opts: Opts, config: Config) {
         log::debug!("antialiasing: {}", antialiasing);
         settings.antialiasing = antialiasing;
     }
-
+ 
     // Sets the Window icon.
     let image = image::load_from_memory_with_format(WINDOW_ICON, ImageFormat::Ico)
         .expect("loading icon")

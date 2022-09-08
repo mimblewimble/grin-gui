@@ -13,6 +13,8 @@ pub struct Wallet {
     pub display_name: String,
     /// If true, override the grin_wallet.toml configured node and use the internal one
     pub use_embedded_node: bool,
+    /// If true, this is a testnet wallet
+    pub is_testnet: bool,
 }
 
 impl Default for Wallet {
@@ -21,6 +23,7 @@ impl Default for Wallet {
             tld: None,
             display_name: "Default".to_owned(),
             use_embedded_node: true,
+            is_testnet: false,
         }
     }
 }

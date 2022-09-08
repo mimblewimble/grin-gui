@@ -78,7 +78,8 @@ pub fn handle_tick<'a>(
 
         let w = grin_gui.wallet_interface.clone();
 
-        let fut = move || WalletInterface::get_wallet_info(w.clone()).join(WalletInterface::get_txs(w));
+        let fut =
+            move || WalletInterface::get_wallet_info(w.clone()).join(WalletInterface::get_txs(w));
 
         return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
             if wallet_info_res.is_err() {
