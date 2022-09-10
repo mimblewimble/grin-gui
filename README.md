@@ -41,8 +41,18 @@ See [Grin project contribution](https://github.com/mimblewimble/grin/blob/master
 # Building
 
 ## Prerequisites
+* rust: Install using rustup: https://rustup.rs
+    * Rustc version >= 1.59
+    * it is recommended to build using the latest version.
+    * If rust is already installed, you can update to the latest version by running `rustup update`
+
 ### Windows
 * `llvm` must be installed
+
+### Linux
+> For Debian-based distributions (Debian, Ubuntu, Mint, etc), all in one line (except Rust):
+
+* ``` sudo apt install build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config libssl-dev llvm libfontconfig libfontconfig1-dev```
 
 (instructions not yet complete)
 
