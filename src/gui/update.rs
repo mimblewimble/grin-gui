@@ -43,9 +43,25 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Check if embedded node needs starting
         if grin_gui.config.wallets[index].use_embedded_node {
             let (node_started, has_ui_sender) = {
+                let chain_type = {
+                    let n = grin_gui.node_interface.read().unwrap();
+                    n.chain_type
+                };
+
+                if grin_gui.config.wallets[index].is_testnet
+                    && chain_type != grin_gui_core::node::ChainTypes::Testnet
+                {
+                    grin_gui.set_interfaces(grin_gui_core::node::ChainTypes::Testnet);
+                } else if !grin_gui.config.wallets[index].is_testnet
+                    && chain_type != grin_gui_core::node::ChainTypes::Mainnet
+                {
+                    grin_gui.set_interfaces(grin_gui_core::node::ChainTypes::Mainnet);
+                }
+
                 let n = grin_gui.node_interface.read().unwrap();
                 (n.node_started, n.ui_sender.is_some())
             };
+
             if !node_started && has_ui_sender {
                 let mut n = grin_gui.node_interface.write().unwrap();
                 n.set_chain_type();

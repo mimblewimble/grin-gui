@@ -168,12 +168,21 @@ impl NodeInterface {
         }
     }
 
+    pub fn with_sender(chain_type: global::ChainTypes, ui_sender: Option<iced_mpsc::Sender<UIMessage>>) -> Self {
+        NodeInterface {
+            chain_type,
+            config: None,
+            ui_sender,
+            node_started: false,
+        }
+    }
+
     pub fn set_ui_sender(&mut self, ui_sender: iced_mpsc::Sender<UIMessage>) {
         self.ui_sender = Some(ui_sender)
     }
 
     pub fn set_chain_type(&mut self) {
-        self.chain_type = global::ChainTypes::Mainnet;
+        //self.chain_type = global::ChainTypes::Mainnet;
         global::set_local_chain_type(self.chain_type);
     }
 
