@@ -1,6 +1,7 @@
 use crate::{gui::element::settings::wallet, log_error};
 use async_std::prelude::FutureExt;
 use grin_gui_core::wallet::TxLogEntry;
+use grin_gui_widgets::{header, Header, TableRow};
 use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -190,10 +191,21 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center)
         .spacing(25);
 
-    // Overall Home screen layout column
+    // Temporary test table as to develop widget, this will eventually be loaded with most recent transactions
+    let test_label_text_1 = Text::new("Element 1");
+    let test_label_text_2 = Text::new("Element 2");
+    let test_label_text_3 = Text::new("Element 3");
+    let test_label_text_4 = Text::new("Element 4");
+    let row_1 = Row::new().push(test_label_text_1).push(test_label_text_2);
+    let row_2 = Row::new().push(test_label_text_3).push(test_label_text_4);
+    let rows = Column::new().push(row_1).push(row_2);
+    let table_row = TableRow::new(rows);
 
+    // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
+        .push(Space::new(Length::Units(0), Length::Fill))
+        .push(table_row)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
         .align_items(Alignment::Center);
