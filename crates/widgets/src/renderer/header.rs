@@ -36,22 +36,8 @@ where
         viewport: &Rectangle,
         custom_bounds: &Rectangle,
     ) {
-        
-            /*Primitive::Group {
-                primitives: content
-                    .iter()
-                    .zip(layout.children())
-                    .map(|(child, layout)| {
-                        let (primitive, new_mouse_interaction) =
-                            child.draw(self, defaults, layout, cursor_position, viewport);
-
-                        if new_mouse_interaction > mouse_interaction {
-                            mouse_interaction = new_mouse_interaction;
-                        }
-
-                        primitive
-                    })
-                }*/
-        
+        for (child, layout) in content.iter().zip(layout.children()) {
+            child.draw(self, &iced_native::renderer::Style::default(), layout, cursor_position, viewport);
+        }
     }
 }
