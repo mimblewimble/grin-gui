@@ -421,6 +421,7 @@ pub enum Interaction {
     WalletSetupInitViewInteraction(element::wallet::setup::init::LocalViewInteraction),
     WalletSetupWalletViewInteraction(element::wallet::setup::wallet_setup::LocalViewInteraction),
     WalletListWalletViewInteraction(element::wallet::setup::wallet_list::LocalViewInteraction),
+    WalletSetupWalletRestoreViewInteraction(element::wallet::setup::wallet_restore::LocalViewInteraction),
     WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),

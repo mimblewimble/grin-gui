@@ -3,6 +3,7 @@ use crate::log_error;
 //use iced_native::Widget;
 use native_dialog::FileDialog;
 use std::path::PathBuf;
+use regex::Regex;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -14,19 +15,22 @@ use {
     grin_gui_core::{config::Wallet, fs::PersistentData, wallet::WalletInterface},
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        Element, Length, Radio, Row, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
-
+#[derive(Debug)]
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub back_button_state: button::State,
     pub submit_button_state: button::State,
     pub restore_from_seed: bool,
+    pub restore_seed_state: RestoreSeedState,
     pub show_advanced_options: bool,
-    pub is_testnet: bool,
     pub advanced_options_state: AdvancedOptionsState,
+    pub is_testnet: bool,
+    pub seed_length: u8,
+    
 }
 
 impl Default for StateContainer {
@@ -35,14 +39,33 @@ impl Default for StateContainer {
             password_state: Default::default(),
             back_button_state: Default::default(),
             submit_button_state: Default::default(),
-            show_advanced_options: false,
-            is_testnet: false,
             restore_from_seed: false,
+            restore_seed_state: Default::default(),
+            show_advanced_options: false,
             advanced_options_state: Default::default(),
+            is_testnet: false,
+            seed_length: 16,
+            
+            
         }
     }
 }
 
+#[derive(Debug)]
+pub struct RestoreSeedState {
+    seed_name_input_state: text_input::State,
+    seed_name_value: String,
+}
+
+impl Default for RestoreSeedState {
+    fn default() -> Self {
+        Self {
+            seed_name_input_state: Default::default(),
+            seed_name_value: Default::default(),
+        }
+    }
+}
+#[derive(Debug)]
 pub struct AdvancedOptionsState {
     display_name_input_state: text_input::State,
     display_name_value: String,
@@ -91,10 +114,14 @@ pub enum LocalViewInteraction {
     ToggleRestoreFromSeed(bool),
     ToggleAdvancedOptions(bool),
     ToggleIsTestnet(bool),
+    SeedLength(u8),
     DisplayName(String),
+    // Create Wallet
     CreateWallet,
     WalletCreatedOk((String, String, String)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
+
+    RestoreWallet,
     ShowFolderPicker,
 }
 
@@ -122,6 +149,9 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::ToggleRestoreFromSeed(_) => {
             state.restore_from_seed = !state.restore_from_seed
+        }
+        LocalViewInteraction::SeedLength(seed_length) => {
+            state.seed_length = seed_length
         }
         LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
@@ -162,6 +192,7 @@ pub fn handle_message<'a>(
                     password.clone(),
                     state.advanced_options_state.top_level_directory.clone(),
                     state.advanced_options_state.display_name_value.clone(),
+                    state.seed_length.into()
                 )
             };
 
@@ -175,6 +206,19 @@ pub fn handle_message<'a>(
                     )),
                 }
             }));
+        }
+        LocalViewInteraction::RestoreWallet => {
+            grin_gui.error.take();
+
+            log::debug!(
+                "setup::wallet::LocalViewInteraction::Restore {}",
+                state.advanced_options_state.display_name_value
+            );
+            grin_gui.wallet_state.setup_state.setup_wallet_restore.password = state.password_state.input_value.clone();
+            grin_gui.wallet_state.setup_state.setup_wallet_restore.top_level_directory = state.advanced_options_state.top_level_directory.clone();
+            grin_gui.wallet_state.setup_state.setup_wallet_restore.display_name = state.advanced_options_state.display_name_value.clone();
+            grin_gui.wallet_state.setup_state.mode =
+                crate::gui::element::wallet::setup::Mode::WalletInputSeedRestore;
         }
         LocalViewInteraction::WalletCreatedOk((tld, mnemonic, display_name)) => {
             let mut saved_wallet = Wallet::default();
@@ -217,6 +261,10 @@ pub fn data_container<'a>(
             && !state.password_state.repeat_input_value.is_empty()
     };
 
+    /*let medium = Regex::new(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})$").unwrap();
+    let strong = Regex::new(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{12,})$").unwrap();*/
+
+
     // Title row and back button
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -232,7 +280,12 @@ pub fn data_container<'a>(
             ))
             .into();
 
-    let title = Text::new(localized_string("setup-grin-wallet-title"))
+    let title_label = match state.restore_from_seed {
+        true => localized_string("restore-from-seed"),
+        false => localized_string("setup-grin-wallet-title"),
+    };
+
+    let title = Text::new(title_label)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let title_container =
@@ -282,7 +335,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(200))
+        .width(Length::Units(400))
         .style(style::AddonsQueryInput(color_palette))
         .password();
 
@@ -295,6 +348,7 @@ pub fn data_container<'a>(
         let password_entry_status = Text::new(password_entry_value)
             .size(DEFAULT_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
+            
         let mut password_entry_status_container = Container::new(password_entry_status)
             //.width(Length::Fill)
             .style(style::NormalErrorBackgroundContainer(color_palette));
@@ -323,26 +377,45 @@ pub fn data_container<'a>(
         //.width(Length::Fill)
         .style(style::NormalBackgroundContainer(color_palette));
 
-    let restore_from_seed_column = {
-        let checkbox = Checkbox::new(
-            state.restore_from_seed,
-            localized_string("restore-from-seed"),
-            |b| {
-                Interaction::WalletSetupWalletViewInteraction(
-                    LocalViewInteraction::ToggleRestoreFromSeed(b),
-                )
-            },
-        )
-        .style(style::DefaultCheckbox(color_palette))
+
+
+    //////////////////////////////////////
+    /* Radio Button 12 or 24 seed words */
+    //////////////////////////////////////
+    
+    let default_lenght = Some(state.seed_length);
+    let radio_short: Element<Interaction> = Radio::new( 16, "12 words", default_lenght, 
+        |s| {
+            Interaction::WalletSetupWalletViewInteraction(
+                LocalViewInteraction::SeedLength(s),
+            )
+        })
+        .size(DEFAULT_FONT_SIZE)
         .text_size(DEFAULT_FONT_SIZE)
-        .spacing(10);
+        .into();
 
-        let checkbox: Element<Interaction> = checkbox.into();
+    let radio_long: Element<Interaction> = Radio::new(32, "24 words", default_lenght, 
+        |s| {
+            Interaction::WalletSetupWalletViewInteraction(
+                LocalViewInteraction::SeedLength(s),
+            )
+        })
+        .size(DEFAULT_FONT_SIZE)
+        .text_size(DEFAULT_FONT_SIZE)
+        .into();
 
-        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
-        Column::new().push(checkbox_container)
-    };
+    let radio_column = Row::new()
+    .push(radio_short.map(Message::Interaction))
+    .push(radio_long.map(Message::Interaction))
+    .align_items(Alignment::Center)
+    .spacing(20);
+
+    let radio_container = Container::new(radio_column).style(style::NormalBackgroundContainer(color_palette));
+    
+
+    ////////////////////////////////
+    /* Start of Advanced Options */
+    ////////////////////////////////
 
     let show_advanced_options_column = {
         let checkbox = Checkbox::new(
@@ -364,9 +437,6 @@ pub fn data_container<'a>(
             .style(style::NormalBackgroundContainer(color_palette));
         Column::new().push(checkbox_container)
     };
-
-    // ** start hideable advanced options
-    //let display_name_label =
     let display_name = Text::new(localized_string("display-name"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
@@ -445,12 +515,22 @@ pub fn data_container<'a>(
         .spacing(DEFAULT_PADDING)
         .push(Space::new(Length::Units(0), Length::Units(5)))
         .push(is_testnet_row)
+        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(radio_container)
+        .push(Space::new(Length::Units(0), Length::Units(5)))
         .align_items(Alignment::Start);
 
+    ////////////////////////////////
     // ** end hideable advanced options
+    ////////////////////////////////
+    
+    let submit_label = match state.restore_from_seed {
+        true => localized_string("input-seed-btn"),
+        false => localized_string("setup-grin-create-wallet"),
+    };
 
     let submit_button_label_container = Container::new(
-        Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
+        Text::new(submit_label).size(DEFAULT_FONT_SIZE),
     )
     .center_x()
     .align_x(alignment::Horizontal::Center);
@@ -462,7 +542,12 @@ pub fn data_container<'a>(
     .style(style::DefaultBoxedButton(color_palette));
     if check_password() {
         submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
-            LocalViewInteraction::CreateWallet,
+
+            match state.restore_from_seed {
+                true => LocalViewInteraction::RestoreWallet,
+                false => LocalViewInteraction::CreateWallet,
+            }
+            ,
         ));
     }
 
@@ -476,12 +561,10 @@ pub fn data_container<'a>(
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(password_column)
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
-        ))
-        .push(restore_from_seed_column)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Units(0),Length::Units(unit_spacing + 10)))
+        
+        //.push(restore_from_seed_column)
+        //.push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(show_advanced_options_column)
         .push(Space::new(
             Length::Units(0),
