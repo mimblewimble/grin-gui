@@ -142,6 +142,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletSetupWalletSuccessViewInteraction(l)) => {
             return element::wallet::setup::wallet_success::handle_message(grin_gui, l);
         }
+        // Setup -> Wallet Success Settings
+        Message::Interaction(Interaction::WalletSetupWalletRestoreViewInteraction(l)) => {
+            return element::wallet::setup::wallet_restore::handle_message(grin_gui, l);
+        }
         // Wallet -> Operation -> Open Settings
         Message::Interaction(Interaction::WalletOperationOpenViewInteraction(l)) => {
             return element::wallet::operation::open::handle_message(grin_gui, l);

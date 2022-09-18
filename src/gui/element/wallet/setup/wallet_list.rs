@@ -14,7 +14,7 @@ use {
 };
 
 use grin_gui_widgets::{TableRow, table_row::StyleSheet};
-
+#[derive(Debug)]
 pub struct StateContainer {
     pub back_button_state: button::State,
     selected_wallet_index: usize,

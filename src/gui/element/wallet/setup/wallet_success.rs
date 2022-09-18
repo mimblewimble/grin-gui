@@ -14,7 +14,7 @@ use {
     },
     iced_aw::Card,
 };
-
+#[derive(Debug)]
 pub struct StateContainer {
     pub copy_button_state: button::State,
     pub next_button_state: button::State,

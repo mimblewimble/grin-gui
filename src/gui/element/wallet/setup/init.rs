@@ -10,10 +10,11 @@ use {
         Space, Text,
     },
 };
-
+#[derive(Debug)]
 pub struct StateContainer {
     pub setup_wallet_defaults_is_selected: bool,
     create_default_wallet_btn: button::State,
+    restore_from_seed_btn: button::State,
     select_wallet_toml_btn: button::State,
     execute_btn: button::State,
 }
@@ -23,6 +24,7 @@ impl Default for StateContainer {
         Self {
             setup_wallet_defaults_is_selected: true,
             create_default_wallet_btn: Default::default(),
+            restore_from_seed_btn: Default::default(),
             select_wallet_toml_btn: Default::default(),
             execute_btn: Default::default(),
         }
@@ -31,7 +33,8 @@ impl Default for StateContainer {
 
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
-    WalletSetup,
+    WalletSetupCreate,
+    WalletSetupRestore,
     WalletList,
 }
 
@@ -41,7 +44,14 @@ pub fn handle_message(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.setup_state;
     match message {
-        LocalViewInteraction::WalletSetup => state.mode = super::Mode::CreateWallet,
+        LocalViewInteraction::WalletSetupCreate => {
+            state.setup_wallet_state.restore_from_seed = false;
+            state.mode = super::Mode::CreateWallet
+        }
+        LocalViewInteraction::WalletSetupRestore => {
+            state.setup_wallet_state.restore_from_seed = true;
+            state.mode = super::Mode::RestoreWallet
+        }
         LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets
     }
     Ok(Command::none())
@@ -72,7 +82,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
     let description_container =
         Container::new(description).style(style::NormalBackgroundContainer(color_palette));
-
+        
     let or_text = Text::new(localized_string("or-caps"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
@@ -80,8 +90,10 @@ pub fn data_container<'a>(
     let or_text_container =
         Container::new(or_text).style(style::NormalBackgroundContainer(color_palette));
 
+    /*  Create new wallet */
+
     let create_default_wallet_button_label_container = Container::new(
-        Text::new(localized_string("setup-grin-autogenerate-wallet")).size(DEFAULT_FONT_SIZE),
+        Text::new(localized_string("setup-grin-autogenerate-wallet")).size(18),
     )
     .center_x()
     .align_x(alignment::Horizontal::Center);
@@ -92,9 +104,29 @@ pub fn data_container<'a>(
     )
     .style(style::DefaultBoxedButton(color_palette))
     .on_press(Interaction::WalletSetupInitViewInteraction(
-        LocalViewInteraction::WalletSetup,
+        LocalViewInteraction::WalletSetupCreate,
     ))
     .into();
+
+    /*  Restore from seed */
+
+    let restore_from_seed_button_label_container = Container::new(
+        Text::new(localized_string("restore-from-seed")).size(DEFAULT_FONT_SIZE),
+    )
+    .center_x()
+    .align_x(alignment::Horizontal::Center);
+
+    let restore_from_seed_button: Element<Interaction> = Button::new(
+        &mut state.restore_from_seed_btn,
+        restore_from_seed_button_label_container,
+    )
+    .style(style::DefaultBoxedButton(color_palette))
+    .on_press(Interaction::WalletSetupInitViewInteraction(
+        LocalViewInteraction::WalletSetupRestore,
+    ))
+    .into();
+
+    /*  Select from file */
 
     let select_wallet_button_label_container =
         Container::new(Text::new(localized_string("select-wallet-toml")).size(DEFAULT_FONT_SIZE))
@@ -134,13 +166,11 @@ pub fn data_container<'a>(
         Column::new().push(checkbox_container)
     };*/
 
-    let unit_spacing = 15;
+    let unit_spacing = 20;
 
-    let select_column = Column::new()
-        .push(create_default_wallet_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(or_text_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+    let select_row = Row::new()
+        .push(restore_from_seed_button.map(Message::Interaction))
+        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
         .push(select_wallet_button_container)
         .align_items(Alignment::Center);
  
@@ -149,11 +179,18 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(select_column)
+        .push(create_default_wallet_button.map(Message::Interaction))
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(or_text_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(select_row)
        .align_items(Alignment::Center);
+
+       
 
     Container::new(colum)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Fill)
 }

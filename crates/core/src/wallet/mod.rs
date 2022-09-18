@@ -219,18 +219,37 @@ where
         Ok(())
     }
 
+    pub fn validate_mnemonic(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        mmemonic: String,
+    ) -> Result<(), GrinWalletInterfaceError> {
+
+        WalletInterface::inst_owner_api(wallet_interface.clone())?;
+        let w = wallet_interface.read().unwrap();
+
+        match w.owner_api.as_ref() {
+            Some(o) => {
+                let mut w_lock = o.wallet_inst.lock();
+                let p = w_lock.lc_provider()?;
+                let is_valid = p.validate_mnemonic(mmemonic.into()).map_err(|_| GrinWalletInterfaceError::OwnerAPINotInstantiated);
+                return is_valid
+            }
+            None => return  Err(GrinWalletInterfaceError::OwnerAPINotInstantiated),
+        };
+    }
+
     pub async fn init(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
         top_level_directory:PathBuf,
-        display_name:String
+        display_name:String,
+        list_length: usize
     ) -> Result<(String, String, String), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(wallet_interface.clone())?;
 
         let w = wallet_interface.read().unwrap();
-
         let args = InitArgs {
-            list_length: 32,
+            list_length: list_length,
             password: "".into(),
             config: w.config.clone().unwrap().clone().members.unwrap().wallet,
             recovery_phrase: None,
