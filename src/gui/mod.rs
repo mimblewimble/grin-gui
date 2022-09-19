@@ -89,6 +89,23 @@ impl GrinGui {
         self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
         self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
     }
+
+    // sets up wallet interface and node interface to internal node according to chain type 
+    pub fn set_embedded_node(&mut self, chain_type: ChainTypes) {
+        // Instantiate wallet node client
+        // TODO: Fill out 
+        let node_url = "http://localhost:8080";
+    	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
+
+        // ui sender of current node interface
+        let ui_sender = {
+            let node = self.node_interface.read().unwrap();
+            node.ui_sender.clone()
+        };
+
+        self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
+        self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
+    }
 }
 
 impl<'a> Default for GrinGui {
@@ -136,6 +153,11 @@ impl Application for GrinGui {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
+        if let Some(wallet_index) = config.current_wallet_index {
+            let wallet = config.wallets[wallet_index].clone();
+            // is tesnet and embedded node??
+        }
+
         let wallet_interface = grin_gui.wallet_interface.clone();
         let mut w = wallet_interface.write().unwrap();
 

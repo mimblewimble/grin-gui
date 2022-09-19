@@ -97,9 +97,9 @@ fn log_feature_flags() {
     info!("Feature: NRD kernel enabled: {}", global::is_nrd_enabled());
 }
 
-pub struct Controller {
+pub struct Controller<'a> {
     logs_rx: mpsc::Receiver<LogEntry>,
-    rx_controller: mpsc::Receiver<ControllerMessage>,
+    rx_controller: &'a mpsc::Receiver<ControllerMessage>,
     tx_ui: iced_mpsc::Sender<UIMessage>,
 }
 
@@ -109,14 +109,14 @@ pub enum ControllerMessage {
 
 /// This needs to provide the interface in to the server, bridging between the UI and
 /// server instance
-impl Controller {
+impl<'a> Controller<'a> {
     /// Create a new controller
     pub fn new(
         logs_rx: mpsc::Receiver<LogEntry>,
         tx_ui: iced_mpsc::Sender<UIMessage>,
-    ) -> Result<Controller, String> {
-        let (tx_controller, rx_controller) = mpsc::channel::<ControllerMessage>();
-        Ok(Controller { logs_rx, rx_controller, tx_ui })
+        rx_controller: &'a mpsc::Receiver<ControllerMessage>,
+    ) -> Self {
+        Self { logs_rx, rx_controller, tx_ui }
     }
 
     /// Run the controller
@@ -124,14 +124,14 @@ impl Controller {
         let stat_update_interval = 1;
         let mut next_stat_update = Utc::now().timestamp() + stat_update_interval;
         let delay = Duration::from_millis(50);
-        //while self.ui.step() {
-        while true {
+
+        loop {
             if let Some(message) = self.rx_controller.try_iter().next() {
                 match message {
                     ControllerMessage::Shutdown => {
                         warn!("Shutdown in progress, please wait");
                         //self.ui.stop();
-                        //server.stop();
+                        server.stop();
                         return;
                     }
                 }
@@ -147,7 +147,6 @@ impl Controller {
             }
             thread::sleep(delay);
         }
-        server.stop();
     }
 }
 
@@ -156,6 +155,7 @@ pub struct NodeInterface {
     pub config: Option<GlobalConfig>,
     pub ui_sender: Option<iced_mpsc::Sender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
     pub node_started: bool,
+    tx_controller: Option<mpsc::Sender<ControllerMessage>>,
 }
 
 impl NodeInterface {
@@ -165,6 +165,7 @@ impl NodeInterface {
             config: None,
             ui_sender: None,
             node_started: false,
+            tx_controller: None,
         }
     }
 
@@ -174,6 +175,7 @@ impl NodeInterface {
             config: None,
             ui_sender,
             node_started: false,
+            tx_controller: None,
         }
     }
 
@@ -224,6 +226,15 @@ impl NodeInterface {
 		}
 
 		GlobalConfig::new(config_path.to_str().unwrap()).unwrap()
+    }
+
+    pub fn stop_server(&mut self) {
+        if let Some(tx) = self.tx_controller.clone() {
+           tx.send(ControllerMessage::Shutdown).unwrap();
+           // TODO wait for graceful shutdown?
+           self.node_started = true;
+           self.tx_controller = None;
+        }
     }
 
     pub fn start_server(&mut self) {
@@ -291,6 +302,9 @@ impl NodeInterface {
         let ui_sender = self.ui_sender.as_ref().unwrap().clone();
         self.node_started = true;
 
+        let (tx_controller, rx_controller) = mpsc::channel::<ControllerMessage>();
+        self.tx_controller = Some(tx_controller); 
+
         thread::Builder::new()
             .name("node_runner".to_string())
             .spawn(move || {
@@ -298,11 +312,7 @@ impl NodeInterface {
                     server_config,
                     logs_rx,
                     |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
-                        let mut controller =
-                            Controller::new(logs_rx.unwrap(), ui_sender.clone()).unwrap_or_else(|e| {
-                                error!("Error loading UI controller: {}", e);
-                                panic!("Error loading UI controller: {}", e);
-                            });
+                        let mut controller = Controller::new(logs_rx.unwrap(), ui_sender.clone(), &rx_controller); 
                         controller.run(serv);
                     },
                     None,
