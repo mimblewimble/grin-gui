@@ -1,5 +1,6 @@
 pub mod open;
 pub mod home;
+pub mod tx_list;
 
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
