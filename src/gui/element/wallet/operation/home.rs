@@ -6,6 +6,8 @@ use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
 
+use super::tx_list::HeaderState;
+
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
@@ -28,6 +30,7 @@ pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
+    tx_header_state: HeaderState,
 }
 
 impl Default for StateContainer {
@@ -36,6 +39,7 @@ impl Default for StateContainer {
             wallet_info: Default::default(),
             wallet_status: Default::default(),
             last_summary_update: Default::default(),
+            tx_header_state: Default::default(),
         }
     }
 }
@@ -190,6 +194,18 @@ pub fn data_container<'a>(
         .height(Length::Units(25))
         .align_items(Alignment::Center)
         .spacing(25);
+
+    // Addon row titles is a row of titles above the addon scrollable.
+    // This is to add titles above each section of the addon row, to let
+    // the user easily identify what the value is.
+    /*let tx_row_titles = super::tx_list::titles_row_header(
+        color_palette,
+        addons,
+        &mut state.tx_header_state.state,
+        &mut state.tx_header_state.columns,
+        state.tx_header_state.previous_column_key,
+        state.tx_header_state.previous_sort_direction,
+    );*/
 
     // Temporary test table as to develop widget, this will eventually be loaded with most recent transactions
     let test_label_text_1 = Text::new("Element 1");
