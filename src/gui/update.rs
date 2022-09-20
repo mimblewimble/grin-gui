@@ -2,7 +2,7 @@ use {
     super::{GrinGui, Interaction, Message, Mode},
     crate::{gui::element, localization::localized_string, log_error, Result},
     anyhow::Context,
-    grin_gui_core::{error::ThemeError, fs::PersistentData, node::subscriber::UIMessage},
+    grin_gui_core::{error::ThemeError, fs::PersistentData, node::subscriber::UIMessage, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
     iced::{clipboard, Command},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
@@ -43,29 +43,34 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Check if embedded node needs starting
         if grin_gui.config.wallets[index].use_embedded_node {
             let (node_started, has_ui_sender) = {
-                let chain_type = {
-                    let n = grin_gui.node_interface.read().unwrap();
-                    n.chain_type
-                };
-
-                if grin_gui.config.wallets[index].is_testnet
-                    && chain_type != grin_gui_core::node::ChainTypes::Testnet
-                {
-                    grin_gui.set_interfaces(grin_gui_core::node::ChainTypes::Testnet);
-                } else if !grin_gui.config.wallets[index].is_testnet
-                    && chain_type != grin_gui_core::node::ChainTypes::Mainnet
-                {
-                    grin_gui.set_interfaces(grin_gui_core::node::ChainTypes::Mainnet);
-                }
-
                 let n = grin_gui.node_interface.read().unwrap();
                 (n.node_started, n.ui_sender.is_some())
             };
 
             if !node_started && has_ui_sender {
-                let mut n = grin_gui.node_interface.write().unwrap();
-                n.set_chain_type();
-                n.start_server();
+                let mut node = grin_gui.node_interface.write().unwrap();
+                let is_testnet = grin_gui.config.wallets[index].is_testnet;
+
+                if !node_started {
+                    if is_testnet {
+                        node.start_server(grin_gui_core::node::ChainTypes::Testnet);
+                    } else {
+                        node.start_server(grin_gui_core::node::ChainTypes::Mainnet);
+                    }
+                } else {
+                    let chain_type = {
+                        let node = grin_gui.node_interface.read().unwrap();
+                        node.chain_type
+                    }.unwrap();
+
+                    // check running chain type 
+                    if is_testnet && chain_type != Testnet {
+                        node.restart_server(Testnet);
+                    } else if !is_testnet && chain_type != Mainnet {
+                        node.restart_server(Mainnet);
+                    }
+
+                }
             }
         }
     } else {

@@ -74,38 +74,21 @@ pub struct GrinGui {
 impl GrinGui {
 
     // sets up wallet interface and node interface to internal node according to chain type 
-    pub fn set_interfaces(&mut self, chain_type: ChainTypes) {
-        // Instantiate wallet node client
-        // TODO: Fill out 
-        let node_url = "http://localhost:8080";
-    	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
+    // pub fn set_interfaces(&mut self, chain_type: ChainTypes) {
+    //     // Instantiate wallet node client
+    //     // TODO: Fill out 
+    //     let node_url = "http://localhost:8080";
+    // 	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
 
-        // ui sender of current node interface
-        let ui_sender = {
-            let node = self.node_interface.read().unwrap();
-            node.ui_sender.clone()
-        };
+    //     // ui sender of current node interface
+    //     let ui_sender = {
+    //         let node = self.node_interface.read().unwrap();
+    //         node.ui_sender.clone()
+    //     };
 
-        self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
-        self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
-    }
-
-    // sets up wallet interface and node interface to internal node according to chain type 
-    pub fn set_embedded_node(&mut self, chain_type: ChainTypes) {
-        // Instantiate wallet node client
-        // TODO: Fill out 
-        let node_url = "http://localhost:8080";
-    	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
-
-        // ui sender of current node interface
-        let ui_sender = {
-            let node = self.node_interface.read().unwrap();
-            node.ui_sender.clone()
-        };
-
-        self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
-        self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
-    }
+    //     self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
+    //     self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
+    // }
 }
 
 impl<'a> Default for GrinGui {
@@ -117,8 +100,8 @@ impl<'a> Default for GrinGui {
     	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
 
         Self {
-            wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, ChainTypes::Mainnet))),
-            node_interface: Arc::new(RwLock::new(NodeInterface::new(ChainTypes::Mainnet))),
+            wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client))),
+            node_interface: Arc::new(RwLock::new(NodeInterface::new())),
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
@@ -161,7 +144,6 @@ impl Application for GrinGui {
         let wallet_interface = grin_gui.wallet_interface.clone();
         let mut w = wallet_interface.write().unwrap();
 
-        w.set_chain_type();
         grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
             get_grin_wallet_default_path(&global::get_chain_type());
 
