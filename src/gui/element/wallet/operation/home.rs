@@ -1,12 +1,12 @@
 use crate::{gui::element::settings::wallet, log_error};
 use async_std::prelude::FutureExt;
-use grin_gui_core::wallet::TxLogEntry;
+use grin_gui_core::wallet::{TxLogEntry, TxLogEntryType};
 use grin_gui_widgets::{header, Header, TableRow};
 use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::tx_list::HeaderState;
+use super::tx_list::{TxList, HeaderState};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -195,33 +195,47 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center)
         .spacing(25);
 
+    // Temp Test
+    use grin_gui_core::node::Identifier;
+    let tx_list = TxList {
+        txs: vec![
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 0),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 1),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 2),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 3),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 4),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 5),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 6),
+            ],
+    };
+
     // Addon row titles is a row of titles above the addon scrollable.
     // This is to add titles above each section of the addon row, to let
     // the user easily identify what the value is.
-    /*let tx_row_titles = super::tx_list::titles_row_header(
+    let tx_row_titles = super::tx_list::titles_row_header(
         color_palette,
-        addons,
+        &tx_list,
         &mut state.tx_header_state.state,
         &mut state.tx_header_state.columns,
         state.tx_header_state.previous_column_key,
         state.tx_header_state.previous_sort_direction,
-    );*/
+    );
 
     // Temporary test table as to develop widget, this will eventually be loaded with most recent transactions
-    let test_label_text_1 = Text::new("Element 1");
+    /*let test_label_text_1 = Text::new("Element 1");
     let test_label_text_2 = Text::new("Element 2");
     let test_label_text_3 = Text::new("Element 3");
     let test_label_text_4 = Text::new("Element 4");
     let row_1 = Row::new().push(test_label_text_1).push(test_label_text_2);
     let row_2 = Row::new().push(test_label_text_3).push(test_label_text_4);
     let rows = Column::new().push(row_1).push(row_2);
-    let table_row = TableRow::new(rows);
+    let table_row = TableRow::new(rows);*/
 
     // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(table_row)
+        .push(tx_row_titles)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
         .align_items(Alignment::Center);

@@ -28,6 +28,7 @@ pub mod subscriber;
 // Re-exports
 pub use grin_servers::ServerStats;
 pub use grin_chain::types::SyncStatus;
+pub use grin_keychain::Identifier;
 
 /// TODO - this differs from the default directory in 5.x,
 /// need to reconcile this with existing installs somehow

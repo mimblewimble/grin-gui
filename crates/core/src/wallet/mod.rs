@@ -26,7 +26,7 @@ use dirs;
 // Re-exports
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
-pub use grin_wallet_libwallet::{StatusMessage, WalletInfo, TxLogEntry};
+pub use grin_wallet_libwallet::{StatusMessage, WalletInfo, TxLogEntry, TxLogEntryType};
 
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;

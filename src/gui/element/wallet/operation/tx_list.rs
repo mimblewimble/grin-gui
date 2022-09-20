@@ -199,10 +199,10 @@ impl std::fmt::Display for TxListResultSize {
 }
 
 pub struct HeaderState {
-    state: header::State,
-    previous_column_key: Option<ColumnKey>,
-    previous_sort_direction: Option<SortDirection>,
-    columns: Vec<ColumnState>,
+    pub state: header::State,
+    pub previous_column_key: Option<ColumnKey>,
+    pub previous_sort_direction: Option<SortDirection>,
+    pub columns: Vec<ColumnState>,
 }
 
 impl HeaderState {
@@ -903,7 +903,7 @@ pub fn titles_row_header<'a>(
     color_palette: ColorPalette,
     tx_list: &TxList,
     header_state: &'a mut header::State,
-    column_state: &'a mut [TxListColumnState],
+    column_state: &'a mut [ColumnState],
     previous_column_key: Option<ColumnKey>,
     previous_sort_direction: Option<SortDirection>,
 ) -> Header<'a, Message> {
