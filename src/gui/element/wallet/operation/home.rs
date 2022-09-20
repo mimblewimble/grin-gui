@@ -6,7 +6,7 @@ use iced::button::StyleSheet;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::tx_list::{TxList, HeaderState};
+use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -20,8 +20,8 @@ use {
         wallet::{StatusMessage, WalletInfo, WalletInterface},
     },
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
+        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
@@ -29,6 +29,7 @@ use {
 pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
+    txs_scrollable_state: scrollable::State,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 }
@@ -38,6 +39,7 @@ impl Default for StateContainer {
         Self {
             wallet_info: Default::default(),
             wallet_status: Default::default(),
+            txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
         }
@@ -195,7 +197,7 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center)
         .spacing(25);
 
-    // Temp Test
+    // Temp Test Data
     use grin_gui_core::node::Identifier;
     let tx_list = TxList {
         txs: vec![
@@ -206,11 +208,11 @@ pub fn data_container<'a>(
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 4),
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 5),
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 6),
-            ],
+        ],
     };
 
-    // Addon row titles is a row of titles above the addon scrollable.
-    // This is to add titles above each section of the addon row, to let
+    // Tx row titles is a row of titles above the tx scrollable.
+    // This is to add titles above each section of the tx row, to let
     // the user easily identify what the value is.
     let tx_row_titles = super::tx_list::titles_row_header(
         color_palette,
@@ -220,6 +222,68 @@ pub fn data_container<'a>(
         state.tx_header_state.previous_column_key,
         state.tx_header_state.previous_sort_direction,
     );
+
+    // A scrollable list containing rows.
+    // Each row holds data about a single tx.
+    let mut tx_list_scrollable = Scrollable::new(&mut state.txs_scrollable_state)
+        .spacing(1)
+        .height(Length::FillPortion(1))
+        .style(style::Scrollable(color_palette));
+
+    // Loops though the txs.
+    for (idx, tx) in tx_list.txs.iter_mut().enumerate() {
+        // If hiding ignored addons, we will skip it.
+        /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
+            continue;
+        }*/
+
+        // Skip addon if we are filter from query and addon doesn't have fuzzy score
+        /*if query.is_some() && addon.fuzzy_score.is_none() {
+            continue;
+        }*/
+
+        // Checks if the current addon is expanded.
+        /*let is_addon_expanded = match &self.expanded_type {
+            ExpandType::Details(a) => a.primary_folder_id == addon.primary_folder_id,
+            ExpandType::Changelog { addon: a, .. } => {
+                addon.primary_folder_id == a.primary_folder_id
+            }
+            ExpandType::None => false,
+        };*/
+
+        /*let is_odd = if self.config.alternating_row_colors {
+            Some(idx % 2 != 0)
+        } else {
+            None
+        };*/
+
+        // A container cell which has all data about the current tx.
+        // If the tx is expanded, then this is also included in this container.
+        let addon_data_cell = element::my_addons::data_row_container(
+            color_palette,
+            addon,
+            is_addon_expanded,
+            &self.expanded_type,
+            &self.config,
+            &column_config,
+            is_odd,
+            &self.pending_confirmation,
+        );
+
+        // Adds the addon data cell to the scrollable.
+        addons_scrollable = addons_scrollable.push(addon_data_cell);
+    }
+
+    // Bottom space below the scrollable.
+    let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
+
+    // Adds the rest of the elements to the content column.
+    if has_addons {
+        content = content
+            .push(addon_row_titles)
+            .push(addons_scrollable)
+            .push(bottom_space)
+    }
 
     // Temporary test table as to develop widget, this will eventually be loaded with most recent transactions
     /*let test_label_text_1 = Text::new("Element 1");
