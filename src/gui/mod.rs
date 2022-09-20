@@ -71,25 +71,6 @@ pub struct GrinGui {
     about_state: element::about::StateContainer,
 }
 
-impl GrinGui {
-
-    // sets up wallet interface and node interface to internal node according to chain type 
-    // pub fn set_interfaces(&mut self, chain_type: ChainTypes) {
-    //     // Instantiate wallet node client
-    //     // TODO: Fill out 
-    //     let node_url = "http://localhost:8080";
-    // 	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
-
-    //     // ui sender of current node interface
-    //     let ui_sender = {
-    //         let node = self.node_interface.read().unwrap();
-    //         node.ui_sender.clone()
-    //     };
-
-    //     self.wallet_interface = Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, chain_type)));
-    //     self.node_interface = Arc::new(RwLock::new(NodeInterface::with_sender(chain_type, ui_sender)));
-    // }
-}
 
 impl<'a> Default for GrinGui {
     fn default() -> Self {
