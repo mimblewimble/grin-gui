@@ -2,7 +2,10 @@ use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
-    grin_gui_core::theme::ColorPalette,
+    grin_gui_core::{
+        theme::ColorPalette,
+        wallet::TxLogEntry,
+    },
     grin_gui_widgets::{header, Header},
     iced::{button, pick_list, scrollable, text_input, Button, Container, Element, Length, Text},
     serde::{Deserialize, Serialize},
@@ -30,16 +33,23 @@ Transaction Log - Account 'default' - Block Height: 1926614
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub enum ColumnKey {
-    Title,
-    LocalVersion,
-    RemoteVersion,
-    Status,
-    Channel,
-    Author,
-    GameVersion,
-    DateReleased,
-    Source,
-    Summary,
+    Id,
+    Type,
+    SharedTransactionId,
+    CreationTime,
+    TTLCutoff,
+    Height,
+    IsConfirmed,
+    ConfirmationTime,
+    NumInputs,
+    NumOutputs,
+    AmountCredited,
+    AmountDebited,
+    Fee,
+    NetDifference,
+    PaymentProof,
+    Kernel,
+    TxData,
     // Only used for sorting, not an actual visible column that can be shown
     FuzzyScore,
 }
@@ -49,16 +59,23 @@ impl ColumnKey {
         use ColumnKey::*;
 
         match self {
-            Title => localized_string("addon"),
-            LocalVersion => localized_string("local"),
-            RemoteVersion => localized_string("remote"),
-            Status => localized_string("status"),
-            Channel => localized_string("channel"),
-            Author => localized_string("author"),
-            GameVersion => localized_string("game-version"),
-            DateReleased => localized_string("latest-release"),
-            Source => localized_string("source"),
-            Summary => localized_string("summary"),
+            Id => localized_string("tx_id"),
+            Type => localized_string("tx_type"),
+            SharedTransactionId => localized_string("tx_shared_id"),
+            CreationTime => localized_string("tx_creation_time"),
+            TTLCutoff => localized_string("tx_ttl_cutoff"),
+            Height => localized_string("tx_height"),
+            IsConfirmed => localized_string("tx_is_confirmed"),
+            ConfirmationTime => localized_string("tx_confirmation_time"),
+            NumInputs => localized_string("tx_num_inputs"),
+            NumOutputs => localized_string("tx_num_outputs"),
+            AmountCredited => localized_string("tx_amount_credited"),
+            AmountDebited => localized_string("tx_amount_debited"),
+            Fee => localized_string("tx_fee"),
+            NetDifference => localized_string("tx_net_difference"),
+            PaymentProof => localized_string("tx_payment_proof"),
+            Kernel => localized_string("tx_kernel"),
+            TxData => localized_string("tx_data"),
             FuzzyScore => unreachable!("fuzzy score not used as an actual column"),
         }
     }
@@ -67,16 +84,23 @@ impl ColumnKey {
         use ColumnKey::*;
 
         let s = match self {
-            Title => "title",
-            LocalVersion => "local",
-            RemoteVersion => "remote",
-            Status => "status",
-            Channel => "channel",
-            Author => "author",
-            GameVersion => "game_version",
-            DateReleased => "date_released",
-            Source => "source",
-            Summary => "summary",
+            Id => "tx_id",
+            Type => "tx_type",
+            SharedTransactionId => "tx_shared_id",
+            CreationTime => "tx_creation_time",
+            TTLCutoff => "tx_ttl_cutoff",
+            Height => "tx_height",
+            IsConfirmed => "tx_is_confirmed",
+            ConfirmationTime => "tx_confirmation_time",
+            NumInputs => "tx_num_inputs",
+            NumOutputs => "tx_num_outputs",
+            AmountCredited => "tx_amount_credited",
+            AmountDebited => "tx_amount_debited",
+            Fee => "tx_fee",
+            NetDifference => "tx_net_difference",
+            PaymentProof => "tx_payment_proof",
+            Kernel => "tx_kernel",
+            TxData => "tx_data",
             FuzzyScore => unreachable!("fuzzy score not used as an actual column"),
         };
 
@@ -87,16 +111,23 @@ impl ColumnKey {
 impl From<&str> for ColumnKey {
     fn from(s: &str) -> Self {
         match s {
-            "title" => ColumnKey::Title,
-            "local" => ColumnKey::LocalVersion,
-            "remote" => ColumnKey::RemoteVersion,
-            "status" => ColumnKey::Status,
-            "channel" => ColumnKey::Channel,
-            "author" => ColumnKey::Author,
-            "game_version" => ColumnKey::GameVersion,
-            "date_released" => ColumnKey::DateReleased,
-            "source" => ColumnKey::Source,
-            "summary" => ColumnKey::Summary,
+            "tx_id" => ColumnKey::Id,
+            "tx_type" => ColumnKey::Type,
+            "tx_shared_id" => ColumnKey::SharedTransactionId,
+            "tx_creation_time" => ColumnKey::CreationTime,
+            "tx_ttl_cutoff" => ColumnKey::TTLCutoff,
+            "tx_height" => ColumnKey::Height,
+            "tx_is_confirmed" => ColumnKey::IsConfirmed,
+            "tx_confirmation_time" => ColumnKey::ConfirmationTime,
+            "tx_num_inputs" => ColumnKey::NumInputs,
+            "tx_num_outputs" => ColumnKey::NumOutputs,
+            "tx_amount_credited" => ColumnKey::AmountCredited,
+            "tx_amount_debited" => ColumnKey::AmountDebited,
+            "tx_fee" => ColumnKey::Fee,
+            "tx_net_difference" => ColumnKey::NetDifference,
+            "tx_payment_proof" => ColumnKey::PaymentProof,
+            "tx_kernel" => ColumnKey::Kernel,
+            "tx_data" => ColumnKey::TxData,
             _ => panic!("Unknown ColumnKey for {}", s),
         }
     }
@@ -119,206 +150,49 @@ impl SortDirection {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct Catalog {
-    pub addons: Vec<CatalogAddon>,
+pub struct TxList {
+    pub txs: Vec<TxLogEntry>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Version {
-    pub game_version: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CatalogAddon {
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub id: i32,
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub url: String,
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub name: String,
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub categories: Vec<String>,
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub summary: String,
-    #[serde(deserialize_with = "null_to_default::deserialize")]
-    pub number_of_downloads: u64,
-    #[serde(deserialize_with = "skip_element_unknown_variant::deserialize")]
-    pub versions: Vec<Version>,
-}
-
-mod null_to_default {
-    use serde::{self, Deserialize, Deserializer};
-
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Default + Deserialize<'de>,
-    {
-        let opt = Option::deserialize(deserializer)?;
-        Ok(opt.unwrap_or_default())
-    }
-}
-
-mod skip_element_unknown_variant {
-    use serde::{
-        de::{self, SeqAccess, Visitor},
-        Deserialize, Deserializer,
-    };
-    use std::fmt;
-    use std::marker::PhantomData;
-
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        struct SeqVisitor<V>(PhantomData<V>);
-
-        impl<'de, V> Visitor<'de> for SeqVisitor<V>
-        where
-            V: Deserialize<'de>,
-        {
-            type Value = Vec<V>;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "an array of values")
-            }
-
-            fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(vec![])
-            }
-
-            fn visit_none<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(vec![])
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: SeqAccess<'de>,
-            {
-                let mut values = vec![];
-
-                loop {
-                    let value = seq.next_element::<V>();
-
-                    match value {
-                        Ok(Some(v)) => {
-                            values.push(v);
-                        }
-                        Ok(None) => break,
-                        Err(e) => {
-                            if e.to_string().starts_with("unknown variant") {
-                                continue;
-                            } else {
-                                return Err(e);
-                            }
-                        }
-                    }
-                }
-
-                Ok(values)
-            }
-        }
-
-        deserializer.deserialize_any(SeqVisitor(PhantomData::default()))
-    }
-}
-
-mod date_parser {
-    use chrono::prelude::*;
-    use serde::{self, Deserialize, Deserializer};
-
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-
-        // Curse format
-        let date = DateTime::parse_from_rfc3339(&s)
-            .map(|d| d.with_timezone(&Utc))
-            .ok();
-
-        if date.is_some() {
-            return Ok(date);
-        }
-
-        // Tukui format
-        let date = NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %T")
-            .map(|d| Utc.from_utc_datetime(&d))
-            .ok();
-
-        if date.is_some() {
-            return Ok(date);
-        }
-
-        // Handles Elvui and Tukui addons which runs in a format without HH:mm:ss.
-        let s_modified = format!("{} 00:00:00", &s);
-        let date = NaiveDateTime::parse_from_str(&s_modified, "%Y-%m-%d %T")
-            .map(|d| Utc.from_utc_datetime(&d))
-            .ok();
-
-        if date.is_some() {
-            return Ok(date);
-        }
-
-        // Handles WowI.
-        if let Ok(ts) = &s.parse::<i64>() {
-            let date = Utc.timestamp(ts / 1000, 0);
-            return Ok(Some(date));
-        }
-
-        Ok(None)
-    }
-}
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum CatalogResultSize {
+pub enum TxListResultSize {
     _25,
     _50,
     _100,
     _500,
 }
 
-impl Default for CatalogResultSize {
+impl Default for TxListResultSize {
     fn default() -> Self {
-        CatalogResultSize::_25
+        TxListResultSize::_25
     }
 }
 
-impl CatalogResultSize {
-    pub fn all() -> Vec<CatalogResultSize> {
+impl TxListResultSize {
+    pub fn all() -> Vec<TxListResultSize> {
         vec![
-            CatalogResultSize::_25,
-            CatalogResultSize::_50,
-            CatalogResultSize::_100,
-            CatalogResultSize::_500,
+            TxListResultSize::_25,
+            TxListResultSize::_50,
+            TxListResultSize::_100,
+            TxListResultSize::_500,
         ]
     }
 
     pub fn as_usize(self) -> usize {
         match self {
-            CatalogResultSize::_25 => 25,
-            CatalogResultSize::_50 => 50,
-            CatalogResultSize::_100 => 100,
-            CatalogResultSize::_500 => 500,
+            TxListResultSize::_25 => 25,
+            TxListResultSize::_50 => 50,
+            TxListResultSize::_100 => 100,
+            TxListResultSize::_500 => 500,
         }
     }
 }
 
-impl std::fmt::Display for CatalogResultSize {
+impl std::fmt::Display for TxListResultSize {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut vars = HashMap::new();
         vars.insert("number".to_string(), self.as_usize());
-        let fmt = localized_string("catalog-results");
+        let fmt = localized_string("tx-list-results");
 
         write!(f, "{}", strfmt(&fmt, &vars).unwrap())
     }
@@ -348,74 +222,123 @@ impl Default for HeaderState {
             previous_sort_direction: None,
             columns: vec![
                 ColumnState {
-                    key: ColumnKey::Title,
+                    key: ColumnKey::Id,
                     btn_state: Default::default(),
                     width: Length::Fill,
                     hidden: false,
                     order: 0,
                 },
                 ColumnState {
-                    key: ColumnKey::LocalVersion,
+                    key: ColumnKey::Type,
                     btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: false,
                     order: 1,
                 },
                 ColumnState {
-                    key: ColumnKey::RemoteVersion,
+                    key: ColumnKey::SharedTransactionId,
                     btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: false,
                     order: 2,
                 },
                 ColumnState {
-                    key: ColumnKey::Status,
+                    key: ColumnKey::CreationTime,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: false,
                     order: 3,
                 },
                 ColumnState {
-                    key: ColumnKey::Channel,
+                    key: ColumnKey::TTLCutoff,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 4,
                 },
                 ColumnState {
-                    key: ColumnKey::Author,
+                    key: ColumnKey::Height,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 5,
                 },
                 ColumnState {
-                    key: ColumnKey::GameVersion,
+                    key: ColumnKey::IsConfirmed,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 6,
                 },
                 ColumnState {
-                    key: ColumnKey::DateReleased,
+                    key: ColumnKey::ConfirmationTime,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 7,
                 },
                 ColumnState {
-                    key: ColumnKey::Source,
+                    key: ColumnKey::NumInputs,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 8,
                 },
                 ColumnState {
-                    key: ColumnKey::Summary,
+                    key: ColumnKey::NumOutputs,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 9,
+                },
+                ColumnState {
+                    key: ColumnKey::AmountCredited,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 10,
+                },
+                ColumnState {
+                    key: ColumnKey::AmountDebited,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 11,
+                },
+                ColumnState {
+                    key: ColumnKey::Fee,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 12,
+                },
+                ColumnState {
+                    key: ColumnKey::NetDifference,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 13,
+                },
+                ColumnState {
+                    key: ColumnKey::PaymentProof,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 14,
+                },
+                ColumnState {
+                    key: ColumnKey::Kernel,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 15,
+                },
+                ColumnState {
+                    key: ColumnKey::TxData,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 16,
                 },
             ],
         }
@@ -441,62 +364,104 @@ impl Default for ColumnSettings {
             scrollable_state: Default::default(),
             columns: vec![
                 ColumnSettingState {
-                    key: ColumnKey::Title,
+                    key: ColumnKey::Id,
                     order: 0,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::LocalVersion,
+                    key: ColumnKey::Type,
                     order: 1,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::RemoteVersion,
+                    key: ColumnKey::SharedTransactionId,
                     order: 2,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Status,
+                    key: ColumnKey::CreationTime,
                     order: 3,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Channel,
+                    key: ColumnKey::TTLCutoff,
                     order: 4,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Author,
+                    key: ColumnKey::Height,
                     order: 5,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::GameVersion,
+                    key: ColumnKey::IsConfirmed,
                     order: 6,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::DateReleased,
+                    key: ColumnKey::ConfirmationTime,
                     order: 7,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Source,
+                    key: ColumnKey::NumInputs,
                     order: 8,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Summary,
+                    key: ColumnKey::NumOutputs,
                     order: 9,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::AmountCredited,
+                    order: 10,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::AmountDebited,
+                    order: 11,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::Fee,
+                    order: 12,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::NetDifference,
+                    order: 13,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::PaymentProof,
+                    order: 14,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::Kernel,
+                    order: 15,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::TxData,
+                    order: 16,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
@@ -513,76 +478,120 @@ pub struct ColumnSettingState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
-pub enum CatalogColumnKey {
-    Title,
-    Description,
-    Source,
-    NumDownloads,
-    GameVersion,
-    DateReleased,
-    Install,
-    Categories,
+pub enum TxListColumnKey {
+    Id,
+    Type,
+    SharedTransactionId,
+    CreationTime,
+    TTLCutoff,
+    Height,
+    IsConfirmed,
+    ConfirmationTime,
+    NumInputs,
+    NumOutputs,
+    AmountCredited,
+    AmountDebited,
+    Fee,
+    NetDifference,
+    PaymentProof,
+    Kernel,
+    TxData,
 }
 
-impl CatalogColumnKey {
+impl TxListColumnKey {
     fn title(self) -> String {
-        use CatalogColumnKey::*;
+        use TxListColumnKey::*;
 
         match self {
-            Title => localized_string("addon"),
-            Description => localized_string("description"),
-            Source => localized_string("source"),
-            NumDownloads => localized_string("num-downloads"),
-            GameVersion => localized_string("game-version"),
-            DateReleased => localized_string("latest-release"),
-            Categories => localized_string("categories"),
-            CatalogColumnKey::Install => localized_string("status"),
+            Id => localized_string("tx_id"),
+            Type => localized_string("tx_type"),
+            SharedTransactionId => localized_string("tx_shared_id"),
+            CreationTime => localized_string("tx_creation_time"),
+            TTLCutoff => localized_string("tx_ttl_cutoff"),
+            Height => localized_string("tx_height"),
+            IsConfirmed => localized_string("tx_is_confirmed"),
+            ConfirmationTime => localized_string("tx_confirmation_time"),
+            NumInputs => localized_string("tx_num_inputs"),
+            NumOutputs => localized_string("tx_num_outputs"),
+            AmountCredited => localized_string("tx_amount_credited"),
+            AmountDebited => localized_string("tx_amount_debited"),
+            Fee => localized_string("tx_fee"),
+            NetDifference => localized_string("tx_net_difference"),
+            PaymentProof => localized_string("tx_payment_proof"),
+            Kernel => localized_string("tx_kernel"),
+            TxData => localized_string("tx_data"),
         }
     }
 
     fn as_string(self) -> String {
-        use CatalogColumnKey::*;
+        use TxListColumnKey::*;
 
         let s = match self {
-            Title => "addon",
-            Description => "description",
-            Source => "source",
-            NumDownloads => "num_downloads",
-            GameVersion => "game_version",
-            DateReleased => "date_released",
-            Categories => "categories",
-            CatalogColumnKey::Install => "install",
+            Id => "tx_id",
+            Type => "tx_type",
+            SharedTransactionId => "tx_shared_id",
+            CreationTime => "tx_creation_time",
+            TTLCutoff => "tx_ttl_cutoff",
+            Height => "tx_height",
+            IsConfirmed => "tx_is_confirmed",
+            ConfirmationTime => "tx_confirmation_time",
+            NumInputs => "tx_num_inputs",
+            NumOutputs => "tx_num_outputs",
+            AmountCredited => "tx_amount_credited",
+            AmountDebited => "tx_amount_debited",
+            Fee => "tx_fee",
+            NetDifference => "tx_net_difference",
+            PaymentProof => "tx_payment_proof",
+            Kernel => "tx_kernel",
+            TxData => "tx_data",
         };
 
         s.to_string()
     }
 }
 
-impl From<&str> for CatalogColumnKey {
+impl From<&str> for TxListColumnKey {
     fn from(s: &str) -> Self {
         match s {
-            "addon" => CatalogColumnKey::Title,
-            "description" => CatalogColumnKey::Description,
-            "source" => CatalogColumnKey::Source,
-            "num_downloads" => CatalogColumnKey::NumDownloads,
-            "install" => CatalogColumnKey::Install,
-            "game_version" => CatalogColumnKey::GameVersion,
-            "date_released" => CatalogColumnKey::DateReleased,
-            "categories" => CatalogColumnKey::Categories,
-            _ => panic!("Unknown CatalogColumnKey for {}", s),
+            "tx_id" => TxListColumnKey::Id,
+            "tx_type" => TxListColumnKey::Type,
+            "tx_shared_id" => TxListColumnKey::SharedTransactionId,
+            "tx_creation_time" => TxListColumnKey::CreationTime,
+            "tx_ttl_cutoff" => TxListColumnKey::TTLCutoff,
+            "tx_height" => TxListColumnKey::Height,
+            "tx_is_confirmed" => TxListColumnKey::IsConfirmed,
+            "tx_confirmation_time" => TxListColumnKey::ConfirmationTime,
+            "tx_num_inputs" => TxListColumnKey::NumInputs,
+            "tx_num_outputs" => TxListColumnKey::NumOutputs,
+            "tx_amount_credited" => TxListColumnKey::AmountCredited,
+            "tx_amount_debited" => TxListColumnKey::AmountDebited,
+            "tx_fee" => TxListColumnKey::Fee,
+            "tx_net_difference" => TxListColumnKey::NetDifference,
+            "tx_payment_proof" => TxListColumnKey::PaymentProof,
+            "tx_kernel" => TxListColumnKey::Kernel,
+            "tx_data" => TxListColumnKey::TxData,
+            _ => panic!("Unknown CatalogTxListColumnKey for {}", s),
         }
     }
 }
-
-pub struct CatalogHeaderState {
-    state: header::State,
-    previous_column_key: Option<CatalogColumnKey>,
-    previous_sort_direction: Option<SortDirection>,
-    columns: Vec<CatalogColumnState>,
+pub struct TxListColumnState {
+    key: ColumnKey,
+    btn_state: button::State,
+    width: Length,
+    hidden: bool,
+    order: usize,
 }
 
-impl CatalogHeaderState {
-    fn column_config(&self) -> Vec<(CatalogColumnKey, Length, bool)> {
+
+pub struct TxListHeaderState {
+    state: header::State,
+    previous_column_key: Option<TxListColumnKey>,
+    previous_sort_direction: Option<SortDirection>,
+    columns: Vec<TxListColumnState>,
+}
+
+impl TxListHeaderState {
+    fn column_config(&self) -> Vec<(ColumnKey, Length, bool)> {
         self.columns
             .iter()
             .map(|c| (c.key, c.width, c.hidden))
@@ -590,137 +599,246 @@ impl CatalogHeaderState {
     }
 }
 
-impl Default for CatalogHeaderState {
+impl Default for TxListHeaderState {
     fn default() -> Self {
         Self {
             state: Default::default(),
             previous_column_key: None,
             previous_sort_direction: None,
             columns: vec![
-                CatalogColumnState {
-                    key: CatalogColumnKey::Title,
+                TxListColumnState {
+                    key: ColumnKey::Id,
                     btn_state: Default::default(),
                     width: Length::Fill,
                     hidden: false,
                     order: 0,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::Description,
+                TxListColumnState {
+                    key: ColumnKey::Type,
                     btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: false,
                     order: 1,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::Source,
+                TxListColumnState {
+                    key: ColumnKey::SharedTransactionId,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: false,
                     order: 2,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::NumDownloads,
+                TxListColumnState {
+                    key: ColumnKey::CreationTime,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 3,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::GameVersion,
+                TxListColumnState {
+                    key: ColumnKey::TTLCutoff,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 4,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::DateReleased,
+                TxListColumnState {
+                    key: ColumnKey::Height,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 5,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::Install,
+                TxListColumnState {
+                    key: ColumnKey::IsConfirmed,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: false,
                     order: 6,
                 },
-                CatalogColumnState {
-                    key: CatalogColumnKey::Categories,
+                TxListColumnState {
+                    key: ColumnKey::ConfirmationTime,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 7,
                 },
-            ],
+                TxListColumnState {
+                    key: ColumnKey::NumInputs,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 8,
+                },
+                TxListColumnState {
+                    key: ColumnKey::NumOutputs,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 9,
+                },
+                TxListColumnState {
+                    key: ColumnKey::AmountCredited,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 10,
+                },
+                TxListColumnState {
+                    key: ColumnKey::AmountDebited,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 11,
+                },
+                TxListColumnState {
+                    key: ColumnKey::Fee,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 12,
+                },
+                TxListColumnState {
+                    key: ColumnKey::NetDifference,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 13,
+                },
+                TxListColumnState {
+                    key: ColumnKey::PaymentProof,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 14,
+                },
+                TxListColumnState {
+                    key: ColumnKey::Kernel,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 14,
+                },
+                 TxListColumnState {
+                    key: ColumnKey::TxData,
+                    btn_state: Default::default(),
+                    width: Length::Units(85),
+                    hidden: true,
+                    order: 14,
+                },
+             ],
         }
     }
 }
 
-pub struct CatalogColumnState {
-    key: CatalogColumnKey,
-    btn_state: button::State,
-    width: Length,
-    hidden: bool,
-    order: usize,
-}
-
-pub struct CatalogColumnSettings {
+pub struct TxListColumnSettings {
     pub scrollable_state: scrollable::State,
-    pub columns: Vec<CatalogColumnSettingState>,
+    pub columns: Vec<TxListColumnSettingState>,
 }
 
-impl Default for CatalogColumnSettings {
+impl Default for TxListColumnSettings {
     fn default() -> Self {
-        CatalogColumnSettings {
+        TxListColumnSettings {
             scrollable_state: Default::default(),
             columns: vec![
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::Title,
+                TxListColumnSettingState {
+                    key: ColumnKey::Id,
                     order: 0,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::Description,
+                TxListColumnSettingState {
+                    key: ColumnKey::Type,
                     order: 1,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::Source,
+                TxListColumnSettingState {
+                    key: ColumnKey::SharedTransactionId,
                     order: 2,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::NumDownloads,
+                TxListColumnSettingState {
+                    key: ColumnKey::CreationTime,
                     order: 3,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::GameVersion,
+                TxListColumnSettingState {
+                    key: ColumnKey::TTLCutoff,
                     order: 4,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::DateReleased,
+                TxListColumnSettingState {
+                    key: ColumnKey::Height,
                     order: 5,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::Install,
+                TxListColumnSettingState {
+                    key: ColumnKey::IsConfirmed,
                     order: 6,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                CatalogColumnSettingState {
-                    key: CatalogColumnKey::Categories,
+                TxListColumnSettingState {
+                    key: ColumnKey::ConfirmationTime,
                     order: 7,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::NumInputs,
+                    order: 8,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::NumOutputs,
+                    order: 9,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::AmountCredited,
+                    order: 10,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::AmountDebited,
+                    order: 11,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::Fee,
+                    order: 12,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::NetDifference,
+                    order: 13,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::PaymentProof,
+                    order: 14,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::Kernel,
+                    order: 15,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::TxData,
+                    order: 16,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
@@ -729,8 +847,8 @@ impl Default for CatalogColumnSettings {
     }
 }
 
-pub struct CatalogColumnSettingState {
-    pub key: CatalogColumnKey,
+pub struct TxListColumnSettingState {
+    pub key: ColumnKey,
     pub order: usize,
     pub up_btn_state: button::State,
     pub down_btn_state: button::State,
@@ -741,9 +859,9 @@ pub struct CatalogSearchState {
     pub scrollable_state: scrollable::State,
     pub query: Option<String>,
     pub query_state: text_input::State,
-    pub result_size: CatalogResultSize,
-    pub result_sizes: Vec<CatalogResultSize>,
-    pub result_sizes_state: pick_list::State<CatalogResultSize>,
+    pub result_size: TxListResultSize,
+    pub result_sizes: Vec<TxListResultSize>,
+    pub result_sizes_state: pick_list::State<TxListResultSize>,
 }
 
 impl Default for CatalogSearchState {
@@ -754,7 +872,7 @@ impl Default for CatalogSearchState {
             query: None,
             query_state: Default::default(),
             result_size: Default::default(),
-            result_sizes: CatalogResultSize::all(),
+            result_sizes: TxListResultSize::all(),
             result_sizes_state: Default::default(),
         }
     }
@@ -783,10 +901,10 @@ fn row_title<T: PartialEq>(
 
 pub fn titles_row_header<'a>(
     color_palette: ColorPalette,
-    catalog: &Catalog,
+    tx_list: &TxList,
     header_state: &'a mut header::State,
-    column_state: &'a mut [CatalogColumnState],
-    previous_column_key: Option<CatalogColumnKey>,
+    column_state: &'a mut [TxListColumnState],
+    previous_column_key: Option<ColumnKey>,
     previous_sort_direction: Option<SortDirection>,
 ) -> Header<'a, Message> {
     // A row containing titles above the addon rows.
@@ -810,16 +928,16 @@ pub fn titles_row_header<'a>(
         )
         .width(Length::Fill);
 
-        if column_key != CatalogColumnKey::Install {
+        //if column_key != ColumnKey::Install {
             //TODO
             //row_header = row_header.on_press(Interaction::SortCatalogColumn(column_key));
-        }
+        //}
 
         if previous_column_key == Some(column_key) {
             row_header = row_header.style(style::SelectedColumnHeaderButton(color_palette));
-        } else if column_key == CatalogColumnKey::Install {
+        } /*else if column_key == ColumnKey::Install {
             row_header = row_header.style(style::UnclickableColumnHeaderButton(color_palette));
-        } else {
+        } */ else {
             row_header = row_header.style(style::ColumnHeaderButton(color_palette));
         }
 
@@ -830,7 +948,7 @@ pub fn titles_row_header<'a>(
             .style(style::NormalBackgroundContainer(color_palette));
 
         // Only shows row titles if we have any catalog results.
-        if !catalog.addons.is_empty() {
+        if !tx_list.txs.is_empty() {
             row_titles.push((column.key.as_string(), row_container));
         }
     }
