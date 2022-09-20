@@ -1,45 +1,43 @@
+use crate::style::header::StyleSheet;
+
 use crate::widget::header;
 use iced_graphics::{Backend, Primitive, Renderer};
 use iced_native::mouse;
-use iced_native::{Element, Layout, Point, Rectangle};
+use iced_native::{Element, Layout, Point, Rectangle, Renderer as iced_native_Renderer};
 
 impl<B> header::Renderer for Renderer<B>
 where
     B: Backend,
 {
-    fn draw<Message>(
-        &mut self,
-        defaults: &Self::Defaults,
-        content: &[Element<'_, Message, Self>],
+    type Style = Box<dyn StyleSheet>;
+
+    fn mouse_interaction(
+        &self,
         layout: Layout<'_>,
         cursor_position: Point,
-        resize_hovering: bool,
         viewport: &Rectangle,
-    ) -> Self::Output {
-        let mut mouse_interaction = if resize_hovering {
-            mouse::Interaction::ResizingHorizontally
+    ) -> mouse::Interaction {
+        let bounds = layout.bounds();
+        let is_mouse_over = bounds.contains(cursor_position);
+
+        if is_mouse_over {
+            mouse::Interaction::Pointer
         } else {
             mouse::Interaction::default()
-        };
+        }
+    }
 
-        (
-            Primitive::Group {
-                primitives: content
-                    .iter()
-                    .zip(layout.children())
-                    .map(|(child, layout)| {
-                        let (primitive, new_mouse_interaction) =
-                            child.draw(self, defaults, layout, cursor_position, viewport);
-
-                        if new_mouse_interaction > mouse_interaction {
-                            mouse_interaction = new_mouse_interaction;
-                        }
-
-                        primitive
-                    })
-                    .collect(),
-            },
-            mouse_interaction,
-        )
+    fn draw<Message>(
+        &mut self,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        style_sheet: &dyn StyleSheet,
+        content: &Vec<Element<'_, Message, Self>>,
+        viewport: &Rectangle,
+        custom_bounds: &Rectangle,
+    ) {
+        for (child, layout) in content.iter().zip(layout.children()) {
+            child.draw(self, &iced_native::renderer::Style::default(), layout, cursor_position, viewport);
+        }
     }
 }

@@ -1,9 +1,16 @@
 #![allow(clippy::type_complexity)]
 
+pub use crate::style::header::{Style, StyleSheet};
+
 use iced_native::{
-    event, layout, mouse, Alignment, Clipboard, Element, Event, Hasher,
-    Layout, Length, Point, Rectangle, Widget,
-    widget::{self, container::{self, Container}, {space::{self, Space}}},
+    event, layout, mouse,
+    widget::{
+        self,
+        container::{self, Container},
+        space::{self, Space},
+    },
+    Alignment, Clipboard, Element, Event, Hasher, Layout, Length, Padding, Point, Rectangle, Shell,
+    Widget,
 };
 
 mod state;
@@ -23,6 +30,7 @@ where
     left_margin: bool,
     right_margin: bool,
     names: Vec<String>,
+    style_sheet: Box<dyn StyleSheet + 'a>,
 }
 
 impl<'a, Message, Renderer> Header<'a, Message, Renderer>
@@ -69,6 +77,7 @@ where
             left_margin: left,
             right_margin: right,
             names,
+            style_sheet: Default::default(),
         }
     }
 
@@ -102,10 +111,11 @@ where
         left_width: u16,
         right_name: String,
         right_width: u16,
-        messages: &mut Vec<Message>,
+        shell: &mut Shell<'_, Message>,
     ) {
         if let Some((_, on_resize)) = &self.on_resize {
-            messages.push(on_resize(ResizeEvent::ResizeColumn {
+            //TODO: Update
+            shell.publish(on_resize(ResizeEvent::ResizeColumn {
                 left_name,
                 left_width,
                 right_name,
@@ -114,9 +124,9 @@ where
         }
     }
 
-    fn trigger_finished(&self, messages: &mut Vec<Message>) {
+    fn trigger_finished(&self, shell: &mut Shell<'_, Message>) {
         if let Some((_, on_resize)) = &self.on_resize {
-            messages.push(on_resize(ResizeEvent::Finished));
+            shell.publish(on_resize(ResizeEvent::Finished));
         }
     }
 }
@@ -141,7 +151,7 @@ where
             layout::flex::Axis::Horizontal,
             renderer,
             &limits,
-            0.0,
+            Padding::ZERO,
             self.spacing as f32,
             Alignment::Start,
             &self.children,
@@ -155,7 +165,7 @@ where
         cursor_position: Point,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
-        messages: &mut Vec<Message>,
+        shell: &mut Shell<'_, Message>,
     ) -> event::Status {
         let in_bounds = layout.bounds().contains(cursor_position);
 
@@ -220,7 +230,8 @@ where
                     if self.state.resizing {
                         self.state.resizing = false;
                         self.state.starting_cursor_pos.take();
-                        self.trigger_finished(messages);
+                        // TODO: UPDATE
+                        //shell.publish(messages);
                         return event::Status::Captured;
                     }
                 }
@@ -243,7 +254,7 @@ where
                             left_width,
                             right_name.clone(),
                             right_width,
-                            messages,
+                            shell,
                         );
                         return event::Status::Captured;
                     }
@@ -264,7 +275,7 @@ where
                     cursor_position,
                     renderer,
                     clipboard,
-                    messages,
+                    shell,
                 )
             })
             .fold(event::Status::Ignored, event::Status::merge)
@@ -273,21 +284,47 @@ where
     fn draw(
         &self,
         renderer: &mut Renderer,
-        defaults: &Renderer::Defaults,
+        _style: &iced_native::renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
-    ) -> Renderer::Output {
+    ) {
+        let bounds = layout.bounds();
+        let height = {
+        if let Length::Units(height) = self.height {
+            height as f32
+        } else {
+            bounds.height
+        }
+        };
+        let custom_bounds = Rectangle {
+            x: bounds.x,
+            y: bounds.y,
+            width: bounds.width,
+            height: height as f32,
+        };
         self::Renderer::draw(
             renderer,
-            defaults,
-            &self.children,
             layout,
             cursor_position,
-            self.state.resize_hovering,
+            self.style_sheet.as_ref(),
+            &self.children,
             viewport,
+            &custom_bounds,
         )
     }
+
+    fn mouse_interaction(
+        &self,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+        renderer: &Renderer,
+    ) -> mouse::Interaction {
+        self::Renderer::mouse_interaction(renderer, layout, cursor_position, viewport)
+    }
+
+
 
     /*fn hash_layout(&self, state: &mut Hasher) {
         use std::hash::Hash;
@@ -308,16 +345,25 @@ where
     }*/
 }
 
-pub trait Renderer: iced_native::Renderer + widget::container::Renderer + widget::space::Renderer + Sized {
+pub trait Renderer: iced_native::Renderer {
+    type Style: Default;
+    #[allow(clippy::too_many_arguments)]
     fn draw<Message>(
         &mut self,
-        defaults: &Self::Defaults,
-        children: &[Element<'_, Message, Self>],
         layout: Layout<'_>,
         cursor_position: Point,
-        resize_hovering: bool,
+        style_sheet: &dyn StyleSheet,
+        content: &Vec<Element<'_, Message, Self>>,
         viewport: &Rectangle,
-    ) -> Self::Output;
+        custom_bounds: &Rectangle,
+    );
+
+    fn mouse_interaction(
+        &self,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+    ) -> mouse::Interaction;
 }
 
 impl<'a, Message, Renderer> From<Header<'a, Message, Renderer>> for Element<'a, Message, Renderer>
