@@ -1,8 +1,8 @@
-use crate::{gui::element::settings::wallet, log_error};
 use crate::gui::element;
-use iced::button::StyleSheet;
-use iced_native::Widget;
-use std::path::PathBuf;
+use crate::{gui::element::settings::wallet, log_error};
+//use iced::button::StyleSheet;
+//use iced_native::Widget;
+//use std::path::PathBuf;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -10,14 +10,14 @@ use {
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
+    grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{fs::PersistentData, wallet::WalletInterface},
+    grin_gui_core::{fs::PersistentData, wallet::WalletInterface, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
+        alignment, button, text_input, Alignment, Button, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
-    grin_gui_core::config::Config,
 };
 
 pub struct StateContainer {
@@ -59,7 +59,7 @@ pub enum LocalViewInteraction {
     OpenWallet,
     CancelOpenWallet,
     WalletOpenedOkay,
-    WalletOpenError(Arc<RwLock<Option<anyhow::Error>>>)
+    WalletOpenError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 pub fn handle_message<'a>(
@@ -87,39 +87,56 @@ pub fn handle_message<'a>(
 
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
+            
+            // default chain type for wallet is mainnet
+            let mut chain_type = Mainnet;
 
             // Set up check node accordingly
             if let Some(i) = grin_gui.config.current_wallet_index {
-                if grin_gui.config.wallets[i].use_embedded_node {
-                   let n = grin_gui.node_interface.read().unwrap();
-                   if let Some(c) = &n.config {
+                let active_wallet = &grin_gui.config.wallets[i];
+                if active_wallet.use_embedded_node {
+                    let n = grin_gui.node_interface.read().unwrap();
+
+                    // set wallet interface chain_type
+                    if active_wallet.is_testnet {
+                        chain_type = Testnet; 
+                    }
+
+                    if let Some(c) = &n.config {
                         if let Some(m) = &c.members {
                             WalletInterface::set_use_embedded_node(w.clone(), true);
                             let mut w = w.write().unwrap();
-                            w.check_node_foreign_api_secret_path = m.server.foreign_api_secret_path.clone();
+                            w.check_node_foreign_api_secret_path =
+                                m.server.foreign_api_secret_path.clone();
                         }
-                   }
+                    }
                 }
             }
 
-            let fut = move || {
-                WalletInterface::open_wallet(w, password.clone())
-            };
+            let fut = move || WalletInterface::open_wallet(w, password.clone(), chain_type);
 
-            return Ok(Command::perform(fut(),
-                |r| match r.context("Failed to Open Wallet") {
-                    Ok(()) => Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
-                        LocalViewInteraction::WalletOpenedOkay,
-                    )),
-                    Err(e) => Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
-                        LocalViewInteraction::WalletOpenError(Arc::new(RwLock::new(Some(e)))),
-                    )),
-                },
-            ));
+            return Ok(Command::perform(fut(), |r| {
+                match r.context("Failed to Open Wallet") {
+                    Ok(()) => {
+                        Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
+                            LocalViewInteraction::WalletOpenedOkay,
+                        ))
+                    }
+                    Err(e) => {
+                        Message::Interaction(Interaction::WalletOperationOpenViewInteraction(
+                            LocalViewInteraction::WalletOpenError(Arc::new(RwLock::new(Some(e)))),
+                        ))
+                    }
+                }
+            }));
         }
         LocalViewInteraction::WalletOpenedOkay => {
-            grin_gui.wallet_state.operation_state.clear_wallet_not_open();
-            grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::Home;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .clear_wallet_not_open();
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::Home;
         }
 
         LocalViewInteraction::WalletOpenError(err) => {
@@ -135,38 +152,40 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
-    config:&Config
+    config: &Config,
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("open-wallet"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
-    let title_container = Container::new(title)
-        .style(style::BrightBackgroundContainer(color_palette));
+    let title_container =
+        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
 
     let title_row = Row::new()
         .push(title_container)
         .align_items(Alignment::Center);
 
     let display_name_string = match config.current_wallet_index {
-        Some(index) => {
-            config.wallets[index].display_name.clone()
-        },
-        None => {"".to_owned()}
+        Some(index) => config.wallets[index].display_name.clone(),
+        None => "".to_owned(),
     };
     let display_name = Text::new(display_name_string)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
-    let display_name_container = Container::new(display_name)
-        .style(style::BrightBackgroundContainer(color_palette));
+    let display_name_container =
+        Container::new(display_name).style(style::BrightBackgroundContainer(color_palette));
 
     let password_column = {
         let password_input = TextInput::new(
             &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            |s| Interaction::WalletOperationOpenViewInteraction(LocalViewInteraction::PasswordInput(s)),
+            |s| {
+                Interaction::WalletOperationOpenViewInteraction(
+                    LocalViewInteraction::PasswordInput(s),
+                )
+            },
         )
         .on_submit(Interaction::WalletOperationOpenViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,
@@ -196,11 +215,10 @@ pub fn data_container<'a>(
         //.width(Length::Fill)
         .style(style::NormalBackgroundContainer(color_palette));
 
-    let submit_button_label_container = Container::new(
-        Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE),
-    )
-    .center_x()
-    .align_x(alignment::Horizontal::Center);
+    let submit_button_label_container =
+        Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
+            .center_x()
+            .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
         &mut state.submit_button_state,
@@ -209,16 +227,15 @@ pub fn data_container<'a>(
     .style(style::DefaultBoxedButton(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
-        LocalViewInteraction::OpenWallet
+        LocalViewInteraction::OpenWallet,
     ));
 
     let submit_button: Element<Interaction> = submit_button.into();
 
-    let cancel_button_label_container = Container::new(
-        Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE)
-    )
-    .center_x()
-    .align_x(alignment::Horizontal::Center);
+    let cancel_button_label_container =
+        Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
+            .center_x()
+            .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
         &mut state.cancel_button_state,
@@ -227,7 +244,7 @@ pub fn data_container<'a>(
     .style(style::DefaultBoxedButton(color_palette));
 
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
-        LocalViewInteraction::CancelOpenWallet
+        LocalViewInteraction::CancelOpenWallet,
     ));
 
     let unit_spacing = 15;
