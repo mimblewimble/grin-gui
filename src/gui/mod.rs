@@ -117,10 +117,20 @@ impl Application for GrinGui {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
+
+        // default Mainnet  
+        global::set_local_chain_type(ChainTypes::Mainnet);
+
         if let Some(wallet_index) = config.current_wallet_index {
             let wallet = config.wallets[wallet_index].clone();
-            // is tesnet and embedded node??
-        }
+
+            // is tesnet
+            if wallet.is_testnet {
+                global::set_local_chain_type(ChainTypes::Testnet);
+            }
+            
+            // if embedded node ??
+        } 
 
         let wallet_interface = grin_gui.wallet_interface.clone();
         let mut w = wallet_interface.write().unwrap();
