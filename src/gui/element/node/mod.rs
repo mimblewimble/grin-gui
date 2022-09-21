@@ -4,7 +4,7 @@ use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Message},
     crate::Result,
-    grin_gui_core::theme::ColorPalette,
+    grin_gui_core::{theme::ColorPalette, node::ChainTypes},
     iced::{Column, Command, Container, Length, Space},
 };
 
@@ -36,9 +36,10 @@ impl StateContainer {
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Embedded => embedded::data_container(color_palette, &mut state.embedded_state),
+        Mode::Embedded => embedded::data_container(color_palette, &mut state.embedded_state, chain_type),
         _ => Container::new(Column::new()),
     };
 

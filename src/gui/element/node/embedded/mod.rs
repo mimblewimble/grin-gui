@@ -5,7 +5,7 @@ use {
     crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
+    grin_gui_core::{config::Config, wallet::WalletInterface, node::ChainTypes},
     grin_gui_core::node::ServerStats,
     iced::{Column, Command, Container, Length, Space},
 };
@@ -47,9 +47,11 @@ pub fn handle_message(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    chain_type: ChainTypes,
+    
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Summary => summary::data_container(color_palette, &mut state.summary_state, &state.server_stats),
+        Mode::Summary => summary::data_container(color_palette, &mut state.summary_state, &state.server_stats, chain_type),
         _ => Container::new(Column::new())
     };
 

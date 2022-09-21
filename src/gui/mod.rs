@@ -238,9 +238,11 @@ impl Application for GrinGui {
                 content = content.push(setup_container)
             }
             element::menu::Mode::Node => {
+                let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
                 let node_container = element::node::data_container(
                     color_palette,
                     &mut self.node_state,
+                    chain_type,
                 );
                 content = content.push(node_container)
             }
