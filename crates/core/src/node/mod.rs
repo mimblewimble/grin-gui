@@ -169,16 +169,6 @@ impl NodeInterface {
         }
     }
 
-    pub fn with_sender(chain_type: global::ChainTypes, ui_sender: Option<iced_mpsc::Sender<UIMessage>>) -> Self {
-        NodeInterface {
-            chain_type: None,
-            config: None,
-            ui_sender,
-            node_started: false,
-            tx_controller: None,
-        }
-    }
-
     pub fn set_ui_sender(&mut self, ui_sender: iced_mpsc::Sender<UIMessage>) {
         self.ui_sender = Some(ui_sender)
     }

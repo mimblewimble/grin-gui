@@ -17,7 +17,7 @@ use {
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{
         fs::PersistentData,
-        node::{ServerStats, SyncStatus},
+        node::{ServerStats, SyncStatus, ChainTypes},
         wallet::{StatusMessage, WalletInfo, WalletInterface},
     },
     iced::{
@@ -194,6 +194,7 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
     stats: &'a Option<ServerStats>,
+    chain_type: ChainTypes,
 
 ) -> Container<'a, Message> {
 
@@ -239,8 +240,13 @@ pub fn data_container<'a>(
                 .push(Space::new(Length::Fill, Length::Units(0)))
                 .align_items(Alignment::Center);
 
+            let status_line_title = match chain_type {
+                ChainTypes::Testnet => localized_string("status-line-title-test"),
+                _ => localized_string("status-line-title-main"),
+            };
+
             let status_line_card = Card::new(
-                Text::new(localized_string("status-line-title")).size(DEFAULT_HEADER_FONT_SIZE),
+                Text::new(status_line_title).size(DEFAULT_HEADER_FONT_SIZE),
                 status_line_row,
             )
             .style(style::NormalModalCardContainer(color_palette));
