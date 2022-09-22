@@ -9,8 +9,7 @@ use servers::Server;
 
 use futures::channel::oneshot;
 
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{mpsc, Arc};
+use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
@@ -99,8 +98,8 @@ fn log_feature_flags() {
 
 pub struct Controller<'a> {
     logs_rx: mpsc::Receiver<LogEntry>,
-    rx_controller: &'a mpsc::Receiver<ControllerMessage>,
-    tx_ui: iced_mpsc::Sender<UIMessage>,
+    controller_rx: &'a mpsc::Receiver<ControllerMessage>,
+    ui_tx: iced_mpsc::Sender<UIMessage>,
 }
 
 pub enum ControllerMessage {
@@ -113,10 +112,10 @@ impl<'a> Controller<'a> {
     /// Create a new controller
     pub fn new(
         logs_rx: mpsc::Receiver<LogEntry>,
-        tx_ui: iced_mpsc::Sender<UIMessage>,
-        rx_controller: &'a mpsc::Receiver<ControllerMessage>,
+        ui_tx: iced_mpsc::Sender<UIMessage>,
+        controller_rx: &'a mpsc::Receiver<ControllerMessage>,
     ) -> Self {
-        Self { logs_rx, rx_controller, tx_ui }
+        Self { logs_rx, controller_rx, ui_tx }
     }
 
     /// Run the controller
@@ -125,8 +124,10 @@ impl<'a> Controller<'a> {
         let mut next_stat_update = Utc::now().timestamp() + stat_update_interval;
         let delay = Duration::from_millis(50);
 
+        warn!("Running...");
+
         loop {
-            if let Some(message) = self.rx_controller.try_iter().next() {
+            if let Some(message) = self.controller_rx.try_iter().next() {
                 match message {
                     ControllerMessage::Shutdown => {
                         warn!("Shutdown in progress, please wait");
@@ -140,7 +141,7 @@ impl<'a> Controller<'a> {
             if Utc::now().timestamp() > next_stat_update {
                 next_stat_update = Utc::now().timestamp() + stat_update_interval;
                 if let Ok(stats) = server.get_server_stats() {
-                    if let Err(e) = self.tx_ui.try_send(UIMessage::UpdateStatus(stats)) {
+                    if let Err(e) = self.ui_tx.try_send(UIMessage::UpdateStatus(stats)) {
                         error!("Unable to send stat message to UI: {}", e);
                     }
                 }
@@ -155,7 +156,7 @@ pub struct NodeInterface {
     pub config: Option<GlobalConfig>,
     pub ui_sender: Option<iced_mpsc::Sender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
     pub node_started: bool,
-    tx_controller: Option<mpsc::Sender<ControllerMessage>>,
+    controller_tx: Option<mpsc::Sender<ControllerMessage>>,
 }
 
 impl NodeInterface {
@@ -165,7 +166,7 @@ impl NodeInterface {
             config: None,
             ui_sender: None,
             node_started: false,
-            tx_controller: None,
+            controller_tx: None,
         }
     }
 
@@ -214,11 +215,11 @@ impl NodeInterface {
     }
 
     pub fn stop_server(&mut self) {
-        if let Some(tx) = self.tx_controller.clone() {
+        if let Some(tx) = self.controller_tx.clone() {
            tx.send(ControllerMessage::Shutdown).unwrap();
            // TODO wait for graceful shutdown?
            self.node_started = true;
-           self.tx_controller = None;
+           self.controller_tx = None;
         }
     }
 
@@ -295,8 +296,8 @@ impl NodeInterface {
         let ui_sender = self.ui_sender.as_ref().unwrap().clone();
         self.node_started = true;
 
-        let (tx_controller, rx_controller) = mpsc::channel::<ControllerMessage>();
-        self.tx_controller = Some(tx_controller); 
+        let (controller_tx, controller_rx) = mpsc::channel::<ControllerMessage>();
+        self.controller_tx = Some(controller_tx); 
 
         thread::Builder::new()
             .name("node_runner".to_string())
@@ -305,7 +306,7 @@ impl NodeInterface {
                     server_config,
                     logs_rx,
                     |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
-                        let mut controller = Controller::new(logs_rx.unwrap(), ui_sender.clone(), &rx_controller); 
+                        let mut controller = Controller::new(logs_rx.unwrap(), ui_sender.clone(), &controller_rx); 
                         controller.run(serv);
                     },
                     None,
