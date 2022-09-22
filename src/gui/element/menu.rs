@@ -1,18 +1,14 @@
-use isahc::http::version;
-
 use {
     super::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_widgets::TableRow,
     iced::{
         alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Space, Text,
     },
     serde::{Deserialize, Serialize},
-    std::sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]

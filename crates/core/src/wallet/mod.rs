@@ -1,12 +1,11 @@
 /// Placeholder for all wallet calls
 /// Should eventually feature async calls that work via local wallet or remote owner API
-use std::path::Path;
 
 use grin_wallet::cmd::wallet_args::inst_wallet;
 use grin_wallet_api::Owner;
-use grin_wallet_config::{self, ConfigError, GlobalWalletConfig, WalletConfig};
-use grin_wallet_controller::command::{GlobalArgs, InitArgs};
-use grin_wallet_impls::{DefaultLCProvider, DefaultWalletImpl};
+use grin_wallet_config::{self, GlobalWalletConfig};
+use grin_wallet_controller::command::InitArgs;
+use grin_wallet_impls::DefaultLCProvider;
 use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
 
 use grin_core::{self};
@@ -14,11 +13,7 @@ pub use grin_core::global;
 use grin_keychain as keychain;
 use grin_util::{file, Mutex};
 
-use std::{
-    fs,
-    sync::{Arc, RwLock},
-};
-
+use std::sync::{Arc, RwLock};
 use std::path::PathBuf;
 
 use dirs;
@@ -203,8 +198,8 @@ where
         chain_type: global::ChainTypes
     ) -> Result<(), GrinWalletInterfaceError> {
         {
-            let mut w = wallet_interface.read().unwrap();
-            if let Some(o) = &w.owner_api {
+            let w = wallet_interface.read().unwrap();
+            if let Some(_) = &w.owner_api {
                 global::set_local_chain_type(chain_type);
                 return Ok(());
             }

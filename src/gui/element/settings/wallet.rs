@@ -1,14 +1,13 @@
 use {
-    super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::{DEFAULT_FONT_SIZE},
     crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
-    grin_gui_core::{theme::ColorPalette, utility::Release},
+    grin_gui_core::{theme::ColorPalette},
     iced::{
-        button, scrollable, Alignment, Button, Command, Column, Container, Element, Length, Row, Scrollable, Space,
+        scrollable, Column, Container, Length, Row, Scrollable, Space,
         Text,
     },
     serde::{Deserialize, Serialize},
-    std::sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]

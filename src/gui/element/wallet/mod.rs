@@ -2,12 +2,10 @@ pub mod operation;
 pub mod setup;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Message},
-    crate::Result,
+    crate::gui::{style, Message},
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
-    iced::{Column, Command, Container, Length, Space},
+    grin_gui_core::{config::Config},
+    iced::{Column, Container, Length},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

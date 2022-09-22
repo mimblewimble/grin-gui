@@ -1,16 +1,13 @@
 pub mod embedded;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Message},
-    crate::Result,
+    crate::gui::{style, Message},
     grin_gui_core::{theme::ColorPalette, node::ChainTypes},
-    iced::{Column, Command, Container, Length, Space},
+    iced::{Column, Container, Length},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
-    External,
     Embedded,
     // etc, as in TUI for now
 }
@@ -40,7 +37,7 @@ pub fn data_container<'a>(
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Embedded => embedded::data_container(color_palette, &mut state.embedded_state, chain_type),
-        _ => Container::new(Column::new()),
+        //_ => Container::new(Column::new()),
     };
 
     let column = Column::new()

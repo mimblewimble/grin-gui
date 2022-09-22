@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_must_use)]
+
 pub mod backup;
 pub mod config;
 pub mod wallet;

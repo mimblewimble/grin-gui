@@ -8,19 +8,18 @@ use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
 use crate::gui::element::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE};
 use grin_gui_core::{
-    config::{Config, Language},
-    error::ThemeError,
+    config::Config,
     fs::PersistentData,
-    theme::{ColorPalette, Theme},
+    theme::Theme,
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
-    node::{NodeInterface, subscriber::{self, ServerStats, UIMessage}, ChainTypes},
+    node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
 
 use iced::{
-    button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
-    Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Space, Subscription,
-    Text, TextInput,
+    button, pick_list, text_input, Alignment, Application, Button, Column,
+    Command, Container, Element, Length, Settings, Subscription,
+    Text,
 };
 
 use iced_native::alignment;
@@ -34,7 +33,7 @@ use image::ImageFormat;
 //use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
+use element::{DEFAULT_HEADER_FONT_SIZE};
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -131,9 +130,6 @@ impl Application for GrinGui {
             
             // if embedded node ??
         } 
-
-        let wallet_interface = grin_gui.wallet_interface.clone();
-        let mut w = wallet_interface.write().unwrap();
 
         grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
             get_grin_wallet_default_path(&global::get_chain_type());
@@ -264,7 +260,6 @@ impl Application for GrinGui {
                     content = content.push(settings_container.view.data_container(color_palette))
                 }*/
             }
-            _ => {}
         }
 
         let error_cause = if let Some(e) = &self.error {

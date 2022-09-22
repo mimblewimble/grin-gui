@@ -1,7 +1,7 @@
 use crate::style::table_row::StyleSheet;
 
 use crate::widget::table_row;
-use iced_graphics::{Backend, Primitive, Renderer};
+use iced_graphics::{Backend, Renderer};
 use iced_native::{
     mouse, Background, Color, Element, Layout, Point, Rectangle, Renderer as iced_native_Renderer,
 };
@@ -16,7 +16,7 @@ where
         &self,
         layout: Layout<'_>,
         cursor_position: Point,
-        viewport: &Rectangle,
+        _viewport: &Rectangle,
     ) -> mouse::Interaction {
         let bounds = layout.bounds();
         let is_mouse_over = bounds.contains(cursor_position);
