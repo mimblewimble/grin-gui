@@ -71,6 +71,7 @@ pub struct GrinGui {
     about_state: element::about::StateContainer,
 }
 
+
 impl<'a> Default for GrinGui {
     fn default() -> Self {
 
@@ -80,8 +81,8 @@ impl<'a> Default for GrinGui {
     	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
 
         Self {
-            wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client, ChainTypes::Mainnet))),
-            node_interface: Arc::new(RwLock::new(NodeInterface::new(ChainTypes::Mainnet))),
+            wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client))),
+            node_interface: Arc::new(RwLock::new(NodeInterface::new())),
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
@@ -116,10 +117,24 @@ impl Application for GrinGui {
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
+
+        // default Mainnet  
+        global::set_local_chain_type(ChainTypes::Mainnet);
+
+        if let Some(wallet_index) = config.current_wallet_index {
+            let wallet = config.wallets[wallet_index].clone();
+
+            // is tesnet
+            if wallet.is_testnet {
+                global::set_local_chain_type(ChainTypes::Testnet);
+            }
+            
+            // if embedded node ??
+        } 
+
         let wallet_interface = grin_gui.wallet_interface.clone();
         let mut w = wallet_interface.write().unwrap();
 
-        w.set_chain_type();
         grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
             get_grin_wallet_default_path(&global::get_chain_type());
 
@@ -223,9 +238,11 @@ impl Application for GrinGui {
                 content = content.push(setup_container)
             }
             element::menu::Mode::Node => {
+                let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
                 let node_container = element::node::data_container(
                     color_palette,
                     &mut self.node_state,
+                    chain_type,
                 );
                 content = content.push(node_container)
             }

@@ -1,4 +1,5 @@
 use crate::log_error;
+//use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
 use native_dialog::FileDialog;
@@ -11,7 +12,12 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Wallet, fs::PersistentData, wallet::WalletInterface},
+    grin_gui_core::{
+        config::Wallet,
+        fs::PersistentData,
+        node::ChainTypes::{Mainnet, Testnet},
+        wallet::WalletInterface,
+    },
     iced::{
         alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,
@@ -156,12 +162,19 @@ pub fn handle_message<'a>(
 
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
+            let chain_type = if state.is_testnet {
+                Testnet
+            } else {
+                Mainnet
+            };
+
             let fut = move || {
                 WalletInterface::init(
                     w,
                     password.clone(),
                     state.advanced_options_state.top_level_directory.clone(),
                     state.advanced_options_state.display_name_value.clone(),
+                    chain_type,
                 )
             };
 
