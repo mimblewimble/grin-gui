@@ -3,16 +3,28 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::{
+        config::Config,
         theme::ColorPalette,
         wallet::TxLogEntry,
     },
     grin_gui_widgets::{header, Header, TableRow},
-    iced::{button, pick_list, scrollable, text_input, Button, Container, Element, Length, Space, Text},
+    iced::{button, pick_list, scrollable, text_input, Button, Column, Container, Element, Length, Row, Space, Text},
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
     strfmt::strfmt,
 };
 
+#[derive(Debug, Clone)]
+pub enum ExpandType {
+    Details(TxLogEntry),
+    None,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Confirm {
+    DeleteAddon,
+    DeleteSavedVariables,
+}
 
 /*
 For reference:
@@ -983,25 +995,23 @@ pub fn data_row_container<'a, 'b>(
 
     let mut row_containers = vec![];
 
-    let author = tx.author().map(str::to_string);
-    let game_version = tx.game_version().map(str::to_string);
-    let notes = tx.notes().map(str::to_string);
-    let website_url = tx.website_url().map(str::to_string);
-    let changelog_url = tx.changelog_url(config.tx.global_release_channel);
-    let repository_kind = tx.repository_kind();
-
-    let global_release_channel = config.addons.global_release_channel;
+    let id = tx.id.to_string();
+    let tx_type = tx.tx_type.to_string();
+    let shared_tx_id = tx.tx_slate_id;
+    let creation_time = tx.creation_ts.to_string();
+    let ttl_cutoff = tx.ttl_cutoff_height;
+    let height = tx.kernel_lookup_min_height;
 
     // Check if current addon is expanded.
-    let addon_cloned = addon.clone();
-    let addon_cloned_for_row = addon.clone();
-    let version = addon
+    /*let tx_cloned = tx.clone();
+    let tx_cloned_for_row = tx.clone();
+    let version = tx
         .version()
         .map(str::to_string)
         .unwrap_or_else(|| "-".to_string());
-    let release_package = addon_cloned.relevant_release_package(global_release_channel);
+    let release_package = addon_cloned.relevant_release_package(global_release_channel);*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1040,13 +1050,13 @@ pub fn data_row_container<'a, 'b>(
         }
 
         row_containers.push((idx, title_container));
-    }
+    }*/
 
     if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
-            if *key == ColumnKey::LocalVersion && !hidden {
+            if *key == ColumnKey::Id && !hidden {
                 Some((idx, width))
             } else {
                 None
@@ -1054,23 +1064,23 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let installed_version = Text::new(version).size(DEFAULT_FONT_SIZE);
+        let display_id = Text::new(id).size(DEFAULT_FONT_SIZE);
 
-        let installed_version_container = Container::new(installed_version)
+        let id_container = Container::new(display_id)
             .padding(5)
             .height(default_height)
             .width(*width)
             .center_y()
             .style(style::HoverableForegroundContainer(color_palette));
 
-        row_containers.push((idx, installed_version_container));
+        row_containers.push((idx, id_container));
     }
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
-            if *key == ColumnKey::RemoteVersion && !hidden {
+            if *key == ColumnKey::Type && !hidden {
                 Some((idx, width))
             } else {
                 None
@@ -1078,7 +1088,7 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let remote_version = if let Some(package) = &release_package {
+        let display_type = if let Some(package) = &release_package {
             package.version.clone()
         } else {
             String::from("-")
@@ -1107,13 +1117,13 @@ pub fn data_row_container<'a, 'b>(
                 .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, remote_version_container));
-    }
+    }*/
 
     if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
-            if *key == ColumnKey::Channel && !hidden {
+            if *key == ColumnKey::Type && !hidden {
                 Some((idx, width))
             } else {
                 None
@@ -1121,18 +1131,18 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let channel = Text::new(addon.release_channel.to_string()).size(DEFAULT_FONT_SIZE);
-        let channel_container = Container::new(channel)
+        let display_tx_type = Text::new(tx.tx_type.to_string()).size(DEFAULT_FONT_SIZE);
+        let display_tx_type_container = Container::new(display_tx_type)
             .height(default_height)
             .width(*width)
             .center_y()
             .padding(5)
             .style(style::HoverableForegroundContainer(color_palette));
 
-        row_containers.push((idx, channel_container));
+        row_containers.push((idx, display_tx_type_container));
     }
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1153,9 +1163,9 @@ pub fn data_row_container<'a, 'b>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, author_container));
-    }
+    }*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1177,9 +1187,9 @@ pub fn data_row_container<'a, 'b>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, game_version_container));
-    }
+    }*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1212,9 +1222,9 @@ pub fn data_row_container<'a, 'b>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, game_version_container));
-    }
+    }*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1237,9 +1247,9 @@ pub fn data_row_container<'a, 'b>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, source_container));
-    }
+    }*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1261,9 +1271,9 @@ pub fn data_row_container<'a, 'b>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         row_containers.push((idx, container));
-    }
+    }*/
 
-    if let Some((idx, width)) = column_config
+    /*if let Some((idx, width)) = column_config
         .iter()
         .enumerate()
         .filter_map(|(idx, (key, width, hidden))| {
@@ -1371,7 +1381,7 @@ pub fn data_row_container<'a, 'b>(
         };
 
         row_containers.push((idx, update_button_container));
-    }
+    }*/
 
     let left_spacer = Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0));
     let right_spacer = Space::new(Length::Units(DEFAULT_PADDING + 5), Length::Units(0));
@@ -1386,9 +1396,9 @@ pub fn data_row_container<'a, 'b>(
 
     row = row.push(right_spacer);
 
-    let mut addon_column = Column::new().push(row);
+    let mut tx_column = Column::new().push(row);
 
-    if is_addon_expanded {
+    /*if is_addon_expanded {
         match expand_type {
             ExpandType::Details(_) => {
                 let notes = notes.unwrap_or_else(|| localized_string("no-addon-description"));
@@ -1646,14 +1656,14 @@ pub fn data_row_container<'a, 'b>(
             }
             ExpandType::None => {}
         }
-    }
+    }*/
 
-    let mut table_row = TableRow::new(addon_column)
+    let mut table_row = TableRow::new(tx_column)
         .width(Length::Fill)
         .inner_row_height(default_row_height)
         .on_press(move |_| {
             Message::Interaction(Interaction::Expand(ExpandType::Details(
-                addon_cloned_for_row.clone(),
+                tx_cloned_for_row.clone()
             )))
         });
 

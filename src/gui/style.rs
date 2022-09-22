@@ -1,5 +1,5 @@
 use grin_gui_core::theme::ColorPalette;
-//use grin_gui_widgets::table_row;
+use grin_gui_widgets::table_row;
 use iced::{
     button, checkbox, container, pick_list, scrollable, slider, text_input, Background, Color,
 };
@@ -555,7 +555,7 @@ impl container::StyleSheet for Row {
     }
 }
 
-/*pub struct TableRow(pub ColorPalette);
+pub struct TableRow(pub ColorPalette);
 impl table_row::StyleSheet for TableRow {
     fn style(&self) -> table_row::Style {
         table_row::Style {
@@ -580,7 +580,7 @@ impl table_row::StyleSheet for TableRow {
     }
 }
 
-pub struct SegmentTableRow(pub ColorPalette);
+/*pub struct SegmentTableRow(pub ColorPalette);
 impl table_row::StyleSheet for SegmentTableRow {
     fn style(&self) -> table_row::Style {
         table_row::Style {
@@ -622,7 +622,7 @@ impl table_row::StyleSheet for SelectedSegmentTableRow {
         let style = self.style();
         table_row::Style { ..style }
     }
-}
+}*/
 
 pub struct TableRowAlternate(pub ColorPalette);
 impl table_row::StyleSheet for TableRowAlternate {
@@ -647,7 +647,7 @@ impl table_row::StyleSheet for TableRowAlternate {
             ..style
         }
     }
-}*/
+}
 
 pub struct ForegroundScrollable(pub ColorPalette);
 impl scrollable::StyleSheet for ForegroundScrollable {
