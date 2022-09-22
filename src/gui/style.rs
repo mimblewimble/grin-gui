@@ -24,6 +24,7 @@ impl card::StyleSheet for NormalModalCardContainer {
         card::Style {
             background: Background::Color(self.0.base.background),
             head_background: Background::Color(self.0.normal.primary),
+            head_text_color: self.0.bright.surface, 
             border_color: self.0.normal.primary,
             body_text_color: self.0.normal.surface,
             border_radius: 5.0,
