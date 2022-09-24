@@ -246,14 +246,14 @@ impl Application for GrinGui {
             
             let mut btn = Button::new(
                 &mut self.confirm_button,
-                Text::new("Yes, exit now"),
+                Text::new(localized_string("exit-confirm-title")),
             )
             .on_press(Message::Exit);
             btn = btn.style(style::DefaultBoxedButton(color_palette));
 
             content = content 
                 .align_items(Alignment::Center)
-                .push(Text::new("Are you sure you want to exit?"))
+                .push(Text::new(localized_string("exit-confirm-msg")))
                 .push(btn);
             } else {
 
