@@ -148,6 +148,7 @@ impl<'a> Controller<'a> {
             }
             thread::sleep(delay);
         }
+
     }
 }
 
@@ -302,7 +303,8 @@ impl NodeInterface {
         thread::Builder::new()
             .name("node_runner".to_string())
             .spawn(move || {
-                servers::Server::start(
+
+                let result = servers::Server::start(
                     server_config,
                     logs_rx,
                     |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
@@ -311,8 +313,7 @@ impl NodeInterface {
                     },
                     None,
                     api_chan,
-                )
-                .unwrap();
+                );
             })
             .ok();
     }

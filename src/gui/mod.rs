@@ -68,8 +68,21 @@ pub struct GrinGui {
 
     /// About screen state
     about_state: element::about::StateContainer,
+
+    confirm_button: button::State,
+    show_confirm: bool,
+    exit: bool,
 }
 
+impl GrinGui {
+    pub fn confirm_exit (&mut self) {
+        self.show_confirm = true;
+    }
+
+    pub fn safe_exit (&mut self) {
+        self.exit = true;
+    }
+}
 
 impl<'a> Default for GrinGui {
     fn default() -> Self {
@@ -94,6 +107,10 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
+
+            confirm_button: Default::default(),
+            show_confirm: false,
+            exit: false,
         }
     }
 }
@@ -107,6 +124,7 @@ pub enum Message {
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
     None(()),
+    Exit,
 }
 
 impl Application for GrinGui {
@@ -152,6 +170,10 @@ impl Application for GrinGui {
         apply_config(&mut grin_gui, config);
 
         (grin_gui, Command::batch(vec![]))
+    }
+
+    fn should_exit(&self) -> bool {
+        self.exit
     }
 
     fn title(&self) -> String {
@@ -212,8 +234,6 @@ impl Application for GrinGui {
             .1
             .palette;
 
-        //let mut content = Column::new();
-
         let menu_state = self.menu_state.clone();
 
         let mut content = Column::new().push(element::menu::data_container(
@@ -222,43 +242,59 @@ impl Application for GrinGui {
             &mut self.error,
         ));
 
-        // Spacer between menu and content.
-        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
-        match menu_state.mode {
-            element::menu::Mode::Wallet => {
-                let setup_container = element::wallet::data_container(
-                    color_palette,
-                    &mut self.wallet_state,
-                    &self.config
-                );
-                content = content.push(setup_container)
-            }
-            element::menu::Mode::Node => {
-                let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
-                let node_container = element::node::data_container(
-                    color_palette,
-                    &mut self.node_state,
-                    chain_type,
-                );
-                content = content.push(node_container)
-            }
-             element::menu::Mode::About => {
-                let about_container =
-                    element::about::data_container(color_palette, &None, &mut self.about_state);
-                content = content.push(about_container)
-            }
-            element::menu::Mode::Settings => {
-                content = content.push(element::settings::data_container(
-                    &mut self.settings_state,
-                    &mut self.config,
-                    &mut self.wallet_settings_state,
-                    &mut self.node_settings_state,
-                    &mut self.general_settings_state,
-                    color_palette,
-                ))
-                /*if let Some(settings_container) = views.get_mut(settings_view_index) {
-                    content = content.push(settings_container.view.data_container(color_palette))
-                }*/
+       if self.show_confirm {
+            
+            let mut btn = Button::new(
+                &mut self.confirm_button,
+                Text::new("Yes, exit now"),
+            )
+            .on_press(Message::Exit);
+            btn = btn.style(style::DefaultBoxedButton(color_palette));
+
+            content = content 
+                .align_items(Alignment::Center)
+                .push(Text::new("Are you sure you want to exit?"))
+                .push(btn);
+            } else {
+
+            // Spacer between menu and content.
+            //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+            match menu_state.mode {
+                element::menu::Mode::Wallet => {
+                    let setup_container = element::wallet::data_container(
+                        color_palette,
+                        &mut self.wallet_state,
+                        &self.config
+                    );
+                    content = content.push(setup_container)
+                }
+                element::menu::Mode::Node => {
+                    let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
+                    let node_container = element::node::data_container(
+                        color_palette,
+                        &mut self.node_state,
+                        chain_type,
+                    );
+                    content = content.push(node_container)
+                }
+                 element::menu::Mode::About => {
+                    let about_container =
+                        element::about::data_container(color_palette, &None, &mut self.about_state);
+                    content = content.push(about_container)
+                }
+                element::menu::Mode::Settings => {
+                    content = content.push(element::settings::data_container(
+                        &mut self.settings_state,
+                        &mut self.config,
+                        &mut self.wallet_settings_state,
+                        &mut self.node_settings_state,
+                        &mut self.general_settings_state,
+                        color_palette,
+                    ))
+                    /*if let Some(settings_container) = views.get_mut(settings_view_index) {
+                        content = content.push(settings_container.view.data_container(color_palette))
+                    }*/
+                }
             }
         }
 
@@ -328,6 +364,11 @@ pub fn run(opts: Opts, config: Config) {
 
     let mut settings = Settings::default();
     settings.window.size = config.window_size.unwrap_or((900, 620));
+
+    #[cfg(target_os = "macos")]
+    {
+        settings.exit_on_close_request = false;
+    }
 
     #[cfg(target_os = "windows")]
     {
