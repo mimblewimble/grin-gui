@@ -237,31 +237,17 @@ impl Application for GrinGui {
 
         let menu_state = self.menu_state.clone();
 
-        let mut content = Column::new().push(element::menu::data_container(
-            &mut self.menu_state,
-            color_palette,
-            &mut self.error,
-        ));
+        let mut content = Column::new();
 
        if self.show_confirm {
-            
-            // let mut btn = Button::new(
-            //     &mut self.confirm_button,
-            //     Text::new(localized_string("exit-confirm-title")),
-            // )
-            // .on_press(Message::Exit);
-            // btn = btn.style(style::DefaultBoxedButton(color_palette));
-
-            // content = content 
-            //     .align_items(Alignment::Center)
-            //     .push(Text::new(localized_string("exit-confirm-msg")))
-            //     .push(btn);
-            let exit_overlay = element::exit::data_container(  color_palette,
-                &mut self.exit_state);
+            let exit_overlay = element::exit::data_container(color_palette, &mut self.exit_state);
             content = content.push(exit_overlay)
-            
-
-            } else {
+        } else {
+            content = content.push(element::menu::data_container(
+                &mut self.menu_state,
+                color_palette,
+                &mut self.error,
+            ));
 
             // Spacer between menu and content.
             //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
