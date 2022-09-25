@@ -70,7 +70,6 @@ pub struct GrinGui {
     about_state: element::about::StateContainer,
 
     exit_state: element::exit::StateContainer,
-    confirm_button: button::State,
     show_confirm: bool,
     exit: bool,
 }
@@ -108,9 +107,7 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-
             exit_state: Default::default(),
-            confirm_button: Default::default(),
             show_confirm: false,
             exit: false,
         }
@@ -173,7 +170,9 @@ impl Application for GrinGui {
         (grin_gui, Command::batch(vec![]))
     }
 
+    #[cfg(target_os = "macos")]
     fn should_exit(&self) -> bool {
+        // set during application shutdown
         self.exit
     }
 
