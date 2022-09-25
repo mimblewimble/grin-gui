@@ -206,11 +206,12 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         }
 
         #[cfg(target_os = "macos")]
+        // Application shutdown
         Message::RuntimeEvent(iced_native::Event::Window(
             iced_native::window::Event::CloseRequested,
         )) => {
-            log::debug!("Message::RuntimeEvent(CloseRequested) TODO");
-            grin_gui.confirm_exit();
+            log::debug!("Message::RuntimeEvent(CloseRequested)");
+            grin_gui.show_exit(true);
         }
 
         #[cfg(target_os = "windows")]
@@ -323,12 +324,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 Message::None,
             ));
         }
+        // Application shutdown
+        Message::Interaction(Interaction::Exit) => {
+            grin_gui.safe_exit();
+        }
+        Message::Interaction(Interaction::ExitCancel) => {
+            grin_gui.show_exit(false);
+        }
         Message::Interaction(_) => {}
         Message::RuntimeEvent(_) => {}
         Message::None(_) => {}
-        Message::Exit => {
-            grin_gui.safe_exit();
-        }
     }
 
     Ok(Command::none())

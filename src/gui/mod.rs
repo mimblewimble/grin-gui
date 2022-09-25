@@ -69,14 +69,15 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
+    exit_state: element::exit::StateContainer,
     confirm_button: button::State,
     show_confirm: bool,
     exit: bool,
 }
 
 impl GrinGui {
-    pub fn confirm_exit (&mut self) {
-        self.show_confirm = true;
+    pub fn show_exit (&mut self, show: bool) {
+        self.show_confirm = show;
     }
 
     pub fn safe_exit (&mut self) {
@@ -108,6 +109,7 @@ impl<'a> Default for GrinGui {
             general_settings_state: Default::default(),
             about_state: Default::default(),
 
+            exit_state: Default::default(),
             confirm_button: Default::default(),
             show_confirm: false,
             exit: false,
@@ -124,7 +126,6 @@ pub enum Message {
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
     None(()),
-    Exit,
 }
 
 impl Application for GrinGui {
@@ -244,17 +245,22 @@ impl Application for GrinGui {
 
        if self.show_confirm {
             
-            let mut btn = Button::new(
-                &mut self.confirm_button,
-                Text::new(localized_string("exit-confirm-title")),
-            )
-            .on_press(Message::Exit);
-            btn = btn.style(style::DefaultBoxedButton(color_palette));
+            // let mut btn = Button::new(
+            //     &mut self.confirm_button,
+            //     Text::new(localized_string("exit-confirm-title")),
+            // )
+            // .on_press(Message::Exit);
+            // btn = btn.style(style::DefaultBoxedButton(color_palette));
 
-            content = content 
-                .align_items(Alignment::Center)
-                .push(Text::new(localized_string("exit-confirm-msg")))
-                .push(btn);
+            // content = content 
+            //     .align_items(Alignment::Center)
+            //     .push(Text::new(localized_string("exit-confirm-msg")))
+            //     .push(btn);
+            let exit_overlay = element::exit::data_container(  color_palette,
+                &mut self.exit_state);
+            content = content.push(exit_overlay)
+            
+
             } else {
 
             // Spacer between menu and content.
@@ -367,6 +373,7 @@ pub fn run(opts: Opts, config: Config) {
 
     #[cfg(target_os = "macos")]
     {
+        // false needed for Application shutdown
         settings.exit_on_close_request = false;
     }
 
@@ -502,6 +509,10 @@ pub enum Interaction {
     ToggleAutoStart(bool),
     #[cfg(target_os = "windows")]
     ToggleStartClosedToTray(bool),
+
+    /// Application shutdown
+    Exit,
+    ExitCancel
 }
 
 #[derive(Default)]
