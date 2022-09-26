@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 
 use grin_config::{config, GlobalConfig};
 use grin_core::global;
@@ -25,8 +25,8 @@ use subscriber::UIMessage;
 pub mod subscriber;
 
 // Re-exports
-pub use grin_servers::ServerStats;
 pub use grin_chain::types::SyncStatus;
+pub use grin_servers::ServerStats;
 
 /// TODO - this differs from the default directory in 5.x,
 /// need to reconcile this with existing installs somehow
@@ -43,7 +43,6 @@ pub const API_SECRET_FILE_NAME: &str = ".api_secret";
 /// Foreign API secret
 pub const FOREIGN_API_SECRET_FILE_NAME: &str = ".foreign_api_secret";
 
-
 fn get_grin_node_default_path(chain_type: &global::ChainTypes) -> PathBuf {
     // Check if grin dir exists
     let mut grin_path = match dirs::home_dir() {
@@ -55,12 +54,12 @@ fn get_grin_node_default_path(chain_type: &global::ChainTypes) -> PathBuf {
     grin_path.push(GRIN_TOP_LEVEL_DIR);
     grin_path.push(GRIN_DEFAULT_DIR);
 
-	if !grin_path.exists() {
-		if let Err(e) = fs::create_dir_all(grin_path.clone()) {
+    if !grin_path.exists() {
+        if let Err(e) = fs::create_dir_all(grin_path.clone()) {
             panic!("Unable to create default node path: {}", e);
         }
-	}
-	
+    }
+
     grin_path
 }
 
@@ -115,7 +114,11 @@ impl<'a> Controller<'a> {
         ui_tx: iced_mpsc::Sender<UIMessage>,
         controller_rx: &'a mpsc::Receiver<ControllerMessage>,
     ) -> Self {
-        Self { logs_rx, controller_rx, ui_tx }
+        Self {
+            logs_rx,
+            controller_rx,
+            ui_tx,
+        }
     }
 
     /// Run the controller
@@ -158,6 +161,7 @@ pub struct NodeInterface {
     pub ui_sender: Option<iced_mpsc::Sender<UIMessage>>, //pub ui_rx: mpsc::Receiver<UIMessage>,
     pub node_started: bool,
     controller_tx: Option<mpsc::Sender<ControllerMessage>>,
+    handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl NodeInterface {
@@ -168,6 +172,7 @@ impl NodeInterface {
             ui_sender: None,
             node_started: false,
             controller_tx: None,
+            handle: None,
         }
     }
 
@@ -176,12 +181,8 @@ impl NodeInterface {
     }
 
     /// Check that the api secret files exist and are valid
-    fn check_api_secret_files(
-        &self,
-        chain_type: &global::ChainTypes,
-        secret_file_name: &str,
-    ) {
-		let grin_path = get_grin_node_default_path(&chain_type);
+    fn check_api_secret_files(&self, chain_type: &global::ChainTypes, secret_file_name: &str) {
+        let grin_path = get_grin_node_default_path(&chain_type);
         let mut api_secret_path = grin_path;
         api_secret_path.push(secret_file_name);
         if !api_secret_path.exists() {
@@ -195,37 +196,40 @@ impl NodeInterface {
         self.check_api_secret_files(&chain_type, API_SECRET_FILE_NAME);
         self.check_api_secret_files(&chain_type, FOREIGN_API_SECRET_FILE_NAME);
 
-		let grin_path = get_grin_node_default_path(&chain_type);
-	
-		// Get path to default config file
-		let mut config_path = grin_path.clone();
-		config_path.push(SERVER_CONFIG_FILE_NAME);
+        let grin_path = get_grin_node_default_path(&chain_type);
 
-		// Spit it out if it doesn't exist
-		if !config_path.exists() {
-			let mut default_config = GlobalConfig::for_chain(&chain_type);
-			// update paths relative to current dir
-			default_config.update_paths(&grin_path);
-			if let Err(e) = default_config.write_to_file(config_path.to_str().unwrap()) {
+        // Get path to default config file
+        let mut config_path = grin_path.clone();
+        config_path.push(SERVER_CONFIG_FILE_NAME);
+
+        // Spit it out if it doesn't exist
+        if !config_path.exists() {
+            let mut default_config = GlobalConfig::for_chain(&chain_type);
+            // update paths relative to current dir
+            default_config.update_paths(&grin_path);
+            if let Err(e) = default_config.write_to_file(config_path.to_str().unwrap()) {
                 panic!("Unable to write default node config file: {}", e);
             }
+        }
 
-		}
-
-		GlobalConfig::new(config_path.to_str().unwrap()).unwrap()
+        GlobalConfig::new(config_path.to_str().unwrap()).unwrap()
     }
 
-    pub fn stop_server(&mut self) {
-        if let Some(tx) = self.controller_tx.clone() {
-           tx.send(ControllerMessage::Shutdown).unwrap();
-           // TODO wait for graceful shutdown?
-           self.node_started = true;
-           self.controller_tx = None;
+    pub fn shutdown_server(&mut self) {
+        if let Some(handle) = self.handle.take() {
+            if !handle.is_finished() {
+                self.controller_tx.clone().unwrap().send(ControllerMessage::Shutdown);
+                handle.join().expect("could not join spawned thread");
+            }
         }
     }
 
     pub fn restart_server(&mut self, chain_type: global::ChainTypes) {
-        self.stop_server();
+        if let Some(tx) = self.controller_tx.clone() {
+            tx.send(ControllerMessage::Shutdown);
+            self.node_started = true;
+            self.controller_tx = None;
+        }
         self.start_server(chain_type);
     }
 
@@ -233,7 +237,7 @@ impl NodeInterface {
         self.chain_type = Some(chain_type);
         global::set_local_chain_type(chain_type);
 
-        let node_config = self.load_or_create_default_config(chain_type); 
+        let node_config = self.load_or_create_default_config(chain_type);
 
         self.config = Some(node_config.clone());
 
@@ -287,34 +291,32 @@ impl NodeInterface {
         info!("Future Time Limit: {:?}", global::get_future_time_limit());
         log_feature_flags();
 
-        let server_config = node_config
-            .members
-            .as_ref()
-            .unwrap()
-            .server
-            .clone();
+        let server_config = node_config.members.as_ref().unwrap().server.clone();
 
         let ui_sender = self.ui_sender.as_ref().unwrap().clone();
         self.node_started = true;
 
         let (controller_tx, controller_rx) = mpsc::channel::<ControllerMessage>();
-        self.controller_tx = Some(controller_tx); 
+        self.controller_tx = Some(controller_tx);
 
-        thread::Builder::new()
+        let handle = thread::Builder::new()
             .name("node_runner".to_string())
             .spawn(move || {
-
-                let result = servers::Server::start(
+                // TODO handle start up errors due to corrupt data
+                servers::Server::start(
                     server_config,
                     logs_rx,
                     |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
-                        let mut controller = Controller::new(logs_rx.unwrap(), ui_sender.clone(), &controller_rx); 
+                        let mut controller =
+                            Controller::new(logs_rx.unwrap(), ui_sender.clone(), &controller_rx);
                         controller.run(serv);
                     },
                     None,
                     api_chan,
                 );
             })
-            .ok();
+            .unwrap();
+
+        self.handle = Some(handle);
     }
 }
