@@ -1,5 +1,5 @@
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{SMALLER_FONT_SIZE, DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
@@ -237,7 +237,7 @@ impl Default for HeaderState {
                 ColumnState {
                     key: ColumnKey::Id,
                     btn_state: Default::default(),
-                    width: Length::Fill,
+                    width: Length::Units(20),
                     hidden: false,
                     order: 0,
                 },
@@ -622,7 +622,7 @@ impl Default for TxListHeaderState {
                 TxListColumnState {
                     key: ColumnKey::Id,
                     btn_state: Default::default(),
-                    width: Length::Fill,
+                    width: Length::Units(20),
                     hidden: false,
                     order: 0,
                 },
@@ -997,7 +997,7 @@ pub fn data_row_container<'a, 'b>(
     let mut row_containers = vec![];
 
     let id = tx.id.to_string();
-    let tx_type = tx.tx_type.to_string();
+    let mut tx_type = format!("{}", tx.tx_type.to_string().replace("\n", ""));
     let shared_tx_id = tx.tx_slate_id;
     let creation_time = tx.creation_ts.to_string();
     let ttl_cutoff = tx.ttl_cutoff_height;
@@ -1131,7 +1131,7 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let display_tx_type = Text::new(tx.tx_type.to_string()).size(DEFAULT_FONT_SIZE);
+        let display_tx_type = Text::new(tx_type).size(SMALLER_FONT_SIZE);
         let display_tx_type_container = Container::new(display_tx_type)
             .height(default_height)
             .width(*width)
