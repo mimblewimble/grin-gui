@@ -1,30 +1,22 @@
-use crate::{gui::element::settings::wallet, log_error};
 use chrono::prelude::Utc;
-use iced::button::StyleSheet;
-use iced_native::Widget;
-use std::path::PathBuf;
 
 use iced_aw::Card;
 
 const NANO_TO_MILLIS: f64 = 1.0 / 1_000_000.0;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
+    crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     crate::Result,
-    anyhow::Context,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{
-        fs::PersistentData,
         node::{ServerStats, SyncStatus, ChainTypes},
-        wallet::{StatusMessage, WalletInfo, WalletInterface},
     },
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, Alignment, Column, Command, Container,
+        Length, Row, Space, Text,
     },
-    std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {}

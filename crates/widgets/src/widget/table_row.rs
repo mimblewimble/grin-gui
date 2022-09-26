@@ -6,8 +6,6 @@ use iced_native::{
     Padding, Point, Rectangle, Shell, Widget,
 };
 
-use std::hash::Hash;
-
 #[allow(missing_debug_implementations)]
 pub struct TableRow<'a, Message, Renderer: self::Renderer> {
     padding: Padding,

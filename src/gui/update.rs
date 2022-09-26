@@ -1,8 +1,7 @@
 use {
     super::{GrinGui, Interaction, Message, Mode},
-    crate::{gui::element, localization::localized_string, log_error, Result},
-    anyhow::Context,
-    grin_gui_core::{error::ThemeError, fs::PersistentData, node::subscriber::UIMessage, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
+    crate::{gui::element, log_error, Result},
+    grin_gui_core::{fs::PersistentData, node::subscriber::UIMessage, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
     iced::{clipboard, Command},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
@@ -97,7 +96,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             return element::wallet::operation::home::handle_tick(grin_gui, time);
         }
         // Update from embedded node server
-        Message::SendNodeMessage((id, msg, sender)) => match sender {
+        Message::SendNodeMessage((_id, msg, sender)) => match sender {
             Some(sender) => {
                 let mut n = grin_gui.node_interface.write().unwrap();
                 n.set_ui_sender(sender);
@@ -171,7 +170,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationHomeViewInteraction(l)) => {
             return element::wallet::operation::home::handle_message(grin_gui, l);
         }
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        // Wallet -> Operation -> TxList
+        Message::Interaction(Interaction::WalletOperationTxListInteraction(l)) => {
+            return element::wallet::operation::tx_list::handle_message(grin_gui, l);
+        }
+         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;
@@ -205,6 +208,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 let _ = grin_gui.config.save();
             }
         }
+
+        #[cfg(target_os = "macos")]
+        // Application shutdown
+        Message::RuntimeEvent(iced_native::Event::Window(
+            iced_native::window::Event::CloseRequested,
+        )) => {
+            log::debug!("Message::RuntimeEvent(CloseRequested)");
+            grin_gui.show_exit(true);
+        }
+
         #[cfg(target_os = "windows")]
         Message::RuntimeEvent(iced_native::Event::Window(
             iced_native::window::Event::CloseRequested,
@@ -314,6 +327,13 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 },
                 Message::None,
             ));
+        }
+        // Application shutdown
+        Message::Interaction(Interaction::Exit) => {
+            grin_gui.safe_exit();
+        }
+        Message::Interaction(Interaction::ExitCancel) => {
+            grin_gui.show_exit(false);
         }
         Message::Interaction(_) => {}
         Message::RuntimeEvent(_) => {}

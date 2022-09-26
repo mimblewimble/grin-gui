@@ -1,13 +1,12 @@
 pub mod summary;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface, node::ChainTypes},
+    grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
-    iced::{Column, Command, Container, Length, Space},
+    iced::{Column, Command, Container, Length},
 };
 
 pub struct StateContainer {

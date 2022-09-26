@@ -6,12 +6,11 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
-    grin_gui_core::{config::Config, theme::ColorPalette, utility::Release},
+    grin_gui_core::{config::Config, theme::ColorPalette},
     iced::{
-        button, Alignment, Button, Column, Command, Container, Element, Length, Row, Space, Text,
+        button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text,
     },
     serde::{Deserialize, Serialize},
-    std::sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]

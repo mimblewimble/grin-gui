@@ -1,16 +1,12 @@
-use iced::button::StyleSheet;
-use iced_native::Widget;
-
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, button, Alignment, Button, Column, Command, Container,
+        Element, Length, Row, Space, Text,
     },
     iced_aw::Card,
 };
@@ -104,7 +100,7 @@ pub fn data_container<'a>(
             .center_x()
             .align_x(alignment::Horizontal::Center);
 
-    let mut next_button = Button::new(&mut state.next_button_state, submit_button_label_container)
+    let next_button = Button::new(&mut state.next_button_state, submit_button_label_container)
         .style(style::DefaultBoxedButton(color_palette))
         .on_press(Interaction::WalletSetupWalletSuccessViewInteraction(
             LocalViewInteraction::Submit,

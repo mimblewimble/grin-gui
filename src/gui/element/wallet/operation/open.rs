@@ -1,5 +1,5 @@
 use crate::gui::element;
-use crate::{gui::element::settings::wallet, log_error};
+use crate::log_error;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
 //use std::path::PathBuf;
@@ -12,7 +12,7 @@ use {
     anyhow::Context,
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{fs::PersistentData, wallet::WalletInterface, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
+    grin_gui_core::{wallet::WalletInterface, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
     iced::{
         alignment, button, text_input, Alignment, Button, Column, Command, Container,
         Element, Length, Row, Space, Text, TextInput,

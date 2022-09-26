@@ -11,8 +11,8 @@ use {
         theme::{ColorPalette, Theme},
     },
     iced::{
-        button, pick_list, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Alignment, Button, Column, Command,
+        Container, Checkbox, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };

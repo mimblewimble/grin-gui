@@ -8,19 +8,18 @@ use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
 use crate::gui::element::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE};
 use grin_gui_core::{
-    config::{Config, Language},
-    error::ThemeError,
+    config::Config,
     fs::PersistentData,
-    theme::{ColorPalette, Theme},
+    theme::Theme,
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
-    node::{NodeInterface, subscriber::{self, ServerStats, UIMessage}, ChainTypes},
+    node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
 
 use iced::{
-    button, pick_list, scrollable, slider, text_input, Alignment, Application, Button, Column,
-    Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Space, Subscription,
-    Text, TextInput,
+    button, pick_list, text_input, Alignment, Application, Button, Column,
+    Command, Container, Element, Length, Settings, Subscription,
+    Text,
 };
 
 use iced_native::alignment;
@@ -34,7 +33,7 @@ use image::ImageFormat;
 //use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use element::{DEFAULT_PADDING, DEFAULT_HEADER_FONT_SIZE};
+use element::{DEFAULT_HEADER_FONT_SIZE};
 
 static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
 
@@ -69,8 +68,23 @@ pub struct GrinGui {
 
     /// About screen state
     about_state: element::about::StateContainer,
+
+    exit_state: element::exit::StateContainer,
+    show_confirm: bool,
+    exit: bool,
 }
 
+impl GrinGui {
+    pub fn show_exit (&mut self, show: bool) {
+        self.show_confirm = show;
+    }
+
+    pub fn safe_exit (&mut self) {
+        let mut node = self.node_interface.write().unwrap();
+        node.shutdown_server();
+        self.exit = true;
+    }
+}
 
 impl<'a> Default for GrinGui {
     fn default() -> Self {
@@ -95,6 +109,9 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
+            exit_state: Default::default(),
+            show_confirm: false,
+            exit: false,
         }
     }
 }
@@ -132,9 +149,6 @@ impl Application for GrinGui {
             // if embedded node ??
         } 
 
-        let wallet_interface = grin_gui.wallet_interface.clone();
-        let mut w = wallet_interface.write().unwrap();
-
         grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
             get_grin_wallet_default_path(&global::get_chain_type());
 
@@ -156,6 +170,12 @@ impl Application for GrinGui {
         apply_config(&mut grin_gui, config);
 
         (grin_gui, Command::batch(vec![]))
+    }
+
+    #[cfg(target_os = "macos")]
+    fn should_exit(&self) -> bool {
+        // set during application shutdown
+        self.exit
     }
 
     fn title(&self) -> String {
@@ -216,55 +236,59 @@ impl Application for GrinGui {
             .1
             .palette;
 
-        //let mut content = Column::new();
-
         let menu_state = self.menu_state.clone();
 
-        let mut content = Column::new().push(element::menu::data_container(
-            &mut self.menu_state,
-            color_palette,
-            &mut self.error,
-        ));
+        let mut content = Column::new();
 
-        // Spacer between menu and content.
-        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
-        match menu_state.mode {
-            element::menu::Mode::Wallet => {
-                let setup_container = element::wallet::data_container(
-                    color_palette,
-                    &mut self.wallet_state,
-                    &self.config
-                );
-                content = content.push(setup_container)
+       if self.show_confirm {
+            let exit_overlay = element::exit::data_container(color_palette, &mut self.exit_state);
+            content = content.push(exit_overlay)
+        } else {
+            content = content.push(element::menu::data_container(
+                &mut self.menu_state,
+                color_palette,
+                &mut self.error,
+            ));
+
+            // Spacer between menu and content.
+            //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+            match menu_state.mode {
+                element::menu::Mode::Wallet => {
+                    let setup_container = element::wallet::data_container(
+                        color_palette,
+                        &mut self.wallet_state,
+                        &self.config
+                    );
+                    content = content.push(setup_container)
+                }
+                element::menu::Mode::Node => {
+                    let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
+                    let node_container = element::node::data_container(
+                        color_palette,
+                        &mut self.node_state,
+                        chain_type,
+                    );
+                    content = content.push(node_container)
+                }
+                 element::menu::Mode::About => {
+                    let about_container =
+                        element::about::data_container(color_palette, &None, &mut self.about_state);
+                    content = content.push(about_container)
+                }
+                element::menu::Mode::Settings => {
+                    content = content.push(element::settings::data_container(
+                        &mut self.settings_state,
+                        &mut self.config,
+                        &mut self.wallet_settings_state,
+                        &mut self.node_settings_state,
+                        &mut self.general_settings_state,
+                        color_palette,
+                    ))
+                    /*if let Some(settings_container) = views.get_mut(settings_view_index) {
+                        content = content.push(settings_container.view.data_container(color_palette))
+                    }*/
+                }
             }
-            element::menu::Mode::Node => {
-                let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
-                let node_container = element::node::data_container(
-                    color_palette,
-                    &mut self.node_state,
-                    chain_type,
-                );
-                content = content.push(node_container)
-            }
-             element::menu::Mode::About => {
-                let about_container =
-                    element::about::data_container(color_palette, &None, &mut self.about_state);
-                content = content.push(about_container)
-            }
-            element::menu::Mode::Settings => {
-                content = content.push(element::settings::data_container(
-                    &mut self.settings_state,
-                    &mut self.config,
-                    &mut self.wallet_settings_state,
-                    &mut self.node_settings_state,
-                    &mut self.general_settings_state,
-                    color_palette,
-                ))
-                /*if let Some(settings_container) = views.get_mut(settings_view_index) {
-                    content = content.push(settings_container.view.data_container(color_palette))
-                }*/
-            }
-            _ => {}
         }
 
         let error_cause = if let Some(e) = &self.error {
@@ -333,6 +357,12 @@ pub fn run(opts: Opts, config: Config) {
 
     let mut settings = Settings::default();
     settings.window.size = config.window_size.unwrap_or((900, 620));
+
+    #[cfg(target_os = "macos")]
+    {
+        // false needed for Application shutdown
+        settings.exit_on_close_request = false;
+    }
 
     #[cfg(target_os = "windows")]
     {
@@ -441,6 +471,7 @@ pub enum Interaction {
     WalletSetupWalletSuccessViewInteraction(element::wallet::setup::wallet_success::LocalViewInteraction),
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),
+    WalletOperationTxListInteraction(element::wallet::operation::tx_list::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
@@ -466,6 +497,10 @@ pub enum Interaction {
     ToggleAutoStart(bool),
     #[cfg(target_os = "windows")]
     ToggleStartClosedToTray(bool),
+
+    /// Application shutdown
+    Exit,
+    ExitCancel
 }
 
 #[derive(Default)]

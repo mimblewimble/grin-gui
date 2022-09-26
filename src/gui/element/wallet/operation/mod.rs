@@ -3,12 +3,11 @@ pub mod home;
 pub mod tx_list;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
-    iced::{Column, Command, Container, Length, Space},
+    grin_gui_core::config::Config,
+    iced::{Column, Command, Container, Length},
 };
 
 pub struct StateContainer {
@@ -66,12 +65,12 @@ pub fn handle_message(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
-    config:&Config
+    config:&'a Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Open => open::data_container(color_palette, &mut state.open_state, config),
         Mode::Home => {
-            home::data_container(color_palette, &mut state.home_state)
+            home::data_container(color_palette, config, &mut state.home_state)
         }
     };
 

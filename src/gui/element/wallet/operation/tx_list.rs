@@ -1,14 +1,15 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
+    crate::Result,
     grin_gui_core::{
         config::Config,
         theme::ColorPalette,
         wallet::TxLogEntry,
     },
     grin_gui_widgets::{header, Header, TableRow},
-    iced::{button, pick_list, scrollable, text_input, Button, Column, Container, Element, Length, Row, Space, Text},
+    iced::{button, pick_list, scrollable, text_input, Button, Column, Command, Container, Element, Length, Row, Space, Text},
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
     strfmt::strfmt,
@@ -218,7 +219,7 @@ pub struct HeaderState {
 }
 
 impl HeaderState {
-    fn column_config(&self) -> Vec<(ColumnKey, Length, bool)> {
+    pub fn column_config(&self) -> Vec<(ColumnKey, Length, bool)> {
         self.columns
             .iter()
             .map(|c| (c.key, c.width, c.hidden))
@@ -982,7 +983,7 @@ pub fn titles_row_header<'a>(
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
     color_palette: ColorPalette,
-    tx: &'a mut TxLogEntry,
+    tx: TxLogEntry,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
     config: &Config,
@@ -1002,10 +1003,9 @@ pub fn data_row_container<'a, 'b>(
     let ttl_cutoff = tx.ttl_cutoff_height;
     let height = tx.kernel_lookup_min_height;
 
-    // Check if current addon is expanded.
-    /*let tx_cloned = tx.clone();
+    let tx_cloned = tx.clone();
     let tx_cloned_for_row = tx.clone();
-    let version = tx
+    /*let version = tx
         .version()
         .map(str::to_string)
         .unwrap_or_else(|| "-".to_string());
@@ -1662,9 +1662,9 @@ pub fn data_row_container<'a, 'b>(
         .width(Length::Fill)
         .inner_row_height(default_row_height)
         .on_press(move |_| {
-            Message::Interaction(Interaction::Expand(ExpandType::Details(
+            Message::Interaction(Interaction::WalletOperationTxListInteraction(LocalViewInteraction::Expand(ExpandType::Details(
                 tx_cloned_for_row.clone()
-            )))
+            ))))
         });
 
     if is_odd == Some(true) {
@@ -1674,4 +1674,20 @@ pub fn data_row_container<'a, 'b>(
     }
 
     table_row
+}
+
+#[derive(Debug, Clone)]
+pub enum LocalViewInteraction {
+    Expand(ExpandType),
+}
+
+pub fn handle_message<'a>(
+    grin_gui: &mut GrinGui,
+    message: LocalViewInteraction,
+) -> Result<Command<Message>> {
+    let state = &mut grin_gui.wallet_state.operation_state.home_state;
+    match message {
+        LocalViewInteraction::Expand(expand_type) => {}
+    }
+    Ok(Command::none())
 }
