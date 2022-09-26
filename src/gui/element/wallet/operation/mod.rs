@@ -2,12 +2,11 @@ pub mod open;
 pub mod home;
 
 use {
-    super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
-    iced::{Column, Command, Container, Length, Space},
+    grin_gui_core::config::Config,
+    iced::{Column, Command, Container, Length},
 };
 
 pub struct StateContainer {

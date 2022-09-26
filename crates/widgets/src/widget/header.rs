@@ -5,11 +5,10 @@ pub use crate::style::header::{Style, StyleSheet};
 use iced_native::{
     event, layout, mouse,
     widget::{
-        self,
-        container::{self, Container},
-        space::{self, Space},
+        container::Container,
+        space::Space,
     },
-    Alignment, Clipboard, Element, Event, Hasher, Layout, Length, Padding, Point, Rectangle, Shell,
+    Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell,
     Widget,
 };
 

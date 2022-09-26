@@ -2,6 +2,9 @@
 // This is ignored on other platforms.
 // https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more information.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
 
 mod cli;
 mod gui;
@@ -17,7 +20,7 @@ extern crate log;
 use grin_gui_core::config::Config;
 use grin_gui_core::fs::{PersistentData, CONFIG_DIR};
 use grin_gui_core::utility::{remove_file, rename};
-use grin_gui_core::{LogEntry, LoggingConfig, logger};
+use grin_gui_core::{LoggingConfig, logger};
 
 #[cfg(target_os = "linux")]
 use anyhow::Context;

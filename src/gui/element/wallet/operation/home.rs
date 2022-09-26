@@ -1,10 +1,7 @@
-use crate::{gui::element::settings::wallet, log_error};
+use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::wallet::TxLogEntry;
-use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
-use iced_native::Widget;
-use std::path::PathBuf;
+use grin_gui_widgets::TableRow;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -14,12 +11,11 @@ use {
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{
-        fs::PersistentData,
         wallet::{StatusMessage, WalletInfo, WalletInterface},
     },
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, Alignment, Column, Command, Container,
+        Length, Row, Space, Text,
     },
     std::sync::{Arc, RwLock},
 };

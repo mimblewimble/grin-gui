@@ -4,7 +4,6 @@ use {
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config, wallet::WalletInterface},
     iced::{
         alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Space, Text,

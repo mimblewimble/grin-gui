@@ -191,7 +191,11 @@
     "transaction-pool-title": "Transaction Pool",
     "transaction-pool-size-label": "Size",
     "stem-pool-size-label": "Stem Pool Size",
-    "status-line-title-main": "Status (Mainnet)",
-    "status-line-title-test": "Status (Testnet)",
-    "use-testnet": "This is a testnet wallet"
+    "status-line-title-main": "Status Mainnet",
+    "status-line-title-test": "Status Testnet",
+    "use-testnet": "This is a testnet wallet",
+    "exit-confirm-title": "Yes, exit now",
+    "exit-confirm-msg": "Are you sure you want to exit?",
+    "yes": "Yes",
+    "cancel":"Cancel"
 }

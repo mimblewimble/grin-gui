@@ -1,9 +1,8 @@
-use futures::channel::mpsc::UnboundedReceiver;
 use iced_futures::{
     self,
     futures::{channel::mpsc, stream::StreamExt},
 };
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 
 pub use grin_servers::ServerStats;
 
