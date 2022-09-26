@@ -123,12 +123,12 @@ impl<'a> Controller<'a> {
     }
 
     /// Run the controller
-    pub fn run(&mut self, server: Server) {
+    pub fn run(&mut self, server: Server, chain_type: global::ChainTypes) {
         let stat_update_interval = 1;
         let mut next_stat_update = Utc::now().timestamp() + stat_update_interval;
         let delay = Duration::from_millis(50);
 
-        warn!("Running...");
+        warn!("Running {:?}", chain_type);
 
         loop {
             if let Some(message) = self.controller_rx.try_iter().next() {
@@ -310,7 +310,7 @@ impl NodeInterface {
                     |serv: servers::Server, logs_rx: Option<mpsc::Receiver<LogEntry>>| {
                         let mut controller =
                             Controller::new(logs_rx.unwrap(), ui_sender.clone(), &controller_rx);
-                        controller.run(serv);
+                        controller.run(serv, chain_type);
                     },
                     None,
                     api_chan,
