@@ -134,7 +134,7 @@ impl<'a> Controller<'a> {
             if let Some(message) = self.controller_rx.try_iter().next() {
                 match message {
                     ControllerMessage::Shutdown => {
-                        warn!("Shutdown in progress, please wait");
+                        warn!("Shutdown {:?} in progress, please wait", chain_type);
                         //self.ui.stop();
                         server.stop();
                         return;
@@ -152,7 +152,6 @@ impl<'a> Controller<'a> {
             }
             thread::sleep(delay);
         }
-
     }
 }
 
@@ -216,21 +215,24 @@ impl NodeInterface {
         GlobalConfig::new(config_path.to_str().unwrap()).unwrap()
     }
 
-    pub fn shutdown_server(&mut self) {
+    pub fn shutdown_server(&mut self, join: bool) {
         if let Some(handle) = self.handle.take() {
-            if !handle.is_finished() {
-                self.controller_tx.clone().unwrap().send(ControllerMessage::Shutdown);
+            self.controller_tx
+                .clone()
+                .unwrap()
+                .send(ControllerMessage::Shutdown);
+
+            if join {
                 handle.join().expect("could not join spawned thread");
             }
+
+            self.node_started = false;
+            self.controller_tx = None;
         }
     }
 
     pub fn restart_server(&mut self, chain_type: global::ChainTypes) {
-        if let Some(tx) = self.controller_tx.clone() {
-            tx.send(ControllerMessage::Shutdown);
-            self.node_started = true;
-            self.controller_tx = None;
-        }
+        self.shutdown_server(false);
         self.start_server(chain_type);
     }
 

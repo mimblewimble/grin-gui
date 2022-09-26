@@ -81,7 +81,7 @@ impl GrinGui {
 
     pub fn safe_exit (&mut self) {
         let mut node = self.node_interface.write().unwrap();
-        node.shutdown_server();
+        node.shutdown_server(true);
         self.exit = true;
     }
 }
