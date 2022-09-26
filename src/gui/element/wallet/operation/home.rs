@@ -1,7 +1,16 @@
+use super::tx_list;
 use crate::log_error;
 use async_std::prelude::FutureExt;
-use grin_gui_core::wallet::TxLogEntry;
-use grin_gui_widgets::TableRow;
+use grin_gui_core::{
+    config::Config,
+    wallet::{TxLogEntry, TxLogEntryType},
+};
+use grin_gui_widgets::{header, Header, TableRow};
+use iced::button::StyleSheet;
+use iced_native::Widget;
+use std::path::PathBuf;
+
+use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -10,12 +19,10 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{
-        wallet::{StatusMessage, WalletInfo, WalletInterface},
-    },
+    grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     iced::{
-        alignment, Alignment, Column, Command, Container,
-        Length, Row, Space, Text,
+        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
+        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
@@ -23,7 +30,9 @@ use {
 pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
+    txs_scrollable_state: scrollable::State,
     last_summary_update: chrono::DateTime<chrono::Local>,
+    tx_header_state: HeaderState,
 }
 
 impl Default for StateContainer {
@@ -31,7 +40,9 @@ impl Default for StateContainer {
         Self {
             wallet_info: Default::default(),
             wallet_status: Default::default(),
+            txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
+            tx_header_state: Default::default(),
         }
     }
 }
@@ -131,6 +142,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
+    config: &'a Config,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     // Title row
@@ -187,21 +199,105 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center)
         .spacing(25);
 
-    // Temporary test table as to develop widget, this will eventually be loaded with most recent transactions
-    let test_label_text_1 = Text::new("Element 1");
-    let test_label_text_2 = Text::new("Element 2");
-    let test_label_text_3 = Text::new("Element 3");
-    let test_label_text_4 = Text::new("Element 4");
-    let row_1 = Row::new().push(test_label_text_1).push(test_label_text_2);
-    let row_2 = Row::new().push(test_label_text_3).push(test_label_text_4);
-    let rows = Column::new().push(row_1).push(row_2);
-    let table_row = TableRow::new(rows);
+    // Temp Test Data
+    use grin_gui_core::node::Identifier;
+    let tx_list = TxList {
+        txs: vec![
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 0),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 1),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 2),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 3),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 4),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 5),
+            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 6),
+        ],
+    };
+
+    let column_config = state.tx_header_state.column_config();
+
+    // Tx row titles is a row of titles above the tx scrollable.
+    // This is to add titles above each section of the tx row, to let
+    // the user easily identify what the value is.
+    let tx_row_titles = super::tx_list::titles_row_header(
+        color_palette,
+        &tx_list,
+        &mut state.tx_header_state.state,
+        &mut state.tx_header_state.columns,
+        state.tx_header_state.previous_column_key,
+        state.tx_header_state.previous_sort_direction,
+    );
+
+    // A scrollable list containing rows.
+    // Each row holds data about a single tx.
+    let mut tx_list_scrollable = Scrollable::new(&mut state.txs_scrollable_state)
+        .spacing(1)
+        .height(Length::FillPortion(1))
+        .style(style::Scrollable(color_palette));
+
+    let mut has_txs = false;
+    // Loops though the txs.
+    for (idx, tx) in tx_list.txs.into_iter().enumerate() {
+        has_txs = true;
+        // If hiding ignored addons, we will skip it.
+        /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
+            continue;
+        }*/
+
+        // Skip addon if we are filter from query and addon doesn't have fuzzy score
+        /*if query.is_some() && addon.fuzzy_score.is_none() {
+            continue;
+        }*/
+
+        // Checks if the current addon is expanded.
+        /*let is_addon_expanded = match &self.expanded_type {
+            ExpandType::Details(a) => a.primary_folder_id == addon.primary_folder_id,
+            ExpandType::Changelog { addon: a, .. } => {
+                addon.primary_folder_id == a.primary_folder_id
+            }
+            ExpandType::None => false,
+        };*/
+
+        let is_odd = if config.alternating_row_colors {
+            Some(idx % 2 != 0)
+        } else {
+            None
+        };
+
+        // A container cell which has all data about the current tx.
+        // If the tx is expanded, then this is also included in this container.
+        let tx_data_cell = tx_list::data_row_container(
+            color_palette,
+            tx,
+            false,
+            &tx_list::ExpandType::None,
+            config,
+            &column_config,
+            is_odd,
+            &None,
+        );
+
+        // Adds the addon data cell to the scrollable.
+        tx_list_scrollable = tx_list_scrollable.push(tx_data_cell);
+    }
+
+    // Bottom space below the scrollable.
+    let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
+
+    // This column gathers all the tx list elements together.
+    let mut tx_list_content = Column::new();
+
+    // Adds the rest of the elements to the content column.
+    if has_txs {
+        tx_list_content = tx_list_content
+            .push(tx_row_titles)
+            .push(tx_list_scrollable)
+    }
 
     // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(table_row)
+        .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
         .align_items(Alignment::Center);

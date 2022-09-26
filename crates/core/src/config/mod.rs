@@ -23,7 +23,7 @@ pub struct Config {
     pub theme: Option<String>,
 
     #[serde(default)]
-    pub column_config: ColumnConfig,
+    pub tx_column_config: ColumnConfig,
 
     pub window_size: Option<(u32, u32)>,
 

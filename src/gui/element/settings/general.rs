@@ -12,7 +12,7 @@ use {
     },
     iced::{
         button, pick_list, scrollable, text_input, Alignment, Button, Column, Command,
-        Container, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
+        Container, Checkbox, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };

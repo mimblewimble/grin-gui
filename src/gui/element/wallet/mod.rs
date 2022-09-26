@@ -53,7 +53,7 @@ impl StateContainer {
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
-    config: &Config
+    config: &'a Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Init => setup::data_container(color_palette, &mut state.setup_state, config),

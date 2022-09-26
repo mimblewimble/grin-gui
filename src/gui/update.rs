@@ -170,7 +170,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationHomeViewInteraction(l)) => {
             return element::wallet::operation::home::handle_message(grin_gui, l);
         }
-        Message::Interaction(Interaction::ModeSelected(mode)) => {
+        // Wallet -> Operation -> TxList
+        Message::Interaction(Interaction::WalletOperationTxListInteraction(l)) => {
+            return element::wallet::operation::tx_list::handle_message(grin_gui, l);
+        }
+         Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;
