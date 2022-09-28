@@ -135,7 +135,7 @@ impl<'a> Controller<'a> {
                 match message {
                     ControllerMessage::Shutdown => {
                         warn!("Shutdown {:?} in progress, please wait", chain_type);
-                        //self.ui.stop();
+                        // TODO this may hang on some errors
                         server.stop();
                         return;
                     }

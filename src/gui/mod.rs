@@ -19,7 +19,7 @@ use grin_gui_core::{
 use iced::{
     button, pick_list, text_input, Alignment, Application, Button, Column,
     Command, Container, Element, Length, Settings, Subscription,
-    Text,
+    Text, Row, Space,
 };
 
 use iced_native::alignment;
@@ -49,7 +49,7 @@ pub struct GrinGui {
     config: Config,
 
     /// Top-level error modal overlay
-    error_modal_state: modal::State<ModalState>,
+    error_modal_state: modal::State<element::modal::StateContainer>,
 
     /// Main menu state
     menu_state: element::menu::StateContainer,
@@ -69,13 +69,13 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
-    exit_state: element::exit::StateContainer,
     show_confirm: bool,
     exit: bool,
 }
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
+        self.error_modal_state.show(show);
         self.show_confirm = show;
     }
 
@@ -109,7 +109,7 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-            exit_state: Default::default(),
+            //exit_state: Default::default(),
             show_confirm: false,
             exit: false,
         }
@@ -238,64 +238,51 @@ impl Application for GrinGui {
 
         let menu_state = self.menu_state.clone();
 
-        let mut content = Column::new();
+        let mut content = Column::new().push(element::menu::data_container(
+            &mut self.menu_state,
+            color_palette,
+            &mut self.error,
+        ));
 
-       if self.show_confirm {
-            let exit_overlay = element::exit::data_container(color_palette, &mut self.exit_state);
-            content = content.push(exit_overlay)
-        } else {
-            content = content.push(element::menu::data_container(
-                &mut self.menu_state,
-                color_palette,
-                &mut self.error,
-            ));
-
-            // Spacer between menu and content.
-            //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
-            match menu_state.mode {
-                element::menu::Mode::Wallet => {
-                    let setup_container = element::wallet::data_container(
-                        color_palette,
-                        &mut self.wallet_state,
-                        &self.config
-                    );
-                    content = content.push(setup_container)
-                }
-                element::menu::Mode::Node => {
-                    let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
-                    let node_container = element::node::data_container(
-                        color_palette,
-                        &mut self.node_state,
-                        chain_type,
-                    );
-                    content = content.push(node_container)
-                }
-                 element::menu::Mode::About => {
-                    let about_container =
-                        element::about::data_container(color_palette, &None, &mut self.about_state);
-                    content = content.push(about_container)
-                }
-                element::menu::Mode::Settings => {
-                    content = content.push(element::settings::data_container(
-                        &mut self.settings_state,
-                        &mut self.config,
-                        &mut self.wallet_settings_state,
-                        &mut self.node_settings_state,
-                        &mut self.general_settings_state,
-                        color_palette,
-                    ))
-                    /*if let Some(settings_container) = views.get_mut(settings_view_index) {
-                        content = content.push(settings_container.view.data_container(color_palette))
-                    }*/
-                }
+        // Spacer between menu and content.
+        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+        match menu_state.mode {
+            element::menu::Mode::Wallet => {
+                let setup_container = element::wallet::data_container(
+                   color_palette,
+                    &mut self.wallet_state,
+                    &self.config
+                );
+                content = content.push(setup_container)
+            }
+            element::menu::Mode::Node => {
+                let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
+                let node_container = element::node::data_container(
+                    color_palette,
+                    &mut self.node_state,
+                    chain_type,
+                );
+                content = content.push(node_container)
+            }
+             element::menu::Mode::About => {
+                let about_container =
+                    element::about::data_container(color_palette, &None, &mut self.about_state);
+                content = content.push(about_container)
+            }
+            element::menu::Mode::Settings => {
+                content = content.push(element::settings::data_container(
+                    &mut self.settings_state,
+                    &mut self.config,
+                    &mut self.wallet_settings_state,
+                    &mut self.node_settings_state,
+                    &mut self.general_settings_state,
+                    color_palette,
+                ))
+                /*if let Some(settings_container) = views.get_mut(settings_view_index) {
+                    content = content.push(settings_container.view.data_container(color_palette))
+                }*/
             }
         }
-
-        let error_cause = if let Some(e) = &self.error {
-            error_cause_string(&e)
-        } else {
-            "None".into()
-        };
  
         let content: Element<Self::Message> = 
         // Wraps everything in a container.
@@ -305,41 +292,22 @@ impl Application for GrinGui {
             .style(style::NormalBackgroundContainer(color_palette))
             .into();
 
+        let show_confirm = self.show_confirm.into();
+        let error_cause = if let Some(e) = &self.error {
+            error_cause_string(&e)
+        } else {
+            "".into()
+        };
+
         Modal::new(&mut self.error_modal_state, content, move|state| {
-            Card::new(
-                Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
-                Text::new(&error_cause).size(DEFAULT_FONT_SIZE)
-            )
-              .foot(
-                Column::new()
-                    .spacing(10)
-                    .padding(5)
-                    .width(Length::Fill)
-                    .align_items(Alignment::Center)
-                    .push(
-                        Button::new(
-                            &mut state.cancel_state,
-                            Text::new(localized_string("ok-caps")).size(DEFAULT_FONT_SIZE).horizontal_alignment(alignment::Horizontal::Center),
-                        )
-                        .style(style::DefaultButton(color_palette))
-                        .on_press(Message::Interaction(Interaction::CloseErrorModal)),
-                    )
-                    .push(
-                        Button::new(
-                            &mut state.ok_state,
-                            Text::new(localized_string("copy-to-clipboard")).size(SMALLER_FONT_SIZE).horizontal_alignment(alignment::Horizontal::Center),
-                        )
-                        .style(style::NormalTextButton(color_palette))
-                        .on_press(Message::Interaction(Interaction::WriteToClipboard(error_cause.clone()))),
-                    )
-            )
-            .max_width(500)
-            .on_close(Message::Interaction(Interaction::CloseErrorModal))
-            .style(style::NormalModalCardContainer(color_palette))
-            .into()
+            if show_confirm {
+                element::modal::exit_card(color_palette, state).into()
+            } else {
+                element::modal::error_card(color_palette, state, error_cause.clone()).into()
+            }
         })
-        .backdrop(Message::Interaction(Interaction::CloseErrorModal))
-        .on_esc(Message::Interaction(Interaction::CloseErrorModal))
+        //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
+        //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
         .style(style::NormalModalContainer(color_palette))
         .into()
 

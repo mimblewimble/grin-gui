@@ -194,8 +194,9 @@
     "status-line-title-main": "Status Mainnet",
     "status-line-title-test": "Status Testnet",
     "use-testnet": "This is a testnet wallet",
-    "exit-confirm-title": "Yes, exit now",
-    "exit-confirm-msg": "Are you sure you want to exit?",
+    "exit-confirm-title": "Quit application",
+    "exit-confirm-msg": "Are you sure you want to quit the application? This will shutdown any nodes that you have running.",
     "yes": "Yes",
+    "no": "No",
     "cancel":"Cancel"
 }
