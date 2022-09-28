@@ -49,7 +49,7 @@ pub struct GrinGui {
     config: Config,
 
     /// Top-level error modal overlay
-    error_modal_state: modal::State<element::modal::StateContainer>,
+    modal_state: modal::State<element::modal::StateContainer>,
 
     /// Main menu state
     menu_state: element::menu::StateContainer,
@@ -75,7 +75,7 @@ pub struct GrinGui {
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
-        self.error_modal_state.show(show);
+        self.modal_state.show(show);
         self.show_confirm = show;
     }
 
@@ -100,7 +100,7 @@ impl<'a> Default for GrinGui {
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
-            error_modal_state: Default::default(),
+            modal_state: Default::default(),
             menu_state: Default::default(),
             wallet_state: Default::default(),
             node_state: Default::default(),
@@ -109,7 +109,6 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-            //exit_state: Default::default(),
             show_confirm: false,
             exit: false,
         }
@@ -299,7 +298,7 @@ impl Application for GrinGui {
             "".into()
         };
 
-        Modal::new(&mut self.error_modal_state, content, move|state| {
+        Modal::new(&mut self.modal_state, content, move|state| {
             if show_confirm {
                 element::modal::exit_card(color_palette, state).into()
             } else {
