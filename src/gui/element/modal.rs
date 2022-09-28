@@ -35,7 +35,7 @@ pub fn exit_card<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let cancel_button_label =
-        Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
+        Container::new(Text::new(localized_string("no")).size(DEFAULT_FONT_SIZE))
             .center_x()
             .align_x(alignment::Horizontal::Center);
 
