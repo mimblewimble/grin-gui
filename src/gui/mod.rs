@@ -69,14 +69,14 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
-    show_confirm: bool,
+    show_exit: bool,
     exit: bool,
 }
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
         self.modal_state.show(show);
-        self.show_confirm = show;
+        self.show_exit = show;
     }
 
     pub fn safe_exit (&mut self) {
@@ -109,7 +109,7 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-            show_confirm: false,
+            show_exit: false,
             exit: false,
         }
     }
@@ -291,7 +291,7 @@ impl Application for GrinGui {
             .style(style::NormalBackgroundContainer(color_palette))
             .into();
 
-        let show_confirm = self.show_confirm.into();
+        let show_exit = self.show_exit;
         let error_cause = if let Some(e) = &self.error {
             error_cause_string(&e)
         } else {
@@ -299,7 +299,7 @@ impl Application for GrinGui {
         };
 
         Modal::new(&mut self.modal_state, content, move|state| {
-            if show_confirm {
+            if show_exit {
                 element::modal::exit_card(color_palette, state).into()
             } else {
                 element::modal::error_card(color_palette, state, error_cause.clone()).into()
@@ -468,12 +468,6 @@ pub enum Interaction {
     /// Application shutdown
     Exit,
     ExitCancel
-}
-
-#[derive(Default)]
-struct ModalState {
-    cancel_state: button::State,
-    ok_state: button::State,
 }
 
 pub struct ThemeState {
