@@ -99,7 +99,7 @@ pub enum LocalViewInteraction {
     ToggleIsTestnet(bool),
     DisplayName(String),
     CreateWallet,
-    WalletCreatedOk((String, String, String)),
+    WalletCreatedOk((String, String, String, String, String)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     ShowFolderPicker,
 }
@@ -189,10 +189,10 @@ pub fn handle_message<'a>(
                 }
             }));
         }
-        LocalViewInteraction::WalletCreatedOk((tld, mnemonic, display_name)) => {
-            let mut saved_wallet = Wallet::default();
-            saved_wallet.tld = Some(PathBuf::from(&tld));
-            saved_wallet.display_name = display_name;
+        LocalViewInteraction::WalletCreatedOk((tld, mnemonic, display_name, node_url, secret_path)) => {
+            let tld = Some(PathBuf::from(&tld));
+            let saved_wallet = Wallet::new(tld, display_name, node_url, secret_path);
+
             let index = grin_gui.config.add_wallet(saved_wallet);
             grin_gui.config.current_wallet_index = Some(index);
             grin_gui.wallet_state.clear_config_missing();

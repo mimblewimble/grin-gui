@@ -15,8 +15,24 @@ pub struct Wallet {
     pub use_embedded_node: bool,
     /// If true, this is a testnet wallet
     pub is_testnet: bool,
+    /// Node url
+    pub node_url: String,
+    /// Node secret path
+    pub secret_path: String,
 }
 
+impl Wallet {
+    pub fn new(tld: Option<PathBuf>, display_name: String, node_url: String, secret_path: String) -> Self {
+        Wallet {
+            tld,
+            display_name,
+            use_embedded_node: true,
+            is_testnet: false,
+            node_url,
+            secret_path,
+        }
+    }
+}
 impl Default for Wallet {
     fn default() -> Self {
         Wallet {
@@ -24,6 +40,8 @@ impl Default for Wallet {
             display_name: "Default".to_owned(),
             use_embedded_node: true,
             is_testnet: false,
+            node_url: "Default".to_owned(),
+            secret_path: "Default".to_owned(),
         }
     }
 }
