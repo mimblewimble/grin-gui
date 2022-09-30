@@ -97,7 +97,7 @@ where
             wallet_is_open: false,
             check_node_foreign_api_secret_path: None,
             node_client,
-            use_embedded_node: false,
+            use_embedded_node: true,
         }
     }
 
@@ -219,7 +219,7 @@ where
         top_level_directory:PathBuf,
         display_name:String,
         chain_type: global::ChainTypes
-    ) -> Result<(String, String, String), GrinWalletInterfaceError> {
+    ) -> Result<(String, String, String, String, String), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
 
         let w = wallet_interface.read().unwrap();
@@ -254,8 +254,10 @@ where
             }
             None => ("".to_string(), "".to_string()),
         };
+        let node_url = w.node_client.node_url().clone().to_owned();
+        let secret_path = w.check_node_foreign_api_secret_path.clone().unwrap_or_default();
 
-        Ok((tld, ret_phrase, display_name))
+        Ok((tld, ret_phrase, display_name, node_url, secret_path))
     }
 
     pub async fn open_wallet(
