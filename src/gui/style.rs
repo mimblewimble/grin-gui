@@ -11,7 +11,7 @@ impl modal::StyleSheet for NormalModalContainer {
     fn active(&self) -> modal::Style {
         modal::Style {
             background: Background::Color(Color {
-                a: 0.6,
+                a: 0.9,
                 ..self.0.base.foreground
             }),
         }

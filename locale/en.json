@@ -195,6 +195,7 @@
     "status-line-title-test": "Status Testnet",
     "wallet-list": "Wallets",
     "yes": "Yes",
+    "no": "No",
     "cancel":"Cancel",
     "display-name":"Display Name",
     "top-level-domain":"Wallet Directory",
@@ -202,6 +203,6 @@
     "load-wallet":"Load Wallet",
     "select-other":"Locate Wallet",
     "use-testnet": "This is a testnet wallet",
-    "exit-confirm-title": "Yes, exit now",
-    "exit-confirm-msg": "Are you sure you want to exit?"
+    "exit-confirm-title": "Quit application",
+    "exit-confirm-msg": "Are you sure you want to quit the application? This will shutdown any nodes that you have running."
 }
