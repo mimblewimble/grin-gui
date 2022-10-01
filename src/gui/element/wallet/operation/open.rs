@@ -98,9 +98,7 @@ pub fn handle_message<'a>(
                     let n = grin_gui.node_interface.read().unwrap();
 
                     // set wallet interface chain_type
-                    if active_wallet.is_testnet {
-                        chain_type = Testnet; 
-                    }
+                    chain_type = active_wallet.chain_type;
 
                     if let Some(c) = &n.config {
                         if let Some(m) = &c.members {

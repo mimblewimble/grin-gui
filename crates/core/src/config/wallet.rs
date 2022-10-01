@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use grin_core::global::ChainTypes;
 
 /// Struct for settings related to World of Warcraft.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 #[serde(default)]
 pub struct Wallet {
     #[serde(default)]
@@ -13,35 +14,36 @@ pub struct Wallet {
     pub display_name: String,
     /// If true, override the grin_wallet.toml configured node and use the internal one
     pub use_embedded_node: bool,
-    /// If true, this is a testnet wallet
-    pub is_testnet: bool,
+    /// Chain type of wallet
+    pub chain_type: ChainTypes,
     /// Node url
-    pub node_url: String,
+    pub node_url: Option<String>,
     /// Node secret path
-    pub secret_path: String,
+    pub secret_path: Option<String>,
 }
 
 impl Wallet {
-    pub fn new(tld: Option<PathBuf>, display_name: String, node_url: String, secret_path: String) -> Self {
-        Wallet {
+    pub fn new(tld: Option<PathBuf>, display_name: String, chain_type: ChainTypes) -> Self {
+        Self {
             tld,
             display_name,
             use_embedded_node: true,
-            is_testnet: false,
-            node_url,
-            secret_path,
+            chain_type,
+            node_url: None,
+            secret_path: None,
         }
     }
 }
+
 impl Default for Wallet {
     fn default() -> Self {
         Wallet {
             tld: None,
             display_name: "Default".to_owned(),
             use_embedded_node: true,
-            is_testnet: false,
-            node_url: "Default".to_owned(),
-            secret_path: "Default".to_owned(),
+            chain_type: ChainTypes::Mainnet,
+            node_url: None,
+            secret_path: None,
         }
     }
 }

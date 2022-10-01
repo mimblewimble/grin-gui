@@ -15,7 +15,7 @@ use {
     grin_gui_core::{
         config::Wallet,
         fs::PersistentData,
-        node::ChainTypes::{Mainnet, Testnet},
+        node::ChainTypes::{self, Mainnet, Testnet},
         wallet::WalletInterface,
     },
     iced::{
@@ -99,7 +99,7 @@ pub enum LocalViewInteraction {
     ToggleIsTestnet(bool),
     DisplayName(String),
     CreateWallet,
-    WalletCreatedOk((String, String, String, String, String)),
+    WalletCreatedOk((String, String, String, ChainTypes)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     ShowFolderPicker,
 }
@@ -189,9 +189,9 @@ pub fn handle_message<'a>(
                 }
             }));
         }
-        LocalViewInteraction::WalletCreatedOk((tld, mnemonic, display_name, node_url, secret_path)) => {
+        LocalViewInteraction::WalletCreatedOk((tld, mnemonic, display_name, chain_type)) => {
             let tld = Some(PathBuf::from(&tld));
-            let saved_wallet = Wallet::new(tld, display_name, node_url, secret_path);
+            let saved_wallet = Wallet::new(tld, display_name, chain_type);
 
             let index = grin_gui.config.add_wallet(saved_wallet);
             grin_gui.config.current_wallet_index = Some(index);
