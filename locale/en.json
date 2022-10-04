@@ -91,6 +91,7 @@
     "setup-grin-passwords-okay": "Password okay",
     "setup-grin-wallet-success": "Wallet Created",
     "setup-grin-wallet-done": "Done",
+    "setup-grin-wallet-recovery-phrase-title": "Recovery phrase",
     "setup-grin-wallet-recovery-phrase": "Your wallet recovery phrase is shown below.\nStore these words in a non-digital format and be sure to keep them safe.",
     "setup-weakauras-description": "Please select an Account to manage",
     "setup-weakauras-title": "Manage your Wago data with Ajour!",
