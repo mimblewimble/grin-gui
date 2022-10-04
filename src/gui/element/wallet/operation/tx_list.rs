@@ -267,7 +267,7 @@ impl Default for HeaderState {
                     hidden: false,
                     order: 3,
                 },
-                 ColumnState {
+                ColumnState {
                     key: ColumnKey::ConfirmationTime,
                     btn_state: Default::default(),
                     width: Length::Units(110),
@@ -412,7 +412,7 @@ impl Default for ColumnSettings {
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                 ColumnSettingState {
+                ColumnSettingState {
                     key: ColumnKey::ConfirmationTime,
                     order: 4,
                     up_btn_state: Default::default(),
@@ -664,7 +664,7 @@ impl Default for TxListHeaderState {
                     hidden: false,
                     order: 3,
                 },
-                 TxListColumnState {
+                TxListColumnState {
                     key: ColumnKey::ConfirmationTime,
                     btn_state: Default::default(),
                     width: Length::Units(105),
@@ -801,7 +801,7 @@ impl Default for TxListColumnSettings {
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                 TxListColumnSettingState {
+                TxListColumnSettingState {
                     key: ColumnKey::ConfirmationTime,
                     order: 4,
                     up_btn_state: Default::default(),
@@ -1112,7 +1112,7 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let display_id = Text::new(id).size(DEFAULT_FONT_SIZE);
+        let display_id = Text::new(id.clone()).size(DEFAULT_FONT_SIZE);
 
         let id_container = Container::new(display_id)
             .padding(5)
@@ -1208,8 +1208,7 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-
-    let display_status = Text::new(status).size(DEFAULT_FONT_SIZE);
+        let display_status = Text::new(status).size(DEFAULT_FONT_SIZE);
 
         let display_status_container = Container::new(display_status)
             .padding(5)
@@ -1220,7 +1219,6 @@ pub fn data_row_container<'a, 'b>(
 
         row_containers.push((idx, display_status_container));
     }
-
 
     /*if let Some((idx, width)) = column_config
         .iter()
@@ -1277,7 +1275,7 @@ pub fn data_row_container<'a, 'b>(
         })
         .next()
     {
-        let display_tx_type = Text::new(tx_type).size(SMALLER_FONT_SIZE);
+        let display_tx_type = Text::new(tx_type.clone()).size(SMALLER_FONT_SIZE);
         let display_tx_type_container = Container::new(display_tx_type)
             .height(default_height)
             .width(*width)
@@ -1544,14 +1542,46 @@ pub fn data_row_container<'a, 'b>(
 
     let mut tx_column = Column::new().push(row);
 
-    /*if is_addon_expanded {
+    if is_tx_expanded {
         match expand_type {
             ExpandType::Details(_) => {
-                let notes = notes.unwrap_or_else(|| localized_string("no-addon-description"));
-                let author = author.unwrap_or_else(|| "-".to_string());
+                // ID
+                let id_title_text =
+                    Text::new(format!("{}: ", localized_string("tx-id"))).size(DEFAULT_FONT_SIZE);
+                let id_title_container = Container::new(id_title_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let id_text = Text::new(id).size(DEFAULT_FONT_SIZE);
+                let id_text_container = Container::new(id_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let id_row = Row::new()
+                    .push(id_title_container)
+                    .push(Space::new(Length::Units(5), Length::Units(0)))
+                    .push(id_text_container);
+
+                // Transaction type
+                let type_title_text =
+                    Text::new(format!("{}: ", localized_string("tx-type"))).size(DEFAULT_FONT_SIZE);
+                let type_title_container = Container::new(type_title_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let type_text = Text::new(tx_type).size(DEFAULT_FONT_SIZE);
+                let type_text_container = Container::new(type_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let type_row = Row::new()
+                    .push(type_title_container)
+                    .push(Space::new(Length::Units(5), Length::Units(0)))
+                    .push(type_text_container);
+
+                /*let notes = notes.unwrap_or_else(|| localized_string("no-addon-description"));
+                let author = author.unwrap_or_else(|| "-".to_string());*/
                 let left_spacer = Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0));
                 let space = Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING * 2));
                 let bottom_space = Space::new(Length::Units(0), Length::Units(4));
+
+                /*
                 let notes_title_text =
                     Text::new(localized_string("summary")).size(DEFAULT_FONT_SIZE);
                 let notes_text = Text::new(notes).size(DEFAULT_FONT_SIZE);
@@ -1685,30 +1715,30 @@ pub fn data_row_container<'a, 'b>(
                         }));
                 }
 
-                let changelog_button: Element<Interaction> = changelog_button.into();
+                let changelog_button: Element<Interaction> = changelog_button.into();*/
 
-                let test_row = Row::new()
-                    .push(release_channel_list)
-                    .push(release_date_text_container);
+                /*let test_row = Row::new()
+                .push(release_channel_list)
+                .push(release_date_text_container);*/
 
-                let button_row = Row::new()
-                    .push(Space::new(Length::Fill, Length::Units(0)))
-                    .push(website_button.map(Message::Interaction))
-                    .push(Space::new(Length::Units(5), Length::Units(0)))
-                    .push(changelog_button.map(Message::Interaction))
-                    .push(Space::new(Length::Units(5), Length::Units(0)))
-                    .push(ignore_button.map(Message::Interaction))
-                    .push(Space::new(Length::Units(5), Length::Units(0)))
-                    .push(delete_savedvariables_button.map(Message::Interaction))
-                    .push(Space::new(Length::Units(5), Length::Units(0)))
-                    .push(delete_button.map(Message::Interaction))
-                    .width(Length::Fill);
+                /*let button_row = Row::new()
+                .push(Space::new(Length::Fill, Length::Units(0)))
+                .push(website_button.map(Message::Interaction))
+                .push(Space::new(Length::Units(5), Length::Units(0)))
+                .push(changelog_button.map(Message::Interaction))
+                .push(Space::new(Length::Units(5), Length::Units(0)))
+                .push(ignore_button.map(Message::Interaction))
+                .push(Space::new(Length::Units(5), Length::Units(0)))
+                .push(delete_savedvariables_button.map(Message::Interaction))
+                .push(Space::new(Length::Units(5), Length::Units(0)))
+                .push(delete_button.map(Message::Interaction))
+                .width(Length::Fill);*/
                 let column = Column::new()
-                    .push(author_title_container)
+                    .push(id_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
-                    .push(author_text)
-                    .push(Space::new(Length::Units(0), Length::Units(15)))
-                    .push(notes_title_container)
+                    .push(type_row)
+                    .push(Space::new(Length::Units(0), Length::Units(3)))
+                    /* .push(notes_title_container)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(notes_text)
                     .push(Space::new(Length::Units(0), Length::Units(15)))
@@ -1716,7 +1746,7 @@ pub fn data_row_container<'a, 'b>(
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(test_row)
                     .push(space)
-                    .push(button_row)
+                    .push(button_row)*/
                     .push(bottom_space);
                 let details_container = Container::new(column)
                     .width(Length::Fill)
@@ -1732,77 +1762,13 @@ pub fn data_row_container<'a, 'b>(
                     ))
                     .spacing(1);
 
-                addon_column = addon_column
-                    .push(Space::new(Length::FillPortion(1), Length::Units(1)))
-                    .push(row);
-            }
-            ExpandType::Changelog { changelog, .. } => {
-                let left_spacer = Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0));
-                let bottom_space = Space::new(Length::Units(0), Length::Units(4));
-
-                let changelog_title_text =
-                    Text::new(localized_string("changelog")).size(DEFAULT_FONT_SIZE);
-                let changelog_title_container = Container::new(changelog_title_text)
-                    .style(style::BrightForegroundContainer(color_palette));
-
-                let changelog_text = match changelog {
-                    Some(changelog) => changelog
-                        .text
-                        .as_ref()
-                        .cloned()
-                        .unwrap_or_else(|| localized_string("changelog-press-full-changelog")),
-                    _ => localized_string("loading"),
-                };
-
-                let mut full_changelog_button = Button::new(
-                    &mut addon.changelog_btn_state,
-                    Text::new(localized_string("full-changelog")).size(DEFAULT_FONT_SIZE),
-                )
-                .style(style::DefaultButton(color_palette));
-
-                if let Some(url) = &changelog_url {
-                    full_changelog_button =
-                        full_changelog_button.on_press(Interaction::OpenLink(url.clone()));
-                }
-
-                let full_changelog_button: Element<Interaction> = full_changelog_button.into();
-
-                let mut button_row =
-                    Row::new().push(Space::new(Length::FillPortion(1), Length::Units(0)));
-
-                if changelog_url.is_some() {
-                    button_row = button_row.push(full_changelog_button.map(Message::Interaction));
-                }
-
-                let column = Column::new()
-                    .push(changelog_title_container)
-                    .push(Space::new(Length::Units(0), Length::Units(12)))
-                    .push(Text::new(changelog_text).size(DEFAULT_FONT_SIZE))
-                    .push(Space::new(Length::Units(0), Length::Units(8)))
-                    .push(button_row)
-                    .push(bottom_space);
-
-                let details_container = Container::new(column)
-                    .width(Length::Fill)
-                    .padding(20)
-                    .style(style::FadedNormalForegroundContainer(color_palette));
-
-                let row = Row::new()
-                    .push(left_spacer)
-                    .push(details_container)
-                    .push(Space::new(
-                        Length::Units(DEFAULT_PADDING + 5),
-                        Length::Units(0),
-                    ))
-                    .spacing(1);
-
-                addon_column = addon_column
+                tx_column = tx_column
                     .push(Space::new(Length::FillPortion(1), Length::Units(1)))
                     .push(row);
             }
             ExpandType::None => {}
         }
-    }*/
+    }
 
     let mut table_row = TableRow::new(tx_column)
         .width(Length::Fill)
@@ -1833,7 +1799,24 @@ pub fn handle_message<'a>(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
-        LocalViewInteraction::Expand(expand_type) => {}
+        LocalViewInteraction::Expand(expand_type) => match &expand_type {
+            ExpandType::Details(tx) => {
+                log::debug!("Interaction::Expand(Tx({:?}))", &tx.id,);
+                let should_close = match &state.expanded_type {
+                    ExpandType::Details(a) => tx.id == a.id,
+                    _ => false,
+                };
+
+                if should_close {
+                    state.expanded_type = ExpandType::None;
+                } else {
+                    state.expanded_type = expand_type.clone();
+                }
+            }
+            ExpandType::None => {
+                log::debug!("Interaction::Expand(ExpandType::None)");
+            }
+        },
     }
     Ok(Command::none())
 }

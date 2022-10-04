@@ -1,4 +1,4 @@
-use super::tx_list;
+use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
@@ -31,6 +31,7 @@ pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
     txs_scrollable_state: scrollable::State,
+    pub expanded_type: ExpandType,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 }
@@ -41,6 +42,7 @@ impl Default for StateContainer {
             wallet_info: Default::default(),
             wallet_status: Default::default(),
             txs_scrollable_state: Default::default(),
+            expanded_type: ExpandType::None,
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
         }
@@ -248,14 +250,11 @@ pub fn data_container<'a>(
             continue;
         }*/
 
-        // Checks if the current addon is expanded.
-        /*let is_addon_expanded = match &self.expanded_type {
-            ExpandType::Details(a) => a.primary_folder_id == addon.primary_folder_id,
-            ExpandType::Changelog { addon: a, .. } => {
-                addon.primary_folder_id == a.primary_folder_id
-            }
+        // Checks if the current tx is expanded.
+        let is_tx_expanded = match &state.expanded_type {
+            ExpandType::Details(a) => a.id == tx.id,
             ExpandType::None => false,
-        };*/
+        };
 
         let is_odd = if config.alternating_row_colors {
             Some(idx % 2 != 0)
@@ -268,8 +267,8 @@ pub fn data_container<'a>(
         let tx_data_cell = tx_list::data_row_container(
             color_palette,
             tx,
-            false,
-            &tx_list::ExpandType::None,
+            is_tx_expanded,
+            &state.expanded_type,
             config,
             &column_config,
             is_odd,

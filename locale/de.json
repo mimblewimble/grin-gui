@@ -202,5 +202,7 @@
     "tx-creation-time": "Creation Time",
     "tx-confirmation-time": "Confirmation Time",
     "tx-status": "Status",
-    "tx-net-difference": "Amount"
+    "tx-net-difference": "Amount",
+    "tx-id": "ID",
+    "tx-type": "Type"
 }
