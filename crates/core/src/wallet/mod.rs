@@ -139,12 +139,13 @@ where
     fn inst_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
+        top_level_directory: PathBuf,
     ) -> Result<
         Arc<Mutex<Box<dyn WalletInst<'static, L, C, keychain::ExtKeychain>>>>,
         GrinWalletInterfaceError,
     > {
         let mut w = wallet_interface.write().unwrap();
-        let data_path = Some(get_grin_wallet_default_path(&chain_type));
+        let data_path = Some(top_level_directory.clone());
 
         let config =
             grin_wallet_config::initial_setup_wallet(&chain_type, data_path, true).unwrap();
@@ -176,7 +177,7 @@ where
             let mut wallet_lock = wallet_inst.lock();
             let lc = wallet_lock.lc_provider().unwrap();
             let _ = lc.set_top_level_directory(
-                &get_grin_wallet_default_path(&chain_type).to_str().unwrap(),
+                &top_level_directory.to_str().unwrap()
             );
         }
 
@@ -188,6 +189,7 @@ where
     fn inst_owner_api(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
+        top_level_directory: PathBuf,
     ) -> Result<(), GrinWalletInterfaceError> {
         {
             let w = wallet_interface.read().unwrap();
@@ -197,7 +199,7 @@ where
             }
         }
 
-        let wallet_inst = WalletInterface::inst_wallet(wallet_interface.clone(), chain_type)?;
+        let wallet_inst = WalletInterface::inst_wallet(wallet_interface.clone(), chain_type, top_level_directory)?;
         let mut w = wallet_interface.write().unwrap();
         w.owner_api = Some(Owner::new(wallet_inst.clone(), None));
         global::set_local_chain_type(chain_type);
@@ -212,7 +214,7 @@ where
         display_name: String,
         chain_type: global::ChainTypes,
     ) -> Result<(String, String, String, global::ChainTypes), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
+        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
 
         let w = wallet_interface.read().unwrap();
 
@@ -256,7 +258,7 @@ where
         top_level_directory: PathBuf,
         chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
+        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
 
         let mut w = wallet_interface.write().unwrap();
 
