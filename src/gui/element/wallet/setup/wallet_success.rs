@@ -41,6 +41,7 @@ pub fn handle_message(
     match message {
         LocalViewInteraction::Submit => {
             grin_gui.wallet_state.mode = super::super::Mode::Operation;
+            grin_gui.wallet_state.setup_state.mode = crate::gui::element::wallet::setup::Mode::Init;
         }
     }
     Ok(Command::none())
