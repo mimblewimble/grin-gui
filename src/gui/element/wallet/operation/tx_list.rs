@@ -1,15 +1,16 @@
 use {
-    super::super::super::{SMALLER_FONT_SIZE, DEFAULT_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
-        config::Config,
-        theme::ColorPalette,
-        wallet::TxLogEntry,
+        config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
     grin_gui_widgets::{header, Header, TableRow},
-    iced::{button, pick_list, scrollable, text_input, Button, Column, Command, Container, Element, Length, Row, Space, Text},
+    iced::{
+        button, pick_list, scrollable, text_input, Button, Column, Command, Container, Element,
+        Length, Row, Space, Text,
+    },
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
     strfmt::strfmt,
@@ -32,7 +33,7 @@ For reference:
 
 Transaction Log - Account 'default' - Block Height: 1926614
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Id  Type         Shared Transaction Id  Creation Time        TTL Cutoff Height  Confirmed?  Confirmation Time    Num.    Num.     Amount          Amount   Fee        Net             Payment   Kernel  Tx 
+ Id  Type         Shared Transaction Id  Creation Time        TTL Cutoff Height  Confirmed?  Confirmation Time    Num.    Num.     Amount          Amount   Fee        Net             Payment   Kernel  Tx
                                                                                                                   Inputs  Outputs  Credited        Debited             Difference      Proof             Data
 =========================================================================================================================================================================================================
  0   Received Tx  None                   2021-03-31 08:41:34  None               true        2021-03-31 08:41:34  0       1        x.x             0.0      None  x.x  None      None    None
@@ -50,6 +51,7 @@ pub enum ColumnKey {
     Type,
     SharedTransactionId,
     CreationTime,
+    Status,
     TTLCutoff,
     Height,
     IsConfirmed,
@@ -75,17 +77,18 @@ impl ColumnKey {
             Id => localized_string("tx_id"),
             Type => localized_string("tx_type"),
             SharedTransactionId => localized_string("tx_shared_id"),
-            CreationTime => localized_string("tx_creation_time"),
+            CreationTime => localized_string("tx-creation-time"),
+            Status => localized_string("tx-status"),
             TTLCutoff => localized_string("tx_ttl_cutoff"),
             Height => localized_string("tx_height"),
             IsConfirmed => localized_string("tx_is_confirmed"),
-            ConfirmationTime => localized_string("tx_confirmation_time"),
+            ConfirmationTime => localized_string("tx-confirmation-time"),
             NumInputs => localized_string("tx_num_inputs"),
             NumOutputs => localized_string("tx_num_outputs"),
             AmountCredited => localized_string("tx_amount_credited"),
             AmountDebited => localized_string("tx_amount_debited"),
             Fee => localized_string("tx_fee"),
-            NetDifference => localized_string("tx_net_difference"),
+            NetDifference => localized_string("tx-net-difference"),
             PaymentProof => localized_string("tx_payment_proof"),
             Kernel => localized_string("tx_kernel"),
             TxData => localized_string("tx_data"),
@@ -100,17 +103,18 @@ impl ColumnKey {
             Id => "tx_id",
             Type => "tx_type",
             SharedTransactionId => "tx_shared_id",
-            CreationTime => "tx_creation_time",
+            CreationTime => "tx-creation-time",
+            Status => "tx-status",
             TTLCutoff => "tx_ttl_cutoff",
             Height => "tx_height",
             IsConfirmed => "tx_is_confirmed",
-            ConfirmationTime => "tx_confirmation_time",
+            ConfirmationTime => "tx-confirmation-time",
             NumInputs => "tx_num_inputs",
             NumOutputs => "tx_num_outputs",
             AmountCredited => "tx_amount_credited",
             AmountDebited => "tx_amount_debited",
             Fee => "tx_fee",
-            NetDifference => "tx_net_difference",
+            NetDifference => "tx-net-difference",
             PaymentProof => "tx_payment_proof",
             Kernel => "tx_kernel",
             TxData => "tx_data",
@@ -128,16 +132,17 @@ impl From<&str> for ColumnKey {
             "tx_type" => ColumnKey::Type,
             "tx_shared_id" => ColumnKey::SharedTransactionId,
             "tx_creation_time" => ColumnKey::CreationTime,
+            "tx-status" => ColumnKey::Status,
             "tx_ttl_cutoff" => ColumnKey::TTLCutoff,
             "tx_height" => ColumnKey::Height,
             "tx_is_confirmed" => ColumnKey::IsConfirmed,
-            "tx_confirmation_time" => ColumnKey::ConfirmationTime,
+            "tx-confirmation-time" => ColumnKey::ConfirmationTime,
             "tx_num_inputs" => ColumnKey::NumInputs,
             "tx_num_outputs" => ColumnKey::NumOutputs,
             "tx_amount_credited" => ColumnKey::AmountCredited,
             "tx_amount_debited" => ColumnKey::AmountDebited,
             "tx_fee" => ColumnKey::Fee,
-            "tx_net_difference" => ColumnKey::NetDifference,
+            "tx-net-difference" => ColumnKey::NetDifference,
             "tx_payment_proof" => ColumnKey::PaymentProof,
             "tx_kernel" => ColumnKey::Kernel,
             "tx_data" => ColumnKey::TxData,
@@ -238,120 +243,127 @@ impl Default for HeaderState {
                     key: ColumnKey::Id,
                     btn_state: Default::default(),
                     width: Length::Units(20),
-                    hidden: false,
+                    hidden: true,
                     order: 0,
+                },
+                ColumnState {
+                    key: ColumnKey::NetDifference,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: false,
+                    order: 1,
+                },
+                ColumnState {
+                    key: ColumnKey::CreationTime,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: false,
+                    order: 2,
+                },
+                ColumnState {
+                    key: ColumnKey::Status,
+                    btn_state: Default::default(),
+                    width: Length::Units(300),
+                    hidden: false,
+                    order: 3,
+                },
+                 ColumnState {
+                    key: ColumnKey::ConfirmationTime,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: true,
+                    order: 4,
                 },
                 ColumnState {
                     key: ColumnKey::Type,
                     btn_state: Default::default(),
                     width: Length::Units(150),
-                    hidden: false,
-                    order: 1,
+                    hidden: true,
+                    order: 5,
                 },
                 ColumnState {
                     key: ColumnKey::SharedTransactionId,
                     btn_state: Default::default(),
                     width: Length::Units(150),
-                    hidden: false,
-                    order: 2,
-                },
-                ColumnState {
-                    key: ColumnKey::CreationTime,
-                    btn_state: Default::default(),
-                    width: Length::Units(85),
-                    hidden: false,
-                    order: 3,
+                    hidden: true,
+                    order: 6,
                 },
                 ColumnState {
                     key: ColumnKey::TTLCutoff,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 4,
+                    order: 7,
                 },
                 ColumnState {
                     key: ColumnKey::Height,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 5,
+                    order: 8,
                 },
                 ColumnState {
                     key: ColumnKey::IsConfirmed,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 6,
-                },
-                ColumnState {
-                    key: ColumnKey::ConfirmationTime,
-                    btn_state: Default::default(),
-                    width: Length::Units(110),
-                    hidden: true,
-                    order: 7,
+                    order: 9,
                 },
                 ColumnState {
                     key: ColumnKey::NumInputs,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 8,
+                    order: 10,
                 },
                 ColumnState {
                     key: ColumnKey::NumOutputs,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 9,
+                    order: 11,
                 },
                 ColumnState {
                     key: ColumnKey::AmountCredited,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 10,
+                    order: 12,
                 },
                 ColumnState {
                     key: ColumnKey::AmountDebited,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 11,
+                    order: 13,
                 },
                 ColumnState {
                     key: ColumnKey::Fee,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 12,
-                },
-                ColumnState {
-                    key: ColumnKey::NetDifference,
-                    btn_state: Default::default(),
-                    width: Length::Units(110),
-                    hidden: true,
-                    order: 13,
+                    order: 14,
                 },
                 ColumnState {
                     key: ColumnKey::PaymentProof,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 14,
+                    order: 15,
                 },
                 ColumnState {
                     key: ColumnKey::Kernel,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 15,
+                    order: 16,
                 },
                 ColumnState {
                     key: ColumnKey::TxData,
                     btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
-                    order: 16,
+                    order: 17,
                 },
             ],
         }
@@ -383,98 +395,104 @@ impl Default for ColumnSettings {
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Type,
+                    key: ColumnKey::NetDifference,
                     order: 1,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::SharedTransactionId,
+                    key: ColumnKey::CreationTime,
                     order: 2,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::CreationTime,
+                    key: ColumnKey::Status,
                     order: 3,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                ColumnSettingState {
-                    key: ColumnKey::TTLCutoff,
+                 ColumnSettingState {
+                    key: ColumnKey::ConfirmationTime,
                     order: 4,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Height,
+                    key: ColumnKey::Type,
                     order: 5,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::IsConfirmed,
+                    key: ColumnKey::SharedTransactionId,
                     order: 6,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::ConfirmationTime,
+                    key: ColumnKey::TTLCutoff,
                     order: 7,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::NumInputs,
+                    key: ColumnKey::Height,
                     order: 8,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::NumOutputs,
+                    key: ColumnKey::IsConfirmed,
                     order: 9,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::AmountCredited,
+                    key: ColumnKey::NumInputs,
                     order: 10,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::AmountDebited,
+                    key: ColumnKey::NumOutputs,
                     order: 11,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Fee,
+                    key: ColumnKey::AmountCredited,
                     order: 12,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::NetDifference,
+                    key: ColumnKey::AmountDebited,
                     order: 13,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::PaymentProof,
+                    key: ColumnKey::Fee,
                     order: 14,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::Kernel,
+                    key: ColumnKey::PaymentProof,
                     order: 15,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
-                    key: ColumnKey::TxData,
+                    key: ColumnKey::Kernel,
                     order: 16,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                ColumnSettingState {
+                    key: ColumnKey::TxData,
+                    order: 17,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
@@ -523,13 +541,13 @@ impl TxListColumnKey {
             TTLCutoff => localized_string("tx_ttl_cutoff"),
             Height => localized_string("tx_height"),
             IsConfirmed => localized_string("tx_is_confirmed"),
-            ConfirmationTime => localized_string("tx_confirmation_time"),
+            ConfirmationTime => localized_string("tx-confirmation-time"),
             NumInputs => localized_string("tx_num_inputs"),
             NumOutputs => localized_string("tx_num_outputs"),
             AmountCredited => localized_string("tx_amount_credited"),
             AmountDebited => localized_string("tx_amount_debited"),
             Fee => localized_string("tx_fee"),
-            NetDifference => localized_string("tx_net_difference"),
+            NetDifference => localized_string("tx-net-difference"),
             PaymentProof => localized_string("tx_payment_proof"),
             Kernel => localized_string("tx_kernel"),
             TxData => localized_string("tx_data"),
@@ -547,13 +565,13 @@ impl TxListColumnKey {
             TTLCutoff => "tx_ttl_cutoff",
             Height => "tx_height",
             IsConfirmed => "tx_is_confirmed",
-            ConfirmationTime => "tx_confirmation_time",
+            ConfirmationTime => "tx-confirmation-time",
             NumInputs => "tx_num_inputs",
             NumOutputs => "tx_num_outputs",
             AmountCredited => "tx_amount_credited",
             AmountDebited => "tx_amount_debited",
             Fee => "tx_fee",
-            NetDifference => "tx_net_difference",
+            NetDifference => "tx-net-difference",
             PaymentProof => "tx_payment_proof",
             Kernel => "tx_kernel",
             TxData => "tx_data",
@@ -573,13 +591,13 @@ impl From<&str> for TxListColumnKey {
             "tx_ttl_cutoff" => TxListColumnKey::TTLCutoff,
             "tx_height" => TxListColumnKey::Height,
             "tx_is_confirmed" => TxListColumnKey::IsConfirmed,
-            "tx_confirmation_time" => TxListColumnKey::ConfirmationTime,
+            "tx-confirmation-time" => TxListColumnKey::ConfirmationTime,
             "tx_num_inputs" => TxListColumnKey::NumInputs,
             "tx_num_outputs" => TxListColumnKey::NumOutputs,
             "tx_amount_credited" => TxListColumnKey::AmountCredited,
             "tx_amount_debited" => TxListColumnKey::AmountDebited,
             "tx_fee" => TxListColumnKey::Fee,
-            "tx_net_difference" => TxListColumnKey::NetDifference,
+            "tx-net-difference" => TxListColumnKey::NetDifference,
             "tx_payment_proof" => TxListColumnKey::PaymentProof,
             "tx_kernel" => TxListColumnKey::Kernel,
             "tx_data" => TxListColumnKey::TxData,
@@ -594,7 +612,6 @@ pub struct TxListColumnState {
     hidden: bool,
     order: usize,
 }
-
 
 pub struct TxListHeaderState {
     state: header::State,
@@ -627,118 +644,125 @@ impl Default for TxListHeaderState {
                     order: 0,
                 },
                 TxListColumnState {
-                    key: ColumnKey::Type,
+                    key: ColumnKey::NetDifference,
                     btn_state: Default::default(),
-                    width: Length::Units(150),
-                    hidden: false,
+                    width: Length::Units(85),
+                    hidden: true,
                     order: 1,
-                },
-                TxListColumnState {
-                    key: ColumnKey::SharedTransactionId,
-                    btn_state: Default::default(),
-                    width: Length::Units(110),
-                    hidden: false,
-                    order: 2,
                 },
                 TxListColumnState {
                     key: ColumnKey::CreationTime,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
+                    order: 2,
+                },
+                TxListColumnState {
+                    key: ColumnKey::Status,
+                    btn_state: Default::default(),
+                    width: Length::Units(105),
+                    hidden: false,
                     order: 3,
+                },
+                 TxListColumnState {
+                    key: ColumnKey::ConfirmationTime,
+                    btn_state: Default::default(),
+                    width: Length::Units(105),
+                    hidden: false,
+                    order: 4,
+                },
+                TxListColumnState {
+                    key: ColumnKey::Type,
+                    btn_state: Default::default(),
+                    width: Length::Units(150),
+                    hidden: true,
+                    order: 5,
+                },
+                TxListColumnState {
+                    key: ColumnKey::SharedTransactionId,
+                    btn_state: Default::default(),
+                    width: Length::Units(110),
+                    hidden: false,
+                    order: 6,
                 },
                 TxListColumnState {
                     key: ColumnKey::TTLCutoff,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
-                    order: 4,
+                    order: 7,
                 },
                 TxListColumnState {
                     key: ColumnKey::Height,
                     btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
-                    order: 5,
+                    order: 8,
                 },
                 TxListColumnState {
                     key: ColumnKey::IsConfirmed,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: false,
-                    order: 6,
-                },
-                TxListColumnState {
-                    key: ColumnKey::ConfirmationTime,
-                    btn_state: Default::default(),
-                    width: Length::Units(85),
-                    hidden: true,
-                    order: 7,
+                    order: 9,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumInputs,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 8,
+                    order: 10,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumOutputs,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 9,
+                    order: 11,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountCredited,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 10,
+                    order: 12,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountDebited,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 11,
+                    order: 13,
                 },
                 TxListColumnState {
                     key: ColumnKey::Fee,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 12,
-                },
-                TxListColumnState {
-                    key: ColumnKey::NetDifference,
-                    btn_state: Default::default(),
-                    width: Length::Units(85),
-                    hidden: true,
-                    order: 13,
+                    order: 14,
                 },
                 TxListColumnState {
                     key: ColumnKey::PaymentProof,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 14,
+                    order: 15,
                 },
                 TxListColumnState {
                     key: ColumnKey::Kernel,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 14,
+                    order: 16,
                 },
-                 TxListColumnState {
+                TxListColumnState {
                     key: ColumnKey::TxData,
                     btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
-                    order: 14,
+                    order: 17,
                 },
-             ],
+            ],
         }
     }
 }
@@ -760,98 +784,104 @@ impl Default for TxListColumnSettings {
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::Type,
+                    key: ColumnKey::NetDifference,
                     order: 1,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::SharedTransactionId,
+                    key: ColumnKey::CreationTime,
                     order: 2,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::CreationTime,
+                    key: ColumnKey::Status,
                     order: 3,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
-                TxListColumnSettingState {
-                    key: ColumnKey::TTLCutoff,
+                 TxListColumnSettingState {
+                    key: ColumnKey::ConfirmationTime,
                     order: 4,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::Height,
+                    key: ColumnKey::Type,
                     order: 5,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::IsConfirmed,
+                    key: ColumnKey::SharedTransactionId,
                     order: 6,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::ConfirmationTime,
+                    key: ColumnKey::TTLCutoff,
                     order: 7,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::NumInputs,
+                    key: ColumnKey::Height,
                     order: 8,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::NumOutputs,
+                    key: ColumnKey::IsConfirmed,
                     order: 9,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::AmountCredited,
+                    key: ColumnKey::NumInputs,
                     order: 10,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::AmountDebited,
+                    key: ColumnKey::NumOutputs,
                     order: 11,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::Fee,
+                    key: ColumnKey::AmountCredited,
                     order: 12,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::NetDifference,
+                    key: ColumnKey::AmountDebited,
                     order: 13,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::PaymentProof,
+                    key: ColumnKey::Fee,
                     order: 14,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::Kernel,
+                    key: ColumnKey::PaymentProof,
                     order: 15,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
                 TxListColumnSettingState {
-                    key: ColumnKey::TxData,
+                    key: ColumnKey::Kernel,
                     order: 16,
+                    up_btn_state: Default::default(),
+                    down_btn_state: Default::default(),
+                },
+                TxListColumnSettingState {
+                    key: ColumnKey::TxData,
+                    order: 17,
                     up_btn_state: Default::default(),
                     down_btn_state: Default::default(),
                 },
@@ -942,15 +972,17 @@ pub fn titles_row_header<'a>(
         .width(Length::Fill);
 
         //if column_key != ColumnKey::Install {
-            //TODO
-            //row_header = row_header.on_press(Interaction::SortCatalogColumn(column_key));
+        //TODO
+        //row_header = row_header.on_press(Interaction::SortCatalogColumn(column_key));
         //}
 
         if previous_column_key == Some(column_key) {
             row_header = row_header.style(style::SelectedColumnHeaderButton(color_palette));
-        } /*else if column_key == ColumnKey::Install {
+        }
+        /*else if column_key == ColumnKey::Install {
             row_header = row_header.style(style::UnclickableColumnHeaderButton(color_palette));
-        } */ else {
+        } */
+        else {
             row_header = row_header.style(style::ColumnHeaderButton(color_palette));
         }
 
@@ -1005,6 +1037,22 @@ pub fn data_row_container<'a, 'b>(
 
     let tx_cloned = tx.clone();
     let tx_cloned_for_row = tx.clone();
+
+    let creation_time = tx.creation_ts.to_string();
+    let confirmation_time = tx.creation_ts.to_string();
+    let net_diff = if tx.amount_credited >= tx.amount_debited {
+        amount_to_hr_string(tx.amount_credited - tx.amount_debited, true)
+    } else {
+        format!(
+            "-{}",
+            amount_to_hr_string(tx.amount_debited - tx.amount_credited, true)
+        )
+    };
+    //TODO this will show the latest status
+    // Unconfirmed - Created time
+    // Confirmed
+    let status = "Unconfirmed - Created 2000/01/10";
+
     /*let version = tx
         .version()
         .map(str::to_string)
@@ -1075,6 +1123,104 @@ pub fn data_row_container<'a, 'b>(
 
         row_containers.push((idx, id_container));
     }
+
+    if let Some((idx, width)) = column_config
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, (key, width, hidden))| {
+            if *key == ColumnKey::CreationTime && !hidden {
+                Some((idx, width))
+            } else {
+                None
+            }
+        })
+        .next()
+    {
+        let display_creation_time = Text::new(creation_time).size(DEFAULT_FONT_SIZE);
+
+        let display_creation_time_container = Container::new(display_creation_time)
+            .padding(5)
+            .height(default_height)
+            .width(*width)
+            .center_y()
+            .style(style::HoverableForegroundContainer(color_palette));
+
+        row_containers.push((idx, display_creation_time_container));
+    }
+
+    if let Some((idx, width)) = column_config
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, (key, width, hidden))| {
+            if *key == ColumnKey::ConfirmationTime && !hidden {
+                Some((idx, width))
+            } else {
+                None
+            }
+        })
+        .next()
+    {
+        let display_confirmation_time = Text::new(confirmation_time).size(DEFAULT_FONT_SIZE);
+
+        let display_confirmation_time_container = Container::new(display_confirmation_time)
+            .padding(5)
+            .height(default_height)
+            .width(*width)
+            .center_y()
+            .style(style::HoverableForegroundContainer(color_palette));
+
+        row_containers.push((idx, display_confirmation_time_container));
+    }
+
+    if let Some((idx, width)) = column_config
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, (key, width, hidden))| {
+            if *key == ColumnKey::NetDifference && !hidden {
+                Some((idx, width))
+            } else {
+                None
+            }
+        })
+        .next()
+    {
+        let display_net_difference = Text::new(net_diff).size(DEFAULT_FONT_SIZE);
+
+        let display_net_difference_container = Container::new(display_net_difference)
+            .padding(5)
+            .height(default_height)
+            .width(*width)
+            .center_y()
+            .style(style::HoverableForegroundContainer(color_palette));
+
+        row_containers.push((idx, display_net_difference_container));
+    }
+
+    if let Some((idx, width)) = column_config
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, (key, width, hidden))| {
+            if *key == ColumnKey::Status && !hidden {
+                Some((idx, width))
+            } else {
+                None
+            }
+        })
+        .next()
+    {
+
+    let display_status = Text::new(status).size(DEFAULT_FONT_SIZE);
+
+        let display_status_container = Container::new(display_status)
+            .padding(5)
+            .height(default_height)
+            .width(*width)
+            .center_y()
+            .style(style::HoverableForegroundContainer(color_palette));
+
+        row_containers.push((idx, display_status_container));
+    }
+
 
     /*if let Some((idx, width)) = column_config
         .iter()
@@ -1662,9 +1808,9 @@ pub fn data_row_container<'a, 'b>(
         .width(Length::Fill)
         .inner_row_height(default_row_height)
         .on_press(move |_| {
-            Message::Interaction(Interaction::WalletOperationTxListInteraction(LocalViewInteraction::Expand(ExpandType::Details(
-                tx_cloned_for_row.clone()
-            ))))
+            Message::Interaction(Interaction::WalletOperationTxListInteraction(
+                LocalViewInteraction::Expand(ExpandType::Details(tx_cloned_for_row.clone())),
+            ))
         });
 
     if is_odd == Some(true) {
