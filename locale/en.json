@@ -209,6 +209,7 @@
     "tx-confirmation-time": "Confirmation Time",
     "tx-status": "Status",
     "tx-net-difference": "Amount",
-    "tx-id": "ID",
-    "tx-type": "Type"
+    "tx-id": "Internal ID",
+    "tx-type": "Type",
+    "tx-shared-id": "Shared ID"
 }

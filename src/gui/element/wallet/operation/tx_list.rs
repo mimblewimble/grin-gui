@@ -1030,7 +1030,10 @@ pub fn data_row_container<'a, 'b>(
 
     let id = tx.id.to_string();
     let mut tx_type = format!("{}", tx.tx_type.to_string().replace("\n", ""));
-    let shared_tx_id = tx.tx_slate_id;
+    let shared_tx_id = match tx.tx_slate_id {
+        Some(t) => t.to_string(),
+        None => "None".to_string(),
+    };
     let creation_time = tx.creation_ts.to_string();
     let ttl_cutoff = tx.ttl_cutoff_height;
     let height = tx.kernel_lookup_min_height;
@@ -1560,6 +1563,21 @@ pub fn data_row_container<'a, 'b>(
                     .push(Space::new(Length::Units(5), Length::Units(0)))
                     .push(id_text_container);
 
+                // UUID
+                let uuid_title_text =
+                    Text::new(format!("{}: ", localized_string("tx-shared-id"))).size(DEFAULT_FONT_SIZE);
+                let uuid_title_container = Container::new(uuid_title_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let uuid_text = Text::new(shared_tx_id).size(DEFAULT_FONT_SIZE);
+                let uuid_text_container = Container::new(uuid_text)
+                    .style(style::HoverableBrightForegroundContainer(color_palette));
+
+                let uuid_row = Row::new()
+                    .push(uuid_title_container)
+                    .push(Space::new(Length::Units(5), Length::Units(0)))
+                    .push(uuid_text_container);
+
                 // Transaction type
                 let type_title_text =
                     Text::new(format!("{}: ", localized_string("tx-type"))).size(DEFAULT_FONT_SIZE);
@@ -1735,6 +1753,8 @@ pub fn data_row_container<'a, 'b>(
                 .width(Length::Fill);*/
                 let column = Column::new()
                     .push(id_row)
+                    .push(Space::new(Length::Units(0), Length::Units(3)))
+                    .push(uuid_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(type_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
