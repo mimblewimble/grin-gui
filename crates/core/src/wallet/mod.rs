@@ -1,6 +1,5 @@
 /// Placeholder for all wallet calls
 /// Should eventually feature async calls that work via local wallet or remote owner API
-
 use grin_wallet::cmd::wallet_args::inst_wallet;
 use grin_wallet_api::Owner;
 use grin_wallet_config::{self, GlobalWalletConfig};
@@ -8,20 +7,20 @@ use grin_wallet_controller::command::InitArgs;
 use grin_wallet_impls::DefaultLCProvider;
 use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
 
-use grin_core::{self};
 pub use grin_core::global;
+use grin_core::{self};
 use grin_keychain as keychain;
 use grin_util::{file, Mutex};
 
-use std::sync::{Arc, RwLock};
 use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 
 use dirs;
 
 // Re-exports
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
-pub use grin_wallet_libwallet::{StatusMessage, WalletInfo, TxLogEntry, TxLogEntryType};
+pub use grin_wallet_libwallet::{StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo};
 
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
@@ -101,7 +100,7 @@ where
         }
     }
 
-   fn set_chain_type(&mut self,  chain_type: global::ChainTypes) {
+    fn set_chain_type(&mut self, chain_type: global::ChainTypes) {
         self.chain_type = Some(chain_type);
         global::set_local_chain_type(chain_type);
     }
@@ -117,13 +116,9 @@ where
     pub fn default_config_exists(&self) -> bool {
         match self.chain_type {
             Some(chain_type) => {
-                self.config_exists(
-                    get_grin_wallet_default_path(&chain_type)
-                        .to_str()
-                        .unwrap(),
-                )
-           }
-           _ => false
+                self.config_exists(get_grin_wallet_default_path(&chain_type).to_str().unwrap())
+            }
+            _ => false,
         }
     }
 
@@ -182,9 +177,7 @@ where
             let mut wallet_lock = wallet_inst.lock();
             let lc = wallet_lock.lc_provider().unwrap();
             let _ = lc.set_top_level_directory(
-                &get_grin_wallet_default_path(&chain_type)
-                    .to_str()
-                    .unwrap(),
+                &get_grin_wallet_default_path(&chain_type).to_str().unwrap(),
             );
         }
 
@@ -195,7 +188,7 @@ where
 
     fn inst_owner_api(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
-        chain_type: global::ChainTypes
+        chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
         {
             let w = wallet_interface.read().unwrap();
@@ -216,9 +209,9 @@ where
     pub async fn init(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
-        top_level_directory:PathBuf,
-        display_name:String,
-        chain_type: global::ChainTypes
+        top_level_directory: PathBuf,
+        display_name: String,
+        chain_type: global::ChainTypes,
     ) -> Result<(String, String, String), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
 
@@ -240,6 +233,12 @@ where
                     if let Some(s) = top_level_directory.to_str() {
                         p.set_top_level_directory(s)?;
                     }
+
+                    log::debug!(
+                        "core::wallet::InitWallet Top Level Directory: {:?}",
+                        p.get_top_level_directory(),
+                    );
+
                     p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, None, None, None)?;
                     p.create_wallet(
                         None,
@@ -261,7 +260,7 @@ where
     pub async fn open_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
-        chain_type: global::ChainTypes
+        chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
 

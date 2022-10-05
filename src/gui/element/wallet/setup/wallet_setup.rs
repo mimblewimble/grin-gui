@@ -1,4 +1,5 @@
 use crate::log_error;
+use grin_gui_core::wallet::{get_grin_wallet_default_path, global};
 //use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -132,7 +133,26 @@ pub fn handle_message<'a>(
         LocalViewInteraction::ToggleAdvancedOptions(_) => {
             state.show_advanced_options = !state.show_advanced_options
         }
-        LocalViewInteraction::ToggleIsTestnet(_) => state.is_testnet = !state.is_testnet,
+        LocalViewInteraction::ToggleIsTestnet(_) => {
+            state.is_testnet = !state.is_testnet;
+            let current_tld = state.advanced_options_state.top_level_directory.clone();
+
+            if state.is_testnet {
+                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                // Only change if nobody's modified the default path
+                if default_path == current_tld {
+                    state.advanced_options_state.top_level_directory =
+                        get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                }
+            } else {
+                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                // Only change if nobody's modified the default path
+                if default_path == current_tld {
+                    state.advanced_options_state.top_level_directory =
+                        get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                }
+            }
+        }
         LocalViewInteraction::DisplayName(display_name_value) => {
             state.advanced_options_state.display_name_value = display_name_value;
         }
@@ -162,11 +182,7 @@ pub fn handle_message<'a>(
 
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
-            let chain_type = if state.is_testnet {
-                Testnet
-            } else {
-                Mainnet
-            };
+            let chain_type = if state.is_testnet { Testnet } else { Mainnet };
 
             let fut = move || {
                 WalletInterface::init(
@@ -193,6 +209,7 @@ pub fn handle_message<'a>(
             let mut saved_wallet = Wallet::default();
             saved_wallet.tld = Some(PathBuf::from(&tld));
             saved_wallet.display_name = display_name;
+            saved_wallet.is_testnet = state.is_testnet;
             let index = grin_gui.config.add_wallet(saved_wallet);
             grin_gui.config.current_wallet_index = Some(index);
             grin_gui.wallet_state.clear_config_missing();
