@@ -198,5 +198,11 @@
     "exit-confirm-msg": "Are you sure you want to quit the application? This will shutdown any nodes that you have running.",
     "yes": "Yes",
     "no": "No",
-    "cancel":"Cancel"
+    "cancel":"Cancel",
+    "tx-creation-time": "Creation Time",
+    "tx-confirmation-time": "Confirmation Time",
+    "tx-status": "Status",
+    "tx-net-difference": "Amount",
+    "tx-id": "ID",
+    "tx-type": "Type"
 }
