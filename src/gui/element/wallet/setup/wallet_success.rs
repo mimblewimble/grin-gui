@@ -41,6 +41,7 @@ pub fn handle_message(
     match message {
         LocalViewInteraction::Submit => {
             grin_gui.wallet_state.mode = super::super::Mode::Operation;
+            grin_gui.wallet_state.setup_state.mode = crate::gui::element::wallet::setup::Mode::Init;
         }
     }
     Ok(Command::none())
@@ -70,7 +71,7 @@ pub fn data_container<'a>(
         Container::new(description).style(style::NormalBackgroundContainer(color_palette));
 
     let recovery_phrase_card = Card::new(
-        Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(localized_string("setup-grin-wallet-recovery-phrase-title")).size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(&state.recovery_phrase).size(DEFAULT_FONT_SIZE),
     )
     .foot(

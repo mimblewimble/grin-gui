@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use grin_core::global::ChainTypes;
 
 /// Struct for settings related to World of Warcraft.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 #[serde(default)]
 pub struct Wallet {
     #[serde(default)]
@@ -13,8 +14,25 @@ pub struct Wallet {
     pub display_name: String,
     /// If true, override the grin_wallet.toml configured node and use the internal one
     pub use_embedded_node: bool,
-    /// If true, this is a testnet wallet
-    pub is_testnet: bool,
+    /// Chain type of wallet
+    pub chain_type: ChainTypes,
+    /// Node url
+    pub node_url: Option<String>,
+    /// Node secret path
+    pub secret_path: Option<String>,
+}
+
+impl Wallet {
+    pub fn new(tld: Option<PathBuf>, display_name: String, chain_type: ChainTypes) -> Self {
+        Self {
+            tld,
+            display_name,
+            use_embedded_node: true,
+            chain_type,
+            node_url: None,
+            secret_path: None,
+        }
+    }
 }
 
 impl Default for Wallet {
@@ -23,7 +41,9 @@ impl Default for Wallet {
             tld: None,
             display_name: "Default".to_owned(),
             use_embedded_node: true,
-            is_testnet: false,
+            chain_type: ChainTypes::Mainnet,
+            node_url: None,
+            secret_path: None,
         }
     }
 }

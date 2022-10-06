@@ -139,13 +139,7 @@ impl Application for GrinGui {
 
         if let Some(wallet_index) = config.current_wallet_index {
             let wallet = config.wallets[wallet_index].clone();
-
-            // is tesnet
-            if wallet.is_testnet {
-                global::set_local_chain_type(ChainTypes::Testnet);
-            }
-            
-            // if embedded node ??
+            global::set_local_chain_type(wallet.chain_type);
         } 
 
         grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
