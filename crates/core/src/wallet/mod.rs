@@ -96,13 +96,12 @@ where
             wallet_is_open: false,
             check_node_foreign_api_secret_path: None,
             node_client,
-            use_embedded_node: false,
+            use_embedded_node: true,
         }
     }
 
     fn set_chain_type(&mut self, chain_type: global::ChainTypes) {
         self.chain_type = Some(chain_type);
-        global::set_local_chain_type(chain_type);
     }
 
     pub fn set_check_node_foreign_api_secret_path(&mut self, secret: &str) {
@@ -140,12 +139,13 @@ where
     fn inst_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
+        top_level_directory: PathBuf,
     ) -> Result<
         Arc<Mutex<Box<dyn WalletInst<'static, L, C, keychain::ExtKeychain>>>>,
         GrinWalletInterfaceError,
     > {
         let mut w = wallet_interface.write().unwrap();
-        let data_path = Some(get_grin_wallet_default_path(&chain_type));
+        let data_path = Some(top_level_directory.clone());
 
         let config =
             grin_wallet_config::initial_setup_wallet(&chain_type, data_path, true).unwrap();
@@ -189,6 +189,7 @@ where
     fn inst_owner_api(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
+        top_level_directory: PathBuf,
     ) -> Result<(), GrinWalletInterfaceError> {
         {
             let w = wallet_interface.read().unwrap();
@@ -198,7 +199,7 @@ where
             }
         }
 
-        let wallet_inst = WalletInterface::inst_wallet(wallet_interface.clone(), chain_type)?;
+        let wallet_inst = WalletInterface::inst_wallet(wallet_interface.clone(), chain_type, top_level_directory)?;
         let mut w = wallet_interface.write().unwrap();
         w.owner_api = Some(Owner::new(wallet_inst.clone(), None));
         global::set_local_chain_type(chain_type);
@@ -212,8 +213,8 @@ where
         top_level_directory: PathBuf,
         display_name: String,
         chain_type: global::ChainTypes,
-    ) -> Result<(String, String, String), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
+    ) -> Result<(String, String, String, global::ChainTypes), GrinWalletInterfaceError> {
+        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
 
         let w = wallet_interface.read().unwrap();
 
@@ -254,19 +255,27 @@ where
             None => ("".to_string(), "".to_string()),
         };
 
-        Ok((tld, ret_phrase, display_name))
+        Ok((tld, ret_phrase, display_name, chain_type))
     }
 
     pub async fn open_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         password: String,
+        top_level_directory: PathBuf,
         chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type)?;
+        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
 
         let mut w = wallet_interface.write().unwrap();
 
         if let Some(o) = &w.owner_api {
+            {
+                let mut w_lock = o.wallet_inst.lock();
+                let p = w_lock.lc_provider()?;
+                if let Some(s) = top_level_directory.to_str() {
+                    p.set_top_level_directory(s)?;
+                }
+            }
             // ignoring secret key
             let _ = o.open_wallet(None, password.into(), false)?;
             // Start the updater

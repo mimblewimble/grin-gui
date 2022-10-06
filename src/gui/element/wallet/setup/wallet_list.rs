@@ -169,8 +169,13 @@ pub fn data_container<'a>(
 
         let wallet_name = Text::new(w.display_name.clone())
             .size(DEFAULT_HEADER_FONT_SIZE);
+        let chain_name = Text::new(w.chain_type.shortname())
+            .size(DEFAULT_HEADER_FONT_SIZE);
 
         let wallet_name_container = Container::new(wallet_name)
+            .style(style::NormalForegroundContainer(color_palette));
+
+        let wallet_chain_container = Container::new(chain_name)
             .style(style::NormalForegroundContainer(color_palette));
 
         let tld_string = match &w.tld {
@@ -186,6 +191,7 @@ pub fn data_container<'a>(
         let wallet_row = Row::new()
             .push(checkbox)
             .push(Column::new().push(wallet_name_container).width(Length::Units(80)))
+            .push(Column::new().push(wallet_chain_container).width(Length::Units(60)))
             //.push(wallet_name_container)
             .push(Space::new(Length::Units(58), Length::Units(0)))
             .push(wallet_directory_container);

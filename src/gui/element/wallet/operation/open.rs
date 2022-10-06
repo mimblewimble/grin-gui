@@ -12,10 +12,12 @@ use {
     anyhow::Context,
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{wallet::WalletInterface, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
+    grin_gui_core::{
+        node::ChainTypes::Mainnet, node::ChainTypes::Testnet, wallet::WalletInterface,
+    },
     iced::{
-        alignment, button, text_input, Alignment, Button, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, button, text_input, Alignment, Button, Column, Command, Container, Element,
+        Length, Row, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
@@ -86,34 +88,38 @@ pub fn handle_message<'a>(
             log::debug!("setup::wallet::operation::open::OpenWallet");
 
             let password = state.password_state.input_value.clone();
-            let w = grin_gui.wallet_interface.clone();
-            
-            // default chain type for wallet is mainnet
-            let mut chain_type = Mainnet;
+            let wallet_interface = grin_gui.wallet_interface.clone();
+            let running_chain_type = grin_gui.node_interface.read().unwrap().chain_type.unwrap();
+            let wallet_index = grin_gui.config.current_wallet_index.unwrap();
+            let current_wallet = &grin_gui.config.wallets[wallet_index];
+            let wallet_chain_type = current_wallet.chain_type;
 
-            // Set up check node accordingly
-            if let Some(i) = grin_gui.config.current_wallet_index {
-                let active_wallet = &grin_gui.config.wallets[i];
-                if active_wallet.use_embedded_node {
-                    let n = grin_gui.node_interface.read().unwrap();
+            if current_wallet.use_embedded_node {
+                // restart embedded server is chain types differ
+                if running_chain_type != wallet_chain_type {
+                    let mut node = grin_gui.node_interface.write().unwrap();
+                    node.restart_server(wallet_chain_type);
+                }
 
-                    // set wallet interface chain_type
-                    if active_wallet.is_testnet {
-                        chain_type = Testnet; 
-                    }
-
-                    if let Some(c) = &n.config {
-                        if let Some(m) = &c.members {
-                            WalletInterface::set_use_embedded_node(w.clone(), true);
-                            let mut w = w.write().unwrap();
-                            w.check_node_foreign_api_secret_path =
-                                m.server.foreign_api_secret_path.clone();
-                        }
+                let node_interface = grin_gui.node_interface.read().unwrap();
+                if let Some(c) = &node_interface.config {
+                    if let Some(m) = &c.members {
+                        WalletInterface::set_use_embedded_node(wallet_interface.clone(), true);
+                        let mut w = wallet_interface.write().unwrap();
+                        w.check_node_foreign_api_secret_path =
+                            m.server.foreign_api_secret_path.clone();
                     }
                 }
             }
-
-            let fut = move || WalletInterface::open_wallet(w, password.clone(), chain_type);
+            let tld = current_wallet.tld.clone().unwrap();
+            let fut = move || {
+                WalletInterface::open_wallet(
+                    wallet_interface,
+                    password.clone(),
+                    tld,
+                    current_wallet.chain_type,
+                )
+            };
 
             return Ok(Command::perform(fut(), |r| {
                 match r.context("Failed to Open Wallet") {

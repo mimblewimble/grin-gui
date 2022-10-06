@@ -239,6 +239,7 @@ impl NodeInterface {
 
     pub fn start_server(&mut self, chain_type: global::ChainTypes) {
         self.chain_type = Some(chain_type);
+        //TODO: Ensure these are all set back to global once upstream is merged
         global::set_local_chain_type(chain_type);
 
         let node_config = self.load_or_create_default_config(chain_type);
@@ -270,16 +271,17 @@ impl NodeInterface {
         };
 
         log_build_info();
-        global::init_global_chain_type(config.members.as_ref().unwrap().server.chain_type);
         info!("Chain: {:?}", global::get_chain_type());
-        match global::get_chain_type() {
-            global::ChainTypes::Mainnet => {
+        match chain_type {
+            ChainTypes::Mainnet => {
                 // Set various mainnet specific feature flags.
-                global::init_global_nrd_enabled(false);
+                //TODO: Ensure these are all set back to global once upstream is merged
+                global::set_local_nrd_enabled(false);
             }
             _ => {
                 // Set various non-mainnet feature flags.
-                global::init_global_nrd_enabled(true);
+                //TODO: Ensure these are all set back to global once upstream is merged
+                global::set_local_nrd_enabled(true);
             }
         }
         let afb = config
@@ -289,9 +291,11 @@ impl NodeInterface {
             .server
             .pool_config
             .accept_fee_base;
-        global::init_global_accept_fee_base(afb);
+        //TODO: Ensure these are all set back to global once upstream is merged
+        global::set_local_accept_fee_base(afb);
         info!("Accept Fee Base: {:?}", global::get_accept_fee_base());
-        global::init_global_future_time_limit(config.members.unwrap().server.future_time_limit);
+        //TODO: Ensure these are all set back to global once upstream is merged
+        global::set_local_future_time_limit(config.members.unwrap().server.future_time_limit);
         info!("Future Time Limit: {:?}", global::get_future_time_limit());
         log_feature_flags();
 

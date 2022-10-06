@@ -48,27 +48,21 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
             if !node_started && has_ui_sender {
                 let mut node = grin_gui.node_interface.write().unwrap();
-                let is_testnet = grin_gui.config.wallets[index].is_testnet;
+                //let is_testnet = grin_gui.config.wallets[index].is_testnet;
+                let wallet_chain_type = grin_gui.config.wallets[index].chain_type;
 
                 if !node_started {
-                    if is_testnet {
-                        node.start_server(grin_gui_core::node::ChainTypes::Testnet);
-                    } else {
-                        node.start_server(grin_gui_core::node::ChainTypes::Mainnet);
-                    }
+                    node.start_server(wallet_chain_type);
+                
                 } else {
-                    let chain_type = {
+                    let running_chain_type = {
                         let node = grin_gui.node_interface.read().unwrap();
                         node.chain_type
                     }.unwrap();
 
-                    // check running chain type 
-                    if is_testnet && chain_type != Testnet {
-                        node.restart_server(Testnet);
-                    } else if !is_testnet && chain_type != Mainnet {
-                        node.restart_server(Mainnet);
+                    if running_chain_type != wallet_chain_type {
+                        node.restart_server(wallet_chain_type);
                     }
-
                 }
             }
         }
