@@ -29,6 +29,7 @@ use {
 
 pub struct StateContainer {
     wallet_info: Option<WalletInfo>,
+    wallet_txs: TxList,
     wallet_status: String,
     txs_scrollable_state: scrollable::State,
     pub expanded_type: ExpandType,
@@ -40,6 +41,7 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             wallet_info: Default::default(),
+            wallet_txs: Default::default(),
             wallet_status: Default::default(),
             txs_scrollable_state: Default::default(),
             expanded_type: ExpandType::None,
@@ -130,7 +132,9 @@ pub fn handle_message<'a>(
                 "Update Wallet Info Summary: {}, {:?}",
                 node_success, wallet_info
             );
+            state.wallet_info = Some(wallet_info);
             debug!("Update Wallet Txs Summary: {:?}", txs);
+            state.wallet_txs = TxList { txs };
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -203,7 +207,7 @@ pub fn data_container<'a>(
 
     // Temp Test Data
     use grin_gui_core::node::Identifier;
-    let tx_list = TxList {
+    /*let tx_list = TxList {
         txs: vec![
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 0),
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 1),
@@ -213,7 +217,7 @@ pub fn data_container<'a>(
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 5),
             TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 6),
         ],
-    };
+    };*/
 
     let column_config = state.tx_header_state.column_config();
 
@@ -222,7 +226,7 @@ pub fn data_container<'a>(
     // the user easily identify what the value is.
     let tx_row_titles = super::tx_list::titles_row_header(
         color_palette,
-        &tx_list,
+        &state.wallet_txs,
         &mut state.tx_header_state.state,
         &mut state.tx_header_state.columns,
         state.tx_header_state.previous_column_key,
@@ -238,7 +242,7 @@ pub fn data_container<'a>(
 
     let mut has_txs = false;
     // Loops though the txs.
-    for (idx, tx) in tx_list.txs.into_iter().enumerate() {
+    for (idx, tx) in state.wallet_txs.txs.iter().enumerate() {
         has_txs = true;
         // If hiding ignored addons, we will skip it.
         /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
@@ -287,9 +291,7 @@ pub fn data_container<'a>(
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        tx_list_content = tx_list_content
-            .push(tx_row_titles)
-            .push(tx_list_scrollable)
+        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable)
     }
 
     // Overall Home screen layout column

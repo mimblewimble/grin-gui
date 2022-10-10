@@ -172,6 +172,15 @@ pub struct TxList {
     pub txs: Vec<TxLogEntry>,
 }
 
+impl Default for TxList {
+    fn default() -> Self {
+        Self {
+            txs: vec![],
+        }
+    }
+}
+
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TxListResultSize {
     _25,
@@ -1015,7 +1024,7 @@ pub fn titles_row_header<'a>(
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
     color_palette: ColorPalette,
-    tx: TxLogEntry,
+    tx: &TxLogEntry,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
     config: &Config,

@@ -239,8 +239,7 @@ impl NodeInterface {
 
     pub fn start_server(&mut self, chain_type: global::ChainTypes) {
         self.chain_type = Some(chain_type);
-        //TODO: Ensure these are all set back to global once upstream is merged
-        global::set_local_chain_type(chain_type);
+        global::set_global_chain_type(chain_type);
 
         let node_config = self.load_or_create_default_config(chain_type);
 
@@ -275,13 +274,11 @@ impl NodeInterface {
         match chain_type {
             ChainTypes::Mainnet => {
                 // Set various mainnet specific feature flags.
-                //TODO: Ensure these are all set back to global once upstream is merged
-                global::set_local_nrd_enabled(false);
+                global::set_global_nrd_enabled(false);
             }
             _ => {
                 // Set various non-mainnet feature flags.
-                //TODO: Ensure these are all set back to global once upstream is merged
-                global::set_local_nrd_enabled(true);
+                global::set_global_nrd_enabled(true);
             }
         }
         let afb = config
@@ -291,11 +288,9 @@ impl NodeInterface {
             .server
             .pool_config
             .accept_fee_base;
-        //TODO: Ensure these are all set back to global once upstream is merged
-        global::set_local_accept_fee_base(afb);
+        global::set_global_accept_fee_base(afb);
         info!("Accept Fee Base: {:?}", global::get_accept_fee_base());
-        //TODO: Ensure these are all set back to global once upstream is merged
-        global::set_local_future_time_limit(config.members.unwrap().server.future_time_limit);
+        global::set_global_future_time_limit(config.members.unwrap().server.future_time_limit);
         info!("Future Time Limit: {:?}", global::get_future_time_limit());
         log_feature_flags();
 
