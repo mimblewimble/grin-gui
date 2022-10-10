@@ -304,6 +304,20 @@ where
         }
     }
 
+    pub async fn close_wallet(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+    ) -> Result<(), GrinWalletInterfaceError> {
+        let mut w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            // ignoring secret key
+            o.close_wallet(None);
+            w.wallet_is_open = false;
+            return Ok(());
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
     pub fn get_wallet_updater_status(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
     ) -> Result<Vec<StatusMessage>, GrinWalletInterfaceError> {

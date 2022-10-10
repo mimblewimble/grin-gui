@@ -28,11 +28,13 @@ use {
 };
 
 pub struct StateContainer {
+    pub back_button_state: button::State,
+    pub expanded_type: ExpandType,
+
     wallet_info: Option<WalletInfo>,
     wallet_txs: TxList,
     wallet_status: String,
     txs_scrollable_state: scrollable::State,
-    pub expanded_type: ExpandType,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 }
@@ -40,11 +42,12 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
+            back_button_state: Default::default(),
+            expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
             txs_scrollable_state: Default::default(),
-            expanded_type: ExpandType::None,
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
         }
@@ -53,6 +56,7 @@ impl Default for StateContainer {
 
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
+    Back,
     Submit,
     /// was updated from node, info
     WalletInfoUpdateSuccess(bool, WalletInfo, Vec<TxLogEntry>),
@@ -126,6 +130,14 @@ pub fn handle_message<'a>(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
+        LocalViewInteraction::Back => {
+            // TODO implement close wallet and handle close errors
+            let wallet_interface = grin_gui.wallet_interface.clone();
+            WalletInterface::close_wallet(wallet_interface);
+
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::Open;
+        }
         LocalViewInteraction::Submit => {}
         LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs) => {
             debug!(
@@ -159,8 +171,24 @@ pub fn data_container<'a>(
     let title_container =
         Container::new(title).style(style::BrightBackgroundContainer(color_palette));
 
+    let back_button_label_container =
+        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
+            .height(Length::Units(20))
+            .align_y(alignment::Vertical::Bottom)
+            .align_x(alignment::Horizontal::Center);
+
+    let back_button: Element<Interaction> =
+        Button::new(&mut state.back_button_state, back_button_label_container)
+            .style(style::NormalTextButton(color_palette))
+            .on_press(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::Back,
+            ))
+            .into();
+
     let title_row = Row::new()
         .push(title_container)
+        .push(Space::new(Length::Units(100), Length::Units(0)))
+        .push(back_button.map(Message::Interaction))
         .align_items(Alignment::Center)
         .padding(6)
         .spacing(20);
