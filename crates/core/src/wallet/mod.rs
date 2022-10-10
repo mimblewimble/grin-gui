@@ -177,7 +177,7 @@ where
             let mut wallet_lock = wallet_inst.lock();
             let lc = wallet_lock.lc_provider().unwrap();
             let _ = lc.set_top_level_directory(
-                &top_level_directory.to_str().unwrap()
+                &get_grin_wallet_default_path(&chain_type).to_str().unwrap(),
             );
         }
 
@@ -234,6 +234,12 @@ where
                     if let Some(s) = top_level_directory.to_str() {
                         p.set_top_level_directory(s)?;
                     }
+
+                    log::debug!(
+                        "core::wallet::InitWallet Top Level Directory: {:?}",
+                        p.get_top_level_directory(),
+                    );
+
                     p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, None, None, None)?;
                     p.create_wallet(
                         None,
