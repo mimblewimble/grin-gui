@@ -194,12 +194,19 @@ where
         {
             let w = wallet_interface.read().unwrap();
             if let Some(_) = &w.owner_api {
-                global::set_local_chain_type(chain_type);
-                return Ok(());
+                // chain type from previous inst must match
+                if w.chain_type.unwrap() == chain_type {
+                    global::set_local_chain_type(chain_type);
+                    return Ok(());
+                }
             }
         }
 
-        let wallet_inst = WalletInterface::inst_wallet(wallet_interface.clone(), chain_type, top_level_directory)?;
+        let wallet_inst = WalletInterface::inst_wallet(
+            wallet_interface.clone(),
+            chain_type,
+            top_level_directory,
+        )?;
         let mut w = wallet_interface.write().unwrap();
         w.owner_api = Some(Owner::new(wallet_inst.clone(), None));
         global::set_local_chain_type(chain_type);
@@ -214,7 +221,11 @@ where
         display_name: String,
         chain_type: global::ChainTypes,
     ) -> Result<(String, String, String, global::ChainTypes), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
+        WalletInterface::inst_owner_api(
+            wallet_interface.clone(),
+            chain_type,
+            top_level_directory.clone(),
+        )?;
 
         let w = wallet_interface.read().unwrap();
 
@@ -264,7 +275,11 @@ where
         top_level_directory: PathBuf,
         chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(wallet_interface.clone(), chain_type, top_level_directory.clone())?;
+        WalletInterface::inst_owner_api(
+            wallet_interface.clone(),
+            chain_type,
+            top_level_directory.clone(),
+        )?;
 
         let mut w = wallet_interface.write().unwrap();
 
