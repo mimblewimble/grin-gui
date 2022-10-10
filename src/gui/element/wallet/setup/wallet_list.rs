@@ -139,6 +139,12 @@ pub fn data_container<'a>(
     let name_header_container = Container::new(name_header)
         .style(style::NormalBackgroundContainer(color_palette));
 
+    let chain_header = Text::new(localized_string("Chain"))
+        .size(DEFAULT_HEADER_FONT_SIZE);
+
+    let chain_header_container = Container::new(chain_header)
+        .style(style::NormalBackgroundContainer(color_palette));
+
     let directory_header = Text::new(localized_string("Location"))
         .size(DEFAULT_HEADER_FONT_SIZE);
 
@@ -147,6 +153,8 @@ pub fn data_container<'a>(
 
     let header_row = Row::new()
         .push(name_header_container)
+        .push(Space::new(Length::Units(85), Length::Units(0)))
+        .push(chain_header_container)
         .push(Space::new(Length::Units(135), Length::Units(0)))
         .push(directory_header_container);
         
