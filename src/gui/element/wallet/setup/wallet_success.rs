@@ -89,7 +89,7 @@ pub fn data_container<'a>(
                 )
                 .style(style::NormalTextButton(color_palette))
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
-                    "Write to clipboard".to_owned(),
+                    state.recovery_phrase.clone(),
                 ))),
             ),
     )
