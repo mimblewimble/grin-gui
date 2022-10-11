@@ -136,6 +136,8 @@ where
         w.use_embedded_node = value;
     }
 
+    /// Sets the top level directory of the wallet and creates default config if config 
+    /// doesn't already exist. The initial config is created based off of the chain type.
     fn inst_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
@@ -145,8 +147,10 @@ where
         GrinWalletInterfaceError,
     > {
         let mut w = wallet_interface.write().unwrap();
+        // path for config file
         let data_path = Some(top_level_directory.clone());
 
+        // creates default config file for chain type at data path
         let config =
             grin_wallet_config::initial_setup_wallet(&chain_type, data_path, true).unwrap();
 
@@ -176,9 +180,8 @@ where
         {
             let mut wallet_lock = wallet_inst.lock();
             let lc = wallet_lock.lc_provider().unwrap();
-            let _ = lc.set_top_level_directory(
-                &get_grin_wallet_default_path(&chain_type).to_str().unwrap(),
-            );
+            // set top level directory
+            lc.set_top_level_directory(top_level_directory.to_str().unwrap());
         }
 
         w.config = Some(config);
@@ -191,17 +194,6 @@ where
         chain_type: global::ChainTypes,
         top_level_directory: PathBuf,
     ) -> Result<(), GrinWalletInterfaceError> {
-        {
-            let w = wallet_interface.read().unwrap();
-            if let Some(_) = &w.owner_api {
-                // chain type from previous inst must match
-                if w.chain_type.unwrap() == chain_type {
-                    global::set_local_chain_type(chain_type);
-                    return Ok(());
-                }
-            }
-        }
-
         let wallet_inst = WalletInterface::inst_wallet(
             wallet_interface.clone(),
             chain_type,
@@ -242,9 +234,6 @@ where
                 let tld = {
                     let mut w_lock = o.wallet_inst.lock();
                     let p = w_lock.lc_provider()?;
-                    if let Some(s) = top_level_directory.to_str() {
-                        p.set_top_level_directory(s)?;
-                    }
 
                     log::debug!(
                         "core::wallet::InitWallet Top Level Directory: {:?}",
@@ -284,13 +273,6 @@ where
         let mut w = wallet_interface.write().unwrap();
 
         if let Some(o) = &w.owner_api {
-            {
-                let mut w_lock = o.wallet_inst.lock();
-                let p = w_lock.lc_provider()?;
-                if let Some(s) = top_level_directory.to_str() {
-                    p.set_top_level_directory(s)?;
-                }
-            }
             // ignoring secret key
             let _ = o.open_wallet(None, password.into(), false)?;
             // Start the updater
