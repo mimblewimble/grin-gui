@@ -234,13 +234,14 @@ where
                 let tld = {
                     let mut w_lock = o.wallet_inst.lock();
                     let p = w_lock.lc_provider()?;
+                    let logging_config = w.config.clone().unwrap().clone().members.unwrap().logging.clone(); 
 
                     log::debug!(
                         "core::wallet::InitWallet Top Level Directory: {:?}",
                         p.get_top_level_directory(),
                     );
 
-                    p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, None, None, None)?;
+                    p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, Some(args.config), logging_config, None)?;
                     p.create_wallet(
                         None,
                         args.recovery_phrase,
