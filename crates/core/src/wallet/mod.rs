@@ -291,7 +291,6 @@ where
     ) -> Result<(), GrinWalletInterfaceError> {
         let mut w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
-            // ignoring secret key
             o.close_wallet(None);
             w.wallet_is_open = false;
             return Ok(());
