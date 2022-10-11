@@ -195,9 +195,11 @@ where
             let w = wallet_interface.read().unwrap();
             if let Some(_) = &w.owner_api {
                 // chain type from previous inst must match
-                if w.chain_type.unwrap() == chain_type {
-                    global::set_local_chain_type(chain_type);
-                    return Ok(());
+                if let Some(t) = w.chain_type {
+                    if t == chain_type {
+                        global::set_local_chain_type(chain_type);
+                        return Ok(());
+                    }
                 }
             }
         }

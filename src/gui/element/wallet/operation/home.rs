@@ -265,7 +265,7 @@ pub fn data_container<'a>(
     // Each row holds data about a single tx.
     let mut tx_list_scrollable = Scrollable::new(&mut state.txs_scrollable_state)
         .spacing(1)
-        .height(Length::FillPortion(1))
+        //.height(Length::Fill)
         .style(style::Scrollable(color_palette));
 
     let mut has_txs = false;
@@ -319,7 +319,7 @@ pub fn data_container<'a>(
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable)
+        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
     }
 
     // Overall Home screen layout column
@@ -327,7 +327,7 @@ pub fn data_container<'a>(
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(tx_list_content)
-        .push(Space::new(Length::Units(0), Length::Fill))
+        .push(Space::new(Length::Units(0), Length::Units(20)))
         .push(status_row)
         .align_items(Alignment::Center);
 
