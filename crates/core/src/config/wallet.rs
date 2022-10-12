@@ -16,10 +16,6 @@ pub struct Wallet {
     pub use_embedded_node: bool,
     /// Chain type of wallet
     pub chain_type: ChainTypes,
-    /// Node url
-    pub node_url: Option<String>,
-    /// Node secret path
-    pub secret_path: Option<String>,
 }
 
 impl Wallet {
@@ -29,8 +25,6 @@ impl Wallet {
             display_name,
             use_embedded_node: true,
             chain_type,
-            node_url: None,
-            secret_path: None,
         }
     }
 }
@@ -42,8 +36,6 @@ impl Default for Wallet {
             display_name: "Default".to_owned(),
             use_embedded_node: true,
             chain_type: ChainTypes::Mainnet,
-            node_url: None,
-            secret_path: None,
         }
     }
 }
