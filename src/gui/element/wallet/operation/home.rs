@@ -61,6 +61,8 @@ pub enum LocalViewInteraction {
     /// was updated from node, info
     WalletInfoUpdateSuccess(bool, WalletInfo, Vec<TxLogEntry>),
     WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
+    WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
+    WalletCloseSuccess,
 }
 
 // Okay to modify state and access wallet here
@@ -131,12 +133,23 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::Back => {
-            // TODO implement close wallet and handle close errors
             let wallet_interface = grin_gui.wallet_interface.clone();
-            WalletInterface::close_wallet(wallet_interface);
+            let fut = WalletInterface::close_wallet(wallet_interface);
 
-            grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::Open;
+            return Ok(Command::perform(fut, |r| {
+                match r.context("Failed to close wallet") {
+                    Ok(()) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::WalletCloseSuccess,
+                        ))
+                    }
+                    Err(e) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::WalletCloseError(Arc::new(RwLock::new(Some(e)))),
+                        ))
+                    }
+                }
+            }));
         }
         LocalViewInteraction::Submit => {}
         LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs) => {
@@ -154,6 +167,16 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
+        LocalViewInteraction::WalletCloseSuccess => {
+            grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::Open;
+        }
+        LocalViewInteraction::WalletCloseError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
+        }
+
     }
     Ok(Command::none())
 }
