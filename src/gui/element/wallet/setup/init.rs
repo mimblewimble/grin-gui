@@ -46,16 +46,16 @@ pub fn handle_message(
             let mut wallet_display_name = wallet_default_name.clone(); 
             let mut i = 1;
 
-            // wallet display name must be unique
+            // wallet display name must be unique: i.e. Default 1, Default 2, ...
             while let Some(_) = config.wallets.iter().find(|wallet| wallet.display_name == wallet_display_name) {
                 wallet_display_name = format!("{} {}", wallet_default_name, i);
                 i += 1;
             }
 
-            let wallet_dir: String = wallet_display_name.chars().filter(|c| !c.is_whitespace()).collect();
-            let tld = create_grin_wallet_path(&ChainTypes::Mainnet,&wallet_dir.to_lowercase());
+            // i.e. default_1, default_2, ...
+            let wallet_dir: String = str::replace(&wallet_display_name.to_lowercase(), " ", "_");
 
-            state.setup_wallet_state.advanced_options_state.top_level_directory = tld;
+            state.setup_wallet_state.advanced_options_state.top_level_directory = create_grin_wallet_path(&ChainTypes::Mainnet,&wallet_dir);
             state.setup_wallet_state.advanced_options_state.display_name_value = wallet_display_name;
             state.mode = super::Mode::CreateWallet;
         }
