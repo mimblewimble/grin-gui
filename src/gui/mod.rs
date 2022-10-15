@@ -142,9 +142,6 @@ impl Application for GrinGui {
             global::set_local_chain_type(wallet.chain_type);
         } 
 
-        grin_gui.wallet_state.setup_state.setup_wallet_state.advanced_options_state.top_level_directory =
-            get_grin_wallet_default_path(&global::get_chain_type());
-
         // Check initial wallet status
         /*if !config.wallet.toml_file_path.is_some()
             || !w.config_exists(

@@ -206,5 +206,6 @@
     "tx-status": "Status",
     "tx-net-difference": "Amount",
     "tx-id": "ID",
-    "tx-type": "Type"
+    "tx-type": "Type",
+    "wallet-default-name": "Default"
 }

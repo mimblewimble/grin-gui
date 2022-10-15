@@ -1,5 +1,4 @@
 use crate::log_error;
-use grin_gui_core::wallet::{get_grin_wallet_default_path, global};
 //use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -14,6 +13,7 @@ use {
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{
+        wallet::create_grin_wallet_path,
         config::Wallet,
         fs::PersistentData,
         node::ChainTypes::{self, Mainnet, Testnet},
@@ -52,8 +52,8 @@ impl Default for StateContainer {
 
 pub struct AdvancedOptionsState {
     display_name_input_state: text_input::State,
-    display_name_value: String,
     folder_select_button_state: button::State,
+    pub display_name_value: String,
     pub top_level_directory: PathBuf,
 }
 
@@ -136,20 +136,22 @@ pub fn handle_message<'a>(
         LocalViewInteraction::ToggleIsTestnet(_) => {
             state.is_testnet = !state.is_testnet;
             let current_tld = state.advanced_options_state.top_level_directory.clone();
+            let directory = current_tld.file_name().unwrap().to_str().unwrap();
 
             if state.is_testnet {
-                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                let default_path = create_grin_wallet_path(&Mainnet, directory);
                 // Only change if nobody's modified the default path
                 if default_path == current_tld {
                     state.advanced_options_state.top_level_directory =
-                        get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                        create_grin_wallet_path(&Testnet, directory);
                 }
             } else {
-                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                let default_path = create_grin_wallet_path(&Testnet, directory);
                 // Only change if nobody's modified the default path
                 if default_path == current_tld {
                     state.advanced_options_state.top_level_directory =
-                        get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                        create_grin_wallet_path(&Mainnet, directory);
+              
                 }
             }
         }
@@ -405,8 +407,8 @@ pub fn data_container<'a>(
 
     let display_name_input = TextInput::new(
         &mut state.advanced_options_state.display_name_input_state,
-        &localized_string("default"), // TODO @sheldonth
-        &state.advanced_options_state.display_name_value, // todo: Default2, Default3, etc...
+        &localized_string("wallet-default-name"), 
+        &state.advanced_options_state.display_name_value, 
         |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
     )
     .size(DEFAULT_FONT_SIZE)
@@ -432,10 +434,7 @@ pub fn data_container<'a>(
     ));
     let folder_select_button: Element<Interaction> = folder_select_button.into();
 
-    let tld_string = match state.advanced_options_state.top_level_directory.to_str() {
-        Some(s) => s,
-        None => "",
-    };
+    let tld_string = state.advanced_options_state.top_level_directory.to_str().unwrap(); 
     let current_tld = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
     let current_tld_container =

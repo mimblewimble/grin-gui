@@ -3,7 +3,7 @@ use {
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
-    grin_gui_core::theme::ColorPalette,
+    grin_gui_core::{theme::ColorPalette, wallet::{create_grin_wallet_path, ChainTypes}},
     iced::{
         alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Space, Text,
@@ -40,7 +40,25 @@ pub fn handle_message(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.setup_state;
     match message {
-        LocalViewInteraction::WalletSetup => state.mode = super::Mode::CreateWallet,
+        LocalViewInteraction::WalletSetup => {
+            let config = &grin_gui.config;
+            let wallet_default_name = localized_string("wallet-default-name");
+            let mut wallet_display_name = wallet_default_name.clone(); 
+            let mut i = 1;
+
+            // wallet display name must be unique
+            while let Some(_) = config.wallets.iter().find(|wallet| wallet.display_name == wallet_display_name) {
+                wallet_display_name = format!("{} {}", wallet_default_name, i);
+                i += 1;
+            }
+
+            let wallet_dir: String = wallet_display_name.chars().filter(|c| !c.is_whitespace()).collect();
+            let tld = create_grin_wallet_path(&ChainTypes::Mainnet,&wallet_dir.to_lowercase());
+
+            state.setup_wallet_state.advanced_options_state.top_level_directory = tld;
+            state.setup_wallet_state.advanced_options_state.display_name_value = wallet_display_name;
+            state.mode = super::Mode::CreateWallet;
+        }
         LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets
     }
     Ok(Command::none())
