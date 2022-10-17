@@ -51,8 +51,8 @@ impl Default for StateContainer {
 }
 
 pub struct AdvancedOptionsState {
-    display_name_input_state: text_input::State,
     folder_select_button_state: button::State,
+    pub display_name_input_state: text_input::State,
     pub display_name_value: String,
     pub top_level_directory: PathBuf,
 }
@@ -99,7 +99,7 @@ pub enum LocalViewInteraction {
     ToggleAdvancedOptions(bool),
     ToggleIsTestnet(bool),
     DisplayName(String),
-    CreateWallet,
+    CreateWallet(String, PathBuf),
     WalletCreatedOk((String, String, String, ChainTypes)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     ShowFolderPicker,
@@ -175,12 +175,12 @@ pub fn handle_message<'a>(
                 }
             };
         }
-        LocalViewInteraction::CreateWallet => {
+        LocalViewInteraction::CreateWallet(display_name, top_level_directory) => {
             grin_gui.error.take();
 
             log::debug!(
                 "setup::wallet::LocalViewInteraction::CreateWallet {}",
-                state.advanced_options_state.display_name_value
+                display_name, 
             );
 
             let password = state.password_state.input_value.clone();
@@ -191,8 +191,8 @@ pub fn handle_message<'a>(
                 WalletInterface::init(
                     w,
                     password.clone(),
-                    state.advanced_options_state.top_level_directory.clone(),
-                    state.advanced_options_state.display_name_value.clone(),
+                    top_level_directory,
+                    display_name,
                     chain_type,
                 )
             };
@@ -243,6 +243,7 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    default_display_name: &str,
 ) -> Container<'a, Message> {
     let check_password = || {
         state.password_state.input_value == state.password_state.repeat_input_value
@@ -413,7 +414,7 @@ pub fn data_container<'a>(
 
     let display_name_input = TextInput::new(
         &mut state.advanced_options_state.display_name_input_state,
-        &localized_string("wallet-default-name"),
+        default_display_name,
         &state.advanced_options_state.display_name_value,
         |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
     )
@@ -499,8 +500,15 @@ pub fn data_container<'a>(
     )
     .style(style::DefaultBoxedButton(color_palette));
     if check_password() {
+        let top_level_directory = state.advanced_options_state.top_level_directory.clone();
+        let display_name = if state.advanced_options_state.display_name_value.is_empty() {
+            default_display_name.to_string()
+        } else {
+            state.advanced_options_state.display_name_value.clone()
+        };
+
         submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
-            LocalViewInteraction::CreateWallet,
+            LocalViewInteraction::CreateWallet(display_name, top_level_directory),
         ));
     }
 

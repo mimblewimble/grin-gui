@@ -1,9 +1,12 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{style, GrinGui, Interaction, Message, element::settings::wallet},
     crate::localization::localized_string,
     crate::Result,
-    grin_gui_core::{theme::ColorPalette, wallet::{create_grin_wallet_path, ChainTypes}},
+    grin_gui_core::{
+        theme::ColorPalette,
+        wallet::{create_grin_wallet_path, ChainTypes},
+    },
     iced::{
         alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
         Space, Text,
@@ -43,11 +46,15 @@ pub fn handle_message(
         LocalViewInteraction::WalletSetup => {
             let config = &grin_gui.config;
             let wallet_default_name = localized_string("wallet-default-name");
-            let mut wallet_display_name = wallet_default_name.clone(); 
+            let mut wallet_display_name = wallet_default_name.clone();
             let mut i = 1;
 
             // wallet display name must be unique: i.e. Default 1, Default 2, ...
-            while let Some(_) = config.wallets.iter().find(|wallet| wallet.display_name == wallet_display_name) {
+            while let Some(_) = config
+                .wallets
+                .iter()
+                .find(|wallet| wallet.display_name == wallet_display_name)
+            {
                 wallet_display_name = format!("{} {}", wallet_default_name, i);
                 i += 1;
             }
@@ -55,11 +62,14 @@ pub fn handle_message(
             // i.e. default_1, default_2, ...
             let wallet_dir: String = str::replace(&wallet_display_name.to_lowercase(), " ", "_");
 
-            state.setup_wallet_state.advanced_options_state.top_level_directory = create_grin_wallet_path(&ChainTypes::Mainnet,&wallet_dir);
-            state.setup_wallet_state.advanced_options_state.display_name_value = wallet_display_name;
-            state.mode = super::Mode::CreateWallet;
+            state
+                .setup_wallet_state
+                .advanced_options_state
+                .top_level_directory = create_grin_wallet_path(&ChainTypes::Mainnet, &wallet_dir);
+
+            state.mode = super::Mode::CreateWallet(wallet_display_name);
         }
-        LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets
+        LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets,
     }
     Ok(Command::none())
 }
@@ -68,21 +78,19 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-
     // Title row
     let title = Text::new(localized_string("setup-grin-first-time"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
-    let title_container = Container::new(title)
-        .style(style::BrightBackgroundContainer(color_palette));
+    let title_container =
+        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
 
     let title_row = Row::new()
         .push(title_container)
         .align_items(Alignment::Center)
         .padding(6)
         .spacing(20);
-        
 
     let description = Text::new(localized_string("setup-grin-wallet-description"))
         .size(DEFAULT_FONT_SIZE)
@@ -129,8 +137,7 @@ pub fn data_container<'a>(
     .into();
 
     let select_wallet_button_container =
-        Container::new(select_wallet_button.map(Message::Interaction))
-    .center_x();
+        Container::new(select_wallet_button.map(Message::Interaction)).center_x();
 
     //let mut wallet_setup_modal_column =
     /*let wallet_setup_select_column = {
@@ -160,14 +167,14 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(select_wallet_button_container)
         .align_items(Alignment::Center);
- 
+
     let colum = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(select_column)
-       .align_items(Alignment::Center);
+        .align_items(Alignment::Center);
 
     Container::new(colum)
         .center_y()
