@@ -13,10 +13,10 @@ use {
     anyhow::Context,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::{
-        wallet::create_grin_wallet_path,
         config::Wallet,
         fs::PersistentData,
         node::ChainTypes::{self, Mainnet, Testnet},
+        wallet::create_grin_wallet_path,
         wallet::WalletInterface,
     },
     iced::{
@@ -112,6 +112,8 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
     match message {
         LocalViewInteraction::Back => {
+            // reset user input values
+            grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
             grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
         }
         LocalViewInteraction::PasswordInput(password) => {
@@ -151,7 +153,6 @@ pub fn handle_message<'a>(
                 if default_path == current_tld {
                     state.advanced_options_state.top_level_directory =
                         create_grin_wallet_path(&Mainnet, directory);
-              
                 }
             }
         }
@@ -219,8 +220,13 @@ pub fn handle_message<'a>(
                 .setup_state
                 .setup_wallet_success_state
                 .recovery_phrase = mnemonic;
+
             grin_gui.wallet_state.setup_state.mode =
                 crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+
+            // reset user input values
+            grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
+
             let _ = grin_gui.config.save();
         }
         LocalViewInteraction::WalletCreateError(err) => {
@@ -407,8 +413,8 @@ pub fn data_container<'a>(
 
     let display_name_input = TextInput::new(
         &mut state.advanced_options_state.display_name_input_state,
-        &localized_string("wallet-default-name"), 
-        &state.advanced_options_state.display_name_value, 
+        &localized_string("wallet-default-name"),
+        &state.advanced_options_state.display_name_value,
         |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
     )
     .size(DEFAULT_FONT_SIZE)
@@ -434,7 +440,11 @@ pub fn data_container<'a>(
     ));
     let folder_select_button: Element<Interaction> = folder_select_button.into();
 
-    let tld_string = state.advanced_options_state.top_level_directory.to_str().unwrap(); 
+    let tld_string = state
+        .advanced_options_state
+        .top_level_directory
+        .to_str()
+        .unwrap();
     let current_tld = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
     let current_tld_container =
