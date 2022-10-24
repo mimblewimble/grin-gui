@@ -257,9 +257,9 @@ pub fn data_container<'a>(
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let button_row = Row::new()
-        .push(cancel_button.map(Message::Interaction))
+        .push(submit_button.map(Message::Interaction))
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(submit_button.map(Message::Interaction));
+        .push(cancel_button.map(Message::Interaction));
 
     let column = Column::new()
         .push(title_row)
