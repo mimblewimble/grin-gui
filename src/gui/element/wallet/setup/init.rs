@@ -168,7 +168,8 @@ pub fn data_container<'a>(
         .push(select_wallet_button_container)
         .align_items(Alignment::Center);
 
-    let colum = Column::new()
+    let column = Column::new()
+        .push(Space::new(Length::Units(0), Length::Units(20)))
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
@@ -176,7 +177,7 @@ pub fn data_container<'a>(
         .push(select_column)
         .align_items(Alignment::Center);
 
-    Container::new(colum)
+    Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)

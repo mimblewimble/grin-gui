@@ -68,13 +68,9 @@ pub fn data_container<'a>(
         }
     };
 
-    let column = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(20)))
-        .push(content);
-
-    Container::new(column)
-        .center_y()
-        .center_x()
-        .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+    Container::new(content)
+         .center_y()
+         .center_x()
+         .width(Length::Fill)
+         .style(style::NormalBackgroundContainer(color_palette))
 }
