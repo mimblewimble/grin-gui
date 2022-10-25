@@ -115,7 +115,7 @@ pub fn handle_message<'a>(
                 .advanced_options_state
                 .top_level_directory = create_grin_wallet_path(&ChainTypes::Mainnet, &wallet_dir);
 
-            state.mode = super::Mode::CreateWallet(wallet_display_name);
+            grin_gui.wallet_state.mode = crate::gui::element::wallet::Mode::CreateWallet(wallet_display_name);
         }
     }
 
@@ -152,8 +152,8 @@ pub fn data_container<'a>(
         .spacing(0);
 
     let segmented_mode_container = Container::new(button_row)
-          .padding(1)
-          .style(style::SegmentedContainer(color_palette));
+        .padding(1)
+        .style(style::SegmentedContainer(color_palette));
 
     let mut header_row = Row::new()
         .height(Length::Units(50))

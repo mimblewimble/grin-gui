@@ -1,4 +1,4 @@
-use crate::log_error;
+use crate::{gui::element, log_error};
 //use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -116,9 +116,17 @@ pub fn handle_message<'a>(
         LocalViewInteraction::Back => {
             // reset user input values
             grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
-            // TODO should back out to init or list depending on how the user got here
-            //grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
-            grin_gui.wallet_state.setup_state.mode = super::Mode::ListWallets;
+
+            // return user to proper view
+            match grin_gui.wallet_state.mode {
+                // back to init screen
+                element::wallet::Mode::Init => grin_gui.wallet_state.setup_state.mode = super::Mode::Init,
+                _ => {
+                    // back to list view
+                    grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+                    grin_gui.wallet_state.setup_state.mode = super::Mode::ListWallets;
+                }
+            };
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
