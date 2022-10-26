@@ -211,5 +211,6 @@
     "info-amount-spendable": "Amount Spendable",
     "info-awaiting-confirmation": "Awaiting Confirmation",
     "info-awaiting-finalization": "Awaiting Finalization",
-    "info-locked": "Locked"
+    "info-locked": "Locked",
+    "wallet-default-name": "Default"
 }

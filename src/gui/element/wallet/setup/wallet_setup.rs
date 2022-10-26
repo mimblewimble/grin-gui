@@ -1,5 +1,4 @@
 use crate::log_error;
-use grin_gui_core::wallet::{get_grin_wallet_default_path, global};
 //use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -17,6 +16,7 @@ use {
         config::Wallet,
         fs::PersistentData,
         node::ChainTypes::{self, Mainnet, Testnet},
+        wallet::create_grin_wallet_path,
         wallet::WalletInterface,
     },
     iced::{
@@ -51,9 +51,9 @@ impl Default for StateContainer {
 }
 
 pub struct AdvancedOptionsState {
-    display_name_input_state: text_input::State,
-    display_name_value: String,
     folder_select_button_state: button::State,
+    pub display_name_input_state: text_input::State,
+    pub display_name_value: String,
     pub top_level_directory: PathBuf,
 }
 
@@ -99,7 +99,7 @@ pub enum LocalViewInteraction {
     ToggleAdvancedOptions(bool),
     ToggleIsTestnet(bool),
     DisplayName(String),
-    CreateWallet,
+    CreateWallet(String, PathBuf),
     WalletCreatedOk((String, String, String, ChainTypes)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     ShowFolderPicker,
@@ -112,6 +112,8 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
     match message {
         LocalViewInteraction::Back => {
+            // reset user input values
+            grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
             grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
         }
         LocalViewInteraction::PasswordInput(password) => {
@@ -136,20 +138,21 @@ pub fn handle_message<'a>(
         LocalViewInteraction::ToggleIsTestnet(_) => {
             state.is_testnet = !state.is_testnet;
             let current_tld = state.advanced_options_state.top_level_directory.clone();
+            let directory = current_tld.file_name().unwrap().to_str().unwrap();
 
             if state.is_testnet {
-                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                let default_path = create_grin_wallet_path(&Mainnet, directory);
                 // Only change if nobody's modified the default path
                 if default_path == current_tld {
                     state.advanced_options_state.top_level_directory =
-                        get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                        create_grin_wallet_path(&Testnet, directory);
                 }
             } else {
-                let default_path = get_grin_wallet_default_path(&global::ChainTypes::Testnet);
+                let default_path = create_grin_wallet_path(&Testnet, directory);
                 // Only change if nobody's modified the default path
                 if default_path == current_tld {
                     state.advanced_options_state.top_level_directory =
-                        get_grin_wallet_default_path(&global::ChainTypes::Mainnet);
+                        create_grin_wallet_path(&Mainnet, directory);
                 }
             }
         }
@@ -172,12 +175,12 @@ pub fn handle_message<'a>(
                 }
             };
         }
-        LocalViewInteraction::CreateWallet => {
+        LocalViewInteraction::CreateWallet(display_name, top_level_directory) => {
             grin_gui.error.take();
 
             log::debug!(
                 "setup::wallet::LocalViewInteraction::CreateWallet {}",
-                state.advanced_options_state.display_name_value
+                display_name, 
             );
 
             let password = state.password_state.input_value.clone();
@@ -188,8 +191,8 @@ pub fn handle_message<'a>(
                 WalletInterface::init(
                     w,
                     password.clone(),
-                    state.advanced_options_state.top_level_directory.clone(),
-                    state.advanced_options_state.display_name_value.clone(),
+                    top_level_directory,
+                    display_name,
                     chain_type,
                 )
             };
@@ -217,8 +220,13 @@ pub fn handle_message<'a>(
                 .setup_state
                 .setup_wallet_success_state
                 .recovery_phrase = mnemonic;
+
             grin_gui.wallet_state.setup_state.mode =
                 crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+
+            // reset user input values
+            grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
+
             let _ = grin_gui.config.save();
         }
         LocalViewInteraction::WalletCreateError(err) => {
@@ -235,6 +243,7 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
+    default_display_name: &str,
 ) -> Container<'a, Message> {
     let check_password = || {
         state.password_state.input_value == state.password_state.repeat_input_value
@@ -405,8 +414,8 @@ pub fn data_container<'a>(
 
     let display_name_input = TextInput::new(
         &mut state.advanced_options_state.display_name_input_state,
-        &localized_string("default"), // TODO @sheldonth
-        &state.advanced_options_state.display_name_value, // todo: Default2, Default3, etc...
+        default_display_name,
+        &state.advanced_options_state.display_name_value,
         |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
     )
     .size(DEFAULT_FONT_SIZE)
@@ -432,10 +441,11 @@ pub fn data_container<'a>(
     ));
     let folder_select_button: Element<Interaction> = folder_select_button.into();
 
-    let tld_string = match state.advanced_options_state.top_level_directory.to_str() {
-        Some(s) => s,
-        None => "",
-    };
+    let tld_string = state
+        .advanced_options_state
+        .top_level_directory
+        .to_str()
+        .unwrap();
     let current_tld = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
     let current_tld_container =
@@ -490,8 +500,15 @@ pub fn data_container<'a>(
     )
     .style(style::DefaultBoxedButton(color_palette));
     if check_password() {
+        let top_level_directory = state.advanced_options_state.top_level_directory.clone();
+        let display_name = if state.advanced_options_state.display_name_value.is_empty() {
+            default_display_name.to_string()
+        } else {
+            state.advanced_options_state.display_name_value.clone()
+        };
+
         submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
-            LocalViewInteraction::CreateWallet,
+            LocalViewInteraction::CreateWallet(display_name, top_level_directory),
         ));
     }
 

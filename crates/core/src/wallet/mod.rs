@@ -59,6 +59,20 @@ pub fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf 
     grin_path
 }
 
+pub fn create_grin_wallet_path(chain_type: &global::ChainTypes, sub_dir: &str) -> PathBuf {
+    // Check if grin dir exists
+    let mut grin_path = match dirs::home_dir() {
+        Some(p) => p,
+        None => PathBuf::new(),
+    };
+    grin_path.push(GRIN_HOME);
+    grin_path.push(chain_type.shortname());
+    grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
+    grin_path.push(sub_dir);
+
+    grin_path
+}
+
 pub type WalletInterfaceHttpNodeClient = WalletInterface<
     DefaultLCProvider<'static, HTTPNodeClient, keychain::ExtKeychain>,
     HTTPNodeClient,

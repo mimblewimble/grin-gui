@@ -22,7 +22,7 @@ pub struct StateContainer {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
     Init,
-    CreateWallet,
+    CreateWallet(String),
     ListWallets,
     WalletCreateSuccess,
 }
@@ -54,10 +54,10 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-    let content = match state.mode {
+    let content = match &state.mode {
         Mode::Init => init::data_container(color_palette, &mut state.setup_init_state),
-        Mode::CreateWallet => {
-            wallet_setup::data_container(color_palette, &mut state.setup_wallet_state)
+        Mode::CreateWallet(default_display_name) => {
+            wallet_setup::data_container(color_palette, &mut state.setup_wallet_state, default_display_name)
         }
         Mode::WalletCreateSuccess => {
             wallet_success::data_container(color_palette, &mut state.setup_wallet_success_state)
