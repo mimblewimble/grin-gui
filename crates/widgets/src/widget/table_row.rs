@@ -165,7 +165,7 @@ where
             x: bounds.x,
             y: bounds.y,
             width: bounds.width,
-            height: self.inner_row_height as f32,
+            height: bounds.height,
         };
         self::Renderer::draw(
             renderer,

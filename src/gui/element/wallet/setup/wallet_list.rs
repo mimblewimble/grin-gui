@@ -115,7 +115,8 @@ pub fn handle_message<'a>(
                 .advanced_options_state
                 .top_level_directory = create_grin_wallet_path(&ChainTypes::Mainnet, &wallet_dir);
 
-            grin_gui.wallet_state.mode = crate::gui::element::wallet::Mode::CreateWallet(wallet_display_name);
+            grin_gui.wallet_state.mode =
+                crate::gui::element::wallet::Mode::CreateWallet(wallet_display_name);
         }
     }
 
@@ -152,7 +153,6 @@ pub fn data_container<'a>(
         .spacing(0);
 
     let segmented_mode_container = Container::new(button_row)
-        .padding(1)
         .style(style::SegmentedContainer(color_palette));
 
     let mut header_row = Row::new()
@@ -207,10 +207,10 @@ pub fn data_container<'a>(
         let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_HEADER_FONT_SIZE);
 
         let wallet_name_container =
-            Container::new(wallet_name).style(style::NormalForegroundContainer(color_palette));
+            Container::new(wallet_name).style(style::HoverableForegroundContainer(color_palette));
 
         let wallet_chain_container =
-            Container::new(chain_name).style(style::NormalForegroundContainer(color_palette));
+            Container::new(chain_name).style(style::HoverableForegroundContainer(color_palette));
 
         let tld_string = match &w.tld {
             Some(path_buf) => path_buf.display().to_string(),
@@ -219,7 +219,7 @@ pub fn data_container<'a>(
         let wallet_directory = Text::new(tld_string).size(DEFAULT_HEADER_FONT_SIZE);
 
         let wallet_directory_container =
-            Container::new(wallet_directory).style(style::NormalForegroundContainer(color_palette));
+            Container::new(wallet_directory).style(style::HoverableForegroundContainer(color_palette));
 
         let wallet_row = Row::new()
             .push(checkbox)
@@ -233,23 +233,22 @@ pub fn data_container<'a>(
                     .push(wallet_chain_container)
                     .width(Length::Units(60)),
             )
-            //.push(wallet_name_container)
             .push(Space::new(Length::Units(58), Length::Units(0)))
             .push(wallet_directory_container);
 
-        let tr_style = grin_gui_widgets::style::table_row::Default;
-        tr_style.style().text_color = Some(color_palette.bright.primary);
-        tr_style.hovered().text_color = Some(color_palette.bright.secondary);
-
-        let table_row = TableRow::new(wallet_row)
+        let mut style =  style::TableRow(color_palette);
+        let mut table_row = TableRow::new(wallet_row)
             .padding(iced::Padding::from(2))
-            .style(tr_style);
-        /*.on_press(move |_e| {*/
-        /*println!("table_row on press");*/
-        /*Message::Interaction(*/
-        /*Interaction::WalletListWalletViewInteraction(*/
-        /*LocalViewInteraction::WalletRowSelect(true, pos)))*/
-        /*});*/
+            .width(Length::Fill)
+            .style(style);
+            // .on_press(move |e| {
+            //     println!("table_row on press {}", pos);
+
+            //     Message::Interaction(Interaction::WalletListWalletViewInteraction(
+            //         LocalViewInteraction::WalletRowSelect(true, pos),
+            //     ))
+            // });
+
         wallet_rows.push(table_row.into());
     }
 
@@ -262,10 +261,13 @@ pub fn data_container<'a>(
     .style(style::ChannelBadge(color_palette))
     .padding(iced::Padding::from(DEFAULT_PADDING));
 
+    let mut pad_right = iced::Padding::ZERO;
+    pad_right.right = 15;
     let wallet_column = Column::new()
         .push(header_row)
         .push(Space::new(Length::Units(0), Length::Units(5)))
-        .push(c);
+        .push(c)
+        .padding(pad_right);
 
     let load_wallet_button_container =
         Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
@@ -302,8 +304,7 @@ pub fn data_container<'a>(
     let button_row = Row::new()
         .push(load_wallet_button.map(Message::Interaction))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
-        .push(select_other_button.map(Message::Interaction))
-        .padding(10);
+        .push(select_other_button.map(Message::Interaction));
 
     let parent = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(15)))

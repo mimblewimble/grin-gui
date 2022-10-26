@@ -573,7 +573,7 @@ impl table_row::StyleSheet for TableRow {
         let style = self.style();
         table_row::Style {
             background: Some(Background::Color(Color {
-                a: 0.15,
+                a: 0.60,
                 ..self.0.normal.primary
             })),
             ..style
@@ -859,9 +859,12 @@ impl container::StyleSheet for ChannelBadge {
         container::Style {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.primary),
-            border_color: self.0.bright.primary,
-            border_radius: 3.0,
+            border_radius: 2.0,
             border_width: 1.0,
+            border_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            }
         }
     }
 }
