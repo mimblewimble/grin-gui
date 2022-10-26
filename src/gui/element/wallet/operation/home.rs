@@ -7,6 +7,7 @@ use grin_gui_core::{
 };
 use grin_gui_widgets::{header, Header, TableRow};
 use iced::button::StyleSheet;
+use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
@@ -18,8 +19,8 @@ use {
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
-    grin_gui_core::theme::ColorPalette,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
+    grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
     iced::{
         alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
         Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
@@ -168,7 +169,8 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::WalletCloseSuccess => {
-            grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::Open;
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::Open;
         }
         LocalViewInteraction::WalletCloseError(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -176,7 +178,6 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
-
     }
     Ok(Command::none())
 }
@@ -216,7 +217,145 @@ pub fn data_container<'a>(
         .padding(6)
         .spacing(20);
 
+    // Buttons to perform operations go here, but empty container for now
+    let operations_menu_column = Column::new();
+    let operations_menu_container =
+        Container::new(operations_menu_column).width(Length::FillPortion(2));
+
     // Basic Info "Box"
+    let waiting_string = "---------";
+    let (
+        total_string,
+        amount_spendable_string,
+        awaiting_confirmation_string,
+        awaiting_finalization_string,
+        locked_string,
+    ) = match state.wallet_info.as_ref() {
+        Some(info) => (
+            amount_to_hr_string(info.total, false),
+            amount_to_hr_string(info.amount_currently_spendable, false),
+            amount_to_hr_string(info.amount_awaiting_confirmation, false),
+            amount_to_hr_string(info.amount_awaiting_finalization, false),
+            amount_to_hr_string(info.amount_locked, false),
+        ),
+        None => (
+            waiting_string.to_owned(),
+            waiting_string.to_owned(),
+            waiting_string.to_owned(),
+            waiting_string.to_owned(),
+            waiting_string.to_owned(),
+        ),
+    };
+
+    let total_value_label = Text::new(format!("{}:", localized_string("info-confirmed-total")));
+    let total_value_label_container =
+        Container::new(total_value_label).style(style::BrightBackgroundContainer(color_palette));
+
+    let total_value = Text::new(total_string);
+    let total_value_container = Container::new(total_value)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .width(Length::Fill)
+        .align_x(alignment::Horizontal::Right);
+
+    let total_row = Row::new()
+        .push(total_value_label_container)
+        .push(total_value_container)
+        .width(Length::Fill)
+        .spacing(5);
+
+    let awaiting_confirmation_label = Text::new(format!(
+        "{}:",
+        localized_string("info-awaiting-confirmation")
+    ));
+    let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
+        .style(style::BrightBackgroundContainer(color_palette));
+
+    let awaiting_confirmation_value = Text::new(awaiting_confirmation_string);
+    let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .width(Length::Fill)
+        .align_x(alignment::Horizontal::Right);
+
+    let awaiting_confirmation_row = Row::new()
+        .push(awaiting_confirmation_label_container)
+        .push(awaiting_confirmation_value_container)
+        .width(Length::Fill)
+        .spacing(5);
+
+    let awaiting_finalization_label = Text::new(format!(
+        "{}:",
+        localized_string("info-awaiting-finalization")
+    ));
+    let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
+        .style(style::BrightBackgroundContainer(color_palette));
+
+    let awaiting_finalization_value = Text::new(awaiting_finalization_string);
+    let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .width(Length::Fill)
+        .align_x(alignment::Horizontal::Right);
+
+    let awaiting_finalization_row = Row::new()
+        .push(awaiting_finalization_label_container)
+        .push(awaiting_finalization_value_container)
+        .width(Length::Fill)
+        .spacing(5);
+
+    let locked_label = Text::new(format!("{}:", localized_string("info-locked")));
+    let locked_label_container =
+        Container::new(locked_label).style(style::BrightBackgroundContainer(color_palette));
+
+    let locked_value = Text::new(locked_string);
+    let locked_value_container = Container::new(locked_value)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .width(Length::Fill)
+        .align_x(alignment::Horizontal::Right);
+
+    let locked_row = Row::new()
+        .push(locked_label_container)
+        .push(locked_value_container)
+        .width(Length::Fill)
+        .spacing(5);
+
+    let amount_spendable_label =
+        Text::new(format!("{}:", localized_string("info-amount-spendable")));
+    let amount_spendable_label_container = Container::new(amount_spendable_label)
+        .style(style::BrightBackgroundContainer(color_palette));
+
+    let amount_spendable_value = Text::new(amount_spendable_string);
+    let amount_spendable_value_container = Container::new(amount_spendable_value)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .width(Length::Fill)
+        .align_x(alignment::Horizontal::Right);
+
+    let amount_spendable_row = Row::new()
+        .push(amount_spendable_label_container)
+        .push(amount_spendable_value_container)
+        .width(Length::Fill)
+        .spacing(5);
+
+    let info_column = Column::new()
+        .push(total_row)
+        .push(awaiting_confirmation_row)
+        .push(awaiting_finalization_row)
+        .push(locked_row)
+        .push(amount_spendable_row)
+        .spacing(10);
+
+    let wallet_info_card_title_string = "".to_owned();
+    let wallet_info_card = Card::new(
+        Text::new(wallet_info_card_title_string).size(DEFAULT_HEADER_FONT_SIZE),
+        info_column,
+    )
+    .style(style::NormalModalCardContainer(color_palette));
+
+    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(3));
+
+    // Home 'row', operation buttons beside info
+    let first_row_container = Row::new()
+        .push(operations_menu_container)
+        .push(wallet_info_card_container)
+        .padding(10);
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -288,7 +427,7 @@ pub fn data_container<'a>(
     // Each row holds data about a single tx.
     let mut tx_list_scrollable = Scrollable::new(&mut state.txs_scrollable_state)
         .spacing(1)
-        .height(Length::FillPortion(1))
+        //.height(Length::Fill)
         .style(style::Scrollable(color_palette));
 
     let mut has_txs = false;
@@ -342,15 +481,17 @@ pub fn data_container<'a>(
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable)
+        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
     }
 
     // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(tx_list_content)
+        .push(first_row_container)
         .push(Space::new(Length::Units(0), Length::Fill))
+        .push(tx_list_content)
+        .push(Space::new(Length::Units(0), Length::Units(20)))
         .push(status_row)
         .align_items(Alignment::Center);
 

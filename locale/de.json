@@ -208,5 +208,10 @@
     "tx-net-difference": "Amount",
     "tx-id": "ID",
     "tx-type": "Type",
+    "info-confirmed-total": "Confirmed Total",
+    "info-amount-spendable": "Amount Spendable",
+    "info-awaiting-confirmation": "Awaiting Confirmation",
+    "info-awaiting-finalization": "Awaiting Finalization",
+    "info-locked": "Locked",
     "wallet-default-name": "Default"
 }
