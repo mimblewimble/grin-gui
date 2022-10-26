@@ -214,5 +214,10 @@
     "tx-net-difference": "Amount",
     "tx-id": "Internal ID",
     "tx-type": "Type",
-    "tx-shared-id": "Shared ID"
+    "tx-shared-id": "Shared ID",
+    "info-confirmed-total": "Confirmed Total",
+    "info-amount-spendable": "Amount Spendable",
+    "info-awaiting-confirmation": "Awaiting Confirmation",
+    "info-awaiting-finalization": "Awaiting Finalization",
+    "info-locked": "Locked"
 }
