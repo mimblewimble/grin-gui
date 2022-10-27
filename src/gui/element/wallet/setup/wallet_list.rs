@@ -19,6 +19,8 @@ use {
 use grin_gui_widgets::{table_row::StyleSheet, TableRow};
 use isahc::head;
 
+use crate::gui::element::{DEFAULT_SUB_HEADER_FONT_SIZE};
+
 pub struct StateContainer {
     pub back_button_state: button::State,
     selected_wallet_index: usize,
@@ -169,22 +171,20 @@ pub fn data_container<'a>(
         ))
         .align_items(Alignment::Center);
 
-    //let mut wrapper_column = Column::new().height(Length::Fill).push(header_row);
-
-    let name_header = Text::new(localized_string("Name")).size(DEFAULT_HEADER_FONT_SIZE);
+    let name_header = Text::new(localized_string("Name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let name_header_container =
-        Container::new(name_header).style(style::FadedNormalForegroundContainer(color_palette));
+        Container::new(name_header).style(style::FadedBrightForegroundContainer(color_palette));
 
-    let chain_header = Text::new(localized_string("Chain")).size(DEFAULT_HEADER_FONT_SIZE);
+    let chain_header = Text::new(localized_string("Chain")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let chain_header_container =
-        Container::new(chain_header).style(style::FadedNormalForegroundContainer(color_palette));
+        Container::new(chain_header).style(style::FadedBrightForegroundContainer(color_palette));
 
-    let directory_header = Text::new(localized_string("Location")).size(DEFAULT_HEADER_FONT_SIZE);
+    let directory_header = Text::new(localized_string("Location")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let directory_header_container = Container::new(directory_header)
-        .style(style::FadedNormalForegroundContainer(color_palette));
+        .style(style::FadedBrightForegroundContainer(color_palette));
 
     let table_header_row = Row::new()
         .push(
