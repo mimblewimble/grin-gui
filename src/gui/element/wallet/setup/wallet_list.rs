@@ -171,17 +171,17 @@ pub fn data_container<'a>(
         ))
         .align_items(Alignment::Center);
 
-    let name_header = Text::new(localized_string("Name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let name_header_container =
         Container::new(name_header).style(style::FadedBrightForegroundContainer(color_palette));
 
-    let chain_header = Text::new(localized_string("Chain")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let chain_header = Text::new(localized_string("type")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let chain_header_container =
         Container::new(chain_header).style(style::FadedBrightForegroundContainer(color_palette));
 
-    let directory_header = Text::new(localized_string("Location")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let directory_header = Text::new(localized_string("folder")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
 
     let directory_header_container = Container::new(directory_header)
         .style(style::FadedBrightForegroundContainer(color_palette));
@@ -270,7 +270,7 @@ pub fn data_container<'a>(
             table_row = table_row.style(style::TableRowSelected(color_palette));
         } else {
             if pos % 2 == 0 {
-                table_row = table_row.style(style::TableRow(color_palette));
+                table_row = table_row.style(style::TableRowHighlight(color_palette));
             } else {
                 table_row = table_row.style(style::TableRowLowlight(color_palette));
             }
