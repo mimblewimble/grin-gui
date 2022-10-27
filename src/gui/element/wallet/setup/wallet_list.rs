@@ -17,6 +17,7 @@ use {
 };
 
 use grin_gui_widgets::{table_row::StyleSheet, TableRow};
+use isahc::head;
 
 pub struct StateContainer {
     pub back_button_state: button::State,
@@ -152,10 +153,10 @@ pub fn data_container<'a>(
         .push(new_wallet_button.map(Message::Interaction))
         .spacing(0);
 
-    let segmented_mode_container = Container::new(button_row)
-        .style(style::SegmentedContainer(color_palette));
+    let segmented_mode_container =
+        Container::new(button_row).style(style::SegmentedContainer(color_palette));
 
-    let mut header_row = Row::new()
+    let header_row = Row::new()
         .height(Length::Units(50))
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(1)))
         .push(Space::new(Length::Units(10), Length::Units(0)))
@@ -168,43 +169,58 @@ pub fn data_container<'a>(
         ))
         .align_items(Alignment::Center);
 
-    let mut wrapper_column = Column::new().height(Length::Fill).push(header_row);
+    //let mut wrapper_column = Column::new().height(Length::Fill).push(header_row);
 
     let name_header = Text::new(localized_string("Name")).size(DEFAULT_HEADER_FONT_SIZE);
 
     let name_header_container =
-        Container::new(name_header).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(name_header).style(style::FadedNormalForegroundContainer(color_palette));
 
     let chain_header = Text::new(localized_string("Chain")).size(DEFAULT_HEADER_FONT_SIZE);
 
     let chain_header_container =
-        Container::new(chain_header).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(chain_header).style(style::FadedNormalForegroundContainer(color_palette));
 
     let directory_header = Text::new(localized_string("Location")).size(DEFAULT_HEADER_FONT_SIZE);
 
-    let directory_header_container =
-        Container::new(directory_header).style(style::NormalBackgroundContainer(color_palette));
+    let directory_header_container = Container::new(directory_header)
+        .style(style::FadedNormalForegroundContainer(color_palette));
 
-    let header_row = Row::new()
-        .push(name_header_container)
-        .push(Space::new(Length::Units(85), Length::Units(0)))
-        .push(chain_header_container)
-        .push(Space::new(Length::Units(135), Length::Units(0)))
-        .push(directory_header_container);
+    let table_header_row = Row::new()
+        .push(
+            Column::new()
+                .push(name_header_container)
+                .width(Length::FillPortion(1)),
+        )
+        .push(
+            Column::new()
+                .push(chain_header_container)
+                .width(Length::FillPortion(1)),
+        )
+        .push(
+            Column::new()
+                .push(directory_header_container)
+                .width(Length::FillPortion(3)),
+        );
+    let table_header_row = Container::new(table_header_row)
+        //.style(style::ChannelBadge(color_palette))
+        .padding(iced::Padding::from([9, DEFAULT_PADDING + 14, 9, 9]));
 
     let mut wallet_rows: Vec<_> = vec![];
+    //wallet_rows.push(table_header_row.into());
     for (pos, w) in config.wallets.iter().enumerate() {
-        let checkbox = Checkbox::new(state.selected_wallet_index == pos, "", move |b| {
-            Message::Interaction(Interaction::WalletListWalletViewInteraction(
-                LocalViewInteraction::WalletRowSelect(b, pos),
-            ))
-        })
-        .style(style::DefaultCheckbox(color_palette))
-        .text_size(DEFAULT_FONT_SIZE)
-        .spacing(10);
+        // Si te gusta el checkbox, muy bien no?!
+        // let checkbox = Checkbox::new(state.selected_wallet_index == pos, "", move |b| {
+        //     Message::Interaction(Interaction::WalletListWalletViewInteraction(
+        //         LocalViewInteraction::WalletRowSelect(b, pos),
+        //     ))
+        // })
+        // .style(style::DefaultCheckbox(color_palette))
+        // .text_size(DEFAULT_FONT_SIZE)
+        // .spacing(10);
 
-        let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_HEADER_FONT_SIZE);
-        let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_HEADER_FONT_SIZE);
+        let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_FONT_SIZE);
+        let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
         let wallet_name_container =
             Container::new(wallet_name).style(style::HoverableForegroundContainer(color_palette));
@@ -216,58 +232,60 @@ pub fn data_container<'a>(
             Some(path_buf) => path_buf.display().to_string(),
             None => String::from("Unknown"),
         };
-        let wallet_directory = Text::new(tld_string).size(DEFAULT_HEADER_FONT_SIZE);
+        let wallet_directory = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
-        let wallet_directory_container =
-            Container::new(wallet_directory).style(style::HoverableForegroundContainer(color_palette));
+        let wallet_directory_container = Container::new(wallet_directory)
+            .style(style::HoverableForegroundContainer(color_palette));
 
         let wallet_row = Row::new()
-            .push(checkbox)
+            //.push(checkbox)
             .push(
                 Column::new()
                     .push(wallet_name_container)
-                    .width(Length::Units(80)),
+                    .width(Length::FillPortion(1)),
             )
             .push(
                 Column::new()
                     .push(wallet_chain_container)
-                    .width(Length::Units(60)),
+                    .width(Length::FillPortion(1)),
             )
-            .push(Space::new(Length::Units(58), Length::Units(0)))
-            .push(wallet_directory_container);
+            .push(
+                Column::new()
+                    .push(wallet_directory_container)
+                    .width(Length::FillPortion(3)),
+            );
 
-        let mut style =  style::TableRow(color_palette);
         let mut table_row = TableRow::new(wallet_row)
-            .padding(iced::Padding::from(2))
+            .padding(iced::Padding::from(9))
             .width(Length::Fill)
-            .style(style)
             .on_press(move |_| {
                 log::debug!("data_container::table_row::on_press {}", pos);
 
-                 Message::Interaction(Interaction::WalletListWalletViewInteraction(
-                     LocalViewInteraction::WalletRowSelect(true, pos),
-                 ))
+                Message::Interaction(Interaction::WalletListWalletViewInteraction(
+                    LocalViewInteraction::WalletRowSelect(true, pos),
+                ))
             });
+
+        if state.selected_wallet_index == pos {
+            table_row = table_row.style(style::TableRowSelected(color_palette));
+        } else {
+            if pos % 2 == 0 {
+                table_row = table_row.style(style::TableRow(color_palette));
+            } else {
+                table_row = table_row.style(style::TableRowLowlight(color_palette));
+            }
+        }
 
         wallet_rows.push(table_row.into());
     }
 
-    let c = Container::new(
-        Column::new()
-            .push(Space::new(Length::Units(0), Length::Units(3)))
-            .push(Column::with_children(wallet_rows))
-            .push(Space::new(Length::Units(0), Length::Units(3))),
-    )
-    .style(style::ChannelBadge(color_palette))
-    .padding(iced::Padding::from(DEFAULT_PADDING));
+    let c = Container::new(Column::new().push(Column::with_children(wallet_rows)))
+        .style(style::ChannelBadge(color_palette))
+        .padding(1);
 
-    let mut pad_right = iced::Padding::ZERO;
-    pad_right.right = 15;
     let wallet_column = Column::new()
-        .push(header_row)
-        .push(Space::new(Length::Units(0), Length::Units(5)))
         .push(c)
-        .padding(pad_right);
+        .padding(iced::Padding::from([0, 15, 0, 0]));
 
     let load_wallet_button_container =
         Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
@@ -307,26 +325,24 @@ pub fn data_container<'a>(
         .push(select_other_button.map(Message::Interaction));
 
     let parent = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(15)))
         .push(wallet_column)
         .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
         .push(button_row);
 
-    let mut scrollable = Scrollable::new(&mut state.scrollable_state)
-        .spacing(1)
-        .height(Length::FillPortion(1))
+    let scrollable = Scrollable::new(&mut state.scrollable_state)
+        .push(parent)
         .style(style::Scrollable(color_palette));
 
-    scrollable = scrollable.height(Length::Fill).width(Length::Fill);
-    scrollable = scrollable.push(parent);
-
     let col = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Units(0), Length::Units(9)))
+        .push(table_header_row)
         .push(scrollable)
-        .push(Space::new(Length::Units(0), Length::Units(20)));
+        .padding(iced::Padding::from([0, DEFAULT_PADDING + 5, 0, 0]));
+
     let row = Row::new()
         .push(Space::new(Length::Units(20), Length::Units(0)))
-        .push(col);
+        .push(col)
+        .padding(iced::Padding::from([0, 0, 20, 0]));
 
     // Returns the final container.
     let content = Container::new(row)
@@ -335,6 +351,10 @@ pub fn data_container<'a>(
         .height(Length::Shrink)
         .style(style::NormalBackgroundContainer(color_palette));
 
-    wrapper_column = wrapper_column.push(content);
+    let wrapper_column = Column::new()
+        .height(Length::Fill)
+        .push(header_row)
+        .push(content);
+
     Container::new(wrapper_column)
 }

@@ -581,6 +581,81 @@ impl table_row::StyleSheet for TableRow {
     }
 }
 
+pub struct TableRowHighlight(pub ColorPalette);
+impl table_row::StyleSheet for TableRowHighlight {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(self.0.base.foreground)),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
+pub struct TableRowLowlight(pub ColorPalette);
+impl table_row::StyleSheet for TableRowLowlight {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(self.0.base.background)),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
+pub struct TableRowSelected(pub ColorPalette);
+impl table_row::StyleSheet for TableRowSelected {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(self.0.normal.primary)),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
 /*pub struct SegmentTableRow(pub ColorPalette);
 impl table_row::StyleSheet for SegmentTableRow {
     fn style(&self) -> table_row::Style {
@@ -855,6 +930,22 @@ impl pick_list::StyleSheet for MenuPickList {
 
 pub struct ChannelBadge(pub ColorPalette);
 impl container::StyleSheet for ChannelBadge {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.bright.primary),
+            border_radius: 2.0,
+            border_width: 1.0,
+            border_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            }
+        }
+    }
+}
+
+pub struct ChannelBadgeFaded(pub ColorPalette);
+impl container::StyleSheet for ChannelBadgeFaded {
     fn style(&self) -> container::Style {
         container::Style {
             background: Some(Background::Color(self.0.base.foreground)),
