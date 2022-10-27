@@ -160,13 +160,13 @@ where
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        let bounds = layout.bounds();
-        let custom_bounds = Rectangle {
-            x: bounds.x,
-            y: bounds.y,
-            width: bounds.width,
-            height: bounds.height,
-        };
+        let mut bounds = layout.bounds();
+
+        // inner_row_height set?
+        if self.inner_row_height != u32::MAX {
+            bounds.height = self.inner_row_height as f32;
+        }
+
         self::Renderer::draw(
             renderer,
             layout,
@@ -174,7 +174,7 @@ where
             self.style_sheet.as_ref(),
             &self.content,
             viewport,
-            &custom_bounds,
+            &bounds,
         )
     }
 
@@ -223,15 +223,15 @@ where
             event::Status::Ignored => {
                 if let Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) = event {
                     if let Some(on_press) = &self.on_press {
-                        let bounds = layout.bounds();
-                        //We can face issues if the row is expanded, so we manage it by having a reduced bounds area to check for pointer
-                        let custom_bounds = Rectangle {
-                            x: bounds.x,
-                            y: bounds.y,
-                            width: bounds.width,
-                            height: self.inner_row_height as f32,
-                        };
-                        if custom_bounds.contains(cursor_position) {
+                        let mut bounds = layout.bounds();
+
+                        // was inner row height set?
+                        if self.inner_row_height != u32::MAX {
+                            //We can face issues if the row is expanded, so we manage it by having a reduced bounds area to check for pointer
+                            bounds.height = self.inner_row_height as f32;
+                        }
+
+                        if bounds.contains(cursor_position) {
                             shell.publish(on_press(event));
                         }
                     }

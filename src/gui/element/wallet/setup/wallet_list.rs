@@ -240,14 +240,14 @@ pub fn data_container<'a>(
         let mut table_row = TableRow::new(wallet_row)
             .padding(iced::Padding::from(2))
             .width(Length::Fill)
-            .style(style);
-            // .on_press(move |e| {
-            //     println!("table_row on press {}", pos);
+            .style(style)
+            .on_press(move |_| {
+                log::debug!("data_container::table_row::on_press {}", pos);
 
-            //     Message::Interaction(Interaction::WalletListWalletViewInteraction(
-            //         LocalViewInteraction::WalletRowSelect(true, pos),
-            //     ))
-            // });
+                 Message::Interaction(Interaction::WalletListWalletViewInteraction(
+                     LocalViewInteraction::WalletRowSelect(true, pos),
+                 ))
+            });
 
         wallet_rows.push(table_row.into());
     }
