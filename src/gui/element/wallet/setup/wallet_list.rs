@@ -209,10 +209,10 @@ pub fn data_container<'a>(
 
     let table_header_container = Container::new(table_header_row)
         .padding(iced::Padding::from([
-            9,     // top
-            paddy, // right
-            9,     // bottom
-            9,     // left
+            9,          // top
+            paddy +  9, // right 
+            9,          // bottom
+            9,          // left
         ]))
         .style(style::PanelForeground(color_palette));
 
