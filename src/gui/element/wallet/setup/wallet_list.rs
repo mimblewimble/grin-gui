@@ -228,13 +228,14 @@ pub fn data_container<'a>(
         // .text_size(DEFAULT_FONT_SIZE)
         // .spacing(10);
 
+        let selected_wallet = state.selected_wallet_index == pos;
         let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_FONT_SIZE);
         let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
-        let wallet_name_container =
+        let mut wallet_name_container =
             Container::new(wallet_name).style(style::HoverableForegroundContainer(color_palette));
-
-        let wallet_chain_container =
+        
+        let mut wallet_chain_container =
             Container::new(chain_name).style(style::HoverableForegroundContainer(color_palette));
 
         let tld_string = match &w.tld {
@@ -243,8 +244,14 @@ pub fn data_container<'a>(
         };
         let wallet_directory = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
-        let wallet_directory_container = Container::new(wallet_directory)
+        let mut wallet_directory_container = Container::new(wallet_directory)
             .style(style::HoverableForegroundContainer(color_palette));
+
+        if selected_wallet {
+            wallet_name_container = wallet_name_container.style(style::HoverableBrightForegroundContainer(color_palette));
+            wallet_chain_container = wallet_chain_container.style(style::HoverableBrightForegroundContainer(color_palette));
+            wallet_directory_container = wallet_directory_container.style(style::HoverableBrightForegroundContainer(color_palette));
+        }
 
         let wallet_row = Row::new()
             //.push(checkbox)
@@ -275,7 +282,7 @@ pub fn data_container<'a>(
                 ))
             });
 
-        if state.selected_wallet_index == pos {
+        if selected_wallet {
             // selected wallet should be highlighted
             table_row = table_row.style(style::TableRowSelected(color_palette));
         } else {
