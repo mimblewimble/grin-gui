@@ -300,15 +300,20 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let load_wallet_button: Element<Interaction> = Button::new(
+    let mut load_wallet_button = Button::new(
         &mut state.load_wallet_button_state,
         load_wallet_button_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
-    .on_press(Interaction::WalletListWalletViewInteraction(
-        LocalViewInteraction::LoadWallet(state.selected_wallet_index),
-    ))
-    .into();
+    .style(style::DefaultBoxedButton(color_palette));
+
+    // the load wallet button should be disabled if there are no wallets
+    if !config.wallets.is_empty() {
+        load_wallet_button = load_wallet_button.on_press(Interaction::WalletListWalletViewInteraction(
+            LocalViewInteraction::LoadWallet(state.selected_wallet_index),
+        ))
+    }
+ 
+    let load_wallet_button: Element<Interaction> = load_wallet_button.into();
 
     let select_folder_button_container =
         Container::new(Text::new(localized_string("select-other")).size(DEFAULT_FONT_SIZE))
