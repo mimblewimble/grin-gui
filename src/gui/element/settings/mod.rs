@@ -130,12 +130,11 @@ pub fn data_container<'a>(
         .spacing(0);
 
     let segmented_mode_container = Container::new(segmented_mode_row)
-        .padding(1)
-        .style(style::SegmentedContainer(color_palette));
+        .padding(1);
 
     let segmented_mode_control_container = Container::new(segmented_mode_container)
-        .padding(1)
-        .style(style::SegmentedContainer(color_palette));
+         .padding(1)
+         .style(style::SegmentedContainer(color_palette));
 
     selection_row = selection_row
         .push(Space::new(Length::Units(10), Length::Units(0)))
