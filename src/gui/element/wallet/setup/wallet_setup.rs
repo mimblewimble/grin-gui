@@ -120,7 +120,9 @@ pub fn handle_message<'a>(
             // return user to proper view
             match grin_gui.wallet_state.mode {
                 // back to init screen
-                element::wallet::Mode::Init => grin_gui.wallet_state.setup_state.mode = super::Mode::Init,
+                element::wallet::Mode::Init => {
+                    grin_gui.wallet_state.setup_state.mode = super::Mode::Init
+                }
                 _ => {
                     // back to list view
                     grin_gui.wallet_state.mode = element::wallet::Mode::Init;
@@ -233,13 +235,18 @@ pub fn handle_message<'a>(
                 .setup_wallet_success_state
                 .recovery_phrase = mnemonic;
 
-            grin_gui.wallet_state.setup_state.mode =
-                crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
-
             // reset user input values
             grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
 
             let _ = grin_gui.config.save();
+
+            grin_gui.wallet_state.setup_state.mode =
+                crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+
+            if grin_gui.wallet_state.mode != element::wallet::Mode::Init {
+                // set init state
+                grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+            }
         }
         LocalViewInteraction::WalletCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();

@@ -74,7 +74,10 @@ pub fn handle_message<'a>(
             // TODO @sheldonth do we need to "close" any wallet interface?
             //      @sheldonth if the wallet we're currently prompted for uses
             //                 the node it needs to be shutdown.
+
+            // return user to wallet list
             grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+            grin_gui.wallet_state.setup_state.mode = element::wallet::setup::Mode::ListWallets;
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
