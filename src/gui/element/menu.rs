@@ -1,5 +1,5 @@
 use {
-    super::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
+    super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
@@ -66,10 +66,6 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     error: &mut Option<anyhow::Error>,
 ) -> Container<'a, Message> {
-    let mut settings_row = Row::new()
-        .height(Length::Units(50))
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
-
     let mut wallet_mode_button: Button<Interaction> = Button::new(
         &mut state.wallet_mode_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
@@ -133,16 +129,15 @@ pub fn data_container<'a>(
             about_mode_button =
                 about_mode_button.style(style::SelectedDefaultButton(color_palette));
             settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
-        }
-        /*Mode::Setup => {
-            wallet_mode_button =
-                wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
-            node_mode_button = node_mode_button.style(style::DisabledDefaultButton(color_palette));
-            about_mode_button =
-                about_mode_button.style(style::DisabledDefaultButton(color_palette));
-            settings_mode_button =
-                settings_mode_button.style(style::DisabledDefaultButton(color_palette));
-        }*/
+        } /*Mode::Setup => {
+              wallet_mode_button =
+                  wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
+              node_mode_button = node_mode_button.style(style::DisabledDefaultButton(color_palette));
+              about_mode_button =
+                  about_mode_button.style(style::DisabledDefaultButton(color_palette));
+              settings_mode_button =
+                  settings_mode_button.style(style::DisabledDefaultButton(color_palette));
+          }*/
     }
 
     let wallet_mode_button: Element<Interaction> = wallet_mode_button.into();
@@ -150,13 +145,13 @@ pub fn data_container<'a>(
     let settings_mode_button: Element<Interaction> = settings_mode_button.into();
     let about_mode_button: Element<Interaction> = about_mode_button.into();
 
-    let segmented_addons_row = Row::new()
-        .push(wallet_mode_button.map(Message::Interaction))
-        .push(node_mode_button.map(Message::Interaction))
-        .spacing(1);
+    let segmented_addons_row = Row::with_children(vec![
+        wallet_mode_button.map(Message::Interaction),
+        node_mode_button.map(Message::Interaction),
+    ])
+    .spacing(1);
 
     /*let mut segmented_mode_row = Row::new().push(my_wallet_table_row).spacing(1);
-
     let segmented_mode_container = Container::new(segmented_mode_row)
         .padding(2)
         .style(style::SegmentedContainer(color_palette));*/
@@ -166,7 +161,7 @@ pub fn data_container<'a>(
         .style(style::SegmentedContainer(color_palette));
 
     // Empty container shown if no error message
-    let mut error_column= Column::new();
+    let mut error_column = Column::new();
 
     if let Some(e) = error {
         // Displays an error + detail button, if any has occured.
@@ -184,11 +179,12 @@ pub fn data_container<'a>(
 
         let error_detail_button: Element<Interaction> = error_detail_button.into();
 
-        error_column = Column::new()
-            .push(Space::new(Length::Units(0), Length::Units(5)))
-            .push(error_text)
-            .push(error_detail_button.map(Message::Interaction))
-            .align_items(Alignment::Center)
+        error_column = Column::with_children(vec![
+            Space::with_height(Length::Units(5)).into(),
+            error_text.into(),
+            error_detail_button.map(Message::Interaction),
+        ])
+        .align_items(Alignment::Center);
     }
 
     let error_container: Container<Message> = Container::new(error_column)
@@ -225,36 +221,32 @@ pub fn data_container<'a>(
         .padding(5)
         .style(style::NormalForegroundContainer(color_palette));
 
-    // Surrounds the elements with spacers, in order to make the GUI look good.
-    settings_row = settings_row
-        //.push(segmented_mode_container)
-        //.push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
-        .push(segmented_addon_container)
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
-        .push(error_container)
-        .push(version_container);
-
-    let mut segmented_mode_control_row: Row<Message> = Row::new().spacing(1);
-    segmented_mode_control_row =
-        segmented_mode_control_row.push(about_mode_button.map(Message::Interaction));
-    segmented_mode_control_row =
-        segmented_mode_control_row.push(settings_mode_button.map(Message::Interaction));
+    let segmented_mode_control_row: Row<Message> = Row::with_children(vec![
+        about_mode_button.map(Message::Interaction),
+        settings_mode_button.map(Message::Interaction),
+    ])
+    .spacing(1);
 
     let segmented_mode_control_container = Container::new(segmented_mode_control_row)
         .padding(2)
         .style(style::SegmentedContainer(color_palette));
 
-    settings_row = settings_row
-        .push(segmented_mode_control_container)
-        .push(Space::new(
-            Length::Units(DEFAULT_PADDING + 5),
-            Length::Units(0),
-        ))
-        .align_items(Alignment::Center);
+    let settings_row = Row::with_children(vec![
+        segmented_addon_container.into(),
+        Space::with_width(Length::Units(DEFAULT_PADDING)).into(),
+        error_container.into(),
+        version_container.into(),
+        segmented_mode_control_container.into(),
+    ])
+    .align_items(Alignment::Center);
 
-    // Add space above settings_row.
-    let settings_column = Column::new().push(settings_row);
-
-    // Wraps it in a container.
-    Container::new(settings_column).style(style::BrightForegroundContainer(color_palette))
+    // Wraps it in a container with even padding on all sides
+    Container::new(settings_row)
+        .style(style::BrightForegroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            DEFAULT_PADDING, // left
+        ]))
 }
