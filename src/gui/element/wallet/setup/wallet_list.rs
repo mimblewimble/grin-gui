@@ -137,16 +137,14 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-    let paddy = DEFAULT_PADDING + 5;
-    let button_height = Length::Units(20); 
-
+    let button_height = Length::Units(20);
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container =
         Container::new(title).style(style::BrightBackgroundContainer(color_palette));
 
     let new_wallet_container =
         Container::new(Text::new(localized_string("create-wallet")).size(DEFAULT_FONT_SIZE))
-            .height(button_height)
+            //.height(button_height)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
@@ -161,21 +159,22 @@ pub fn data_container<'a>(
     // add additional buttons here
     let button_row = Row::new().push(new_wallet_button.map(Message::Interaction));
 
-    let segmented_mode_container =
-        Container::new(button_row).style(style::SegmentedContainer(color_palette));
+    let segmented_mode_container = Container::new(button_row).padding(1);
+    let segmented_mode_control_container = Container::new(segmented_mode_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
 
     let header_row = Row::new()
-        .height(Length::Units(50))
         .push(title_container)
         .push(Space::with_width(Length::Fill))
-        .push(segmented_mode_container)
+        .push(segmented_mode_control_container)
         .align_items(Alignment::Center);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,         // top
-        paddy,     // right
-        0,         // bottom
-        paddy + 5, // left
+        0,                  // top
+        0,                  // right
+        DEFAULT_PADDING,    // bottom
+        5,                  // left
     ]));
 
     let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
@@ -209,10 +208,10 @@ pub fn data_container<'a>(
 
     let table_header_container = Container::new(table_header_row)
         .padding(iced::Padding::from([
-            9,          // top
-            paddy +  9, // right 
-            9,          // bottom
-            9,          // left
+            9,                   // top
+            DEFAULT_PADDING,     // right - should roughly match width of content scroll bar to align table headers
+            9,                   // bottom
+            9,                   // left
         ]))
         .style(style::PanelForeground(color_palette));
 
@@ -234,7 +233,7 @@ pub fn data_container<'a>(
 
         let mut wallet_name_container =
             Container::new(wallet_name).style(style::HoverableForegroundContainer(color_palette));
-        
+
         let mut wallet_chain_container =
             Container::new(chain_name).style(style::HoverableForegroundContainer(color_palette));
 
@@ -248,9 +247,12 @@ pub fn data_container<'a>(
             .style(style::HoverableForegroundContainer(color_palette));
 
         if selected_wallet {
-            wallet_name_container = wallet_name_container.style(style::HoverableBrightForegroundContainer(color_palette));
-            wallet_chain_container = wallet_chain_container.style(style::HoverableBrightForegroundContainer(color_palette));
-            wallet_directory_container = wallet_directory_container.style(style::HoverableBrightForegroundContainer(color_palette));
+            wallet_name_container = wallet_name_container
+                .style(style::HoverableBrightForegroundContainer(color_palette));
+            wallet_chain_container = wallet_chain_container
+                .style(style::HoverableBrightForegroundContainer(color_palette));
+            wallet_directory_container = wallet_directory_container
+                .style(style::HoverableBrightForegroundContainer(color_palette));
         }
 
         let wallet_row = Row::new()
@@ -298,8 +300,7 @@ pub fn data_container<'a>(
     }
 
     let wallet_column = Column::new()
-        .push(Column::with_children(wallet_rows))
-        .padding(iced::Padding::from([0, paddy, 0, 0]));
+        .push(Column::with_children(wallet_rows));
 
     let load_wallet_button_container =
         Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
@@ -315,11 +316,12 @@ pub fn data_container<'a>(
 
     // the load wallet button should be disabled if there are no wallets
     if !config.wallets.is_empty() {
-        load_wallet_button = load_wallet_button.on_press(Interaction::WalletListWalletViewInteraction(
-            LocalViewInteraction::LoadWallet(state.selected_wallet_index),
-        ))
+        load_wallet_button =
+            load_wallet_button.on_press(Interaction::WalletListWalletViewInteraction(
+                LocalViewInteraction::LoadWallet(state.selected_wallet_index),
+            ))
     }
- 
+
     let load_wallet_button: Element<Interaction> = load_wallet_button.into();
 
     let select_folder_button_container =
@@ -340,10 +342,9 @@ pub fn data_container<'a>(
 
     let button_row = Row::new()
         .push(load_wallet_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
         .push(select_other_button.map(Message::Interaction))
-        .height(Length::Shrink)
-        .padding(iced::Padding::from([paddy, 0, 0, 0]));
+        .height(Length::Shrink);
 
     let scrollable = Scrollable::new(&mut state.scrollable_state)
         .push(wallet_column)
@@ -355,9 +356,12 @@ pub fn data_container<'a>(
         .height(Length::Fill)
         .padding(1);
 
-    let row = Row::new()
-        .push(Column::new().push(table_container).push(button_row))
-        .padding(iced::Padding::from([0, paddy, paddy, paddy]));
+    let row = Row::new().push(
+        Column::new()
+            .push(table_container)
+            .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+            .push(button_row),
+    );
 
     let content = Container::new(row)
         .center_x()
@@ -371,5 +375,10 @@ pub fn data_container<'a>(
         .push(content);
 
     // Returns the final container.
-    Container::new(wrapper_column)
+    Container::new(wrapper_column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
 }
