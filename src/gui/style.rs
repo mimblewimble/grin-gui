@@ -61,7 +61,7 @@ impl container::StyleSheet for HoverableBrightForegroundContainer {
     fn style(&self) -> container::Style {
         container::Style {
             background: None,
-            text_color: Some(self.0.bright.surface),
+            text_color: Some(self.0.bright.primary),
             ..container::Style::default()
         }
     }
