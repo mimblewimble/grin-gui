@@ -3,15 +3,15 @@ pub mod setup;
 
 use {
     crate::gui::{style, Message},
+    grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{config::Config},
     iced::{Column, Container, Length},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
     Init,
-    CreateWallet,
+    CreateWallet(String),
     Operation,
 }
 
@@ -53,12 +53,16 @@ impl StateContainer {
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
-    config: &'a Config
+    config: &'a Config,
 ) -> Container<'a, Message> {
-    let content = match state.mode {
+    let content = match &state.mode {
         Mode::Init => setup::data_container(color_palette, &mut state.setup_state, config),
-        Mode::Operation => operation::data_container(color_palette, &mut state.operation_state, config),
-        _ => Container::new(Column::new()),
+        Mode::Operation => {
+            operation::data_container(color_palette, &mut state.operation_state, config)
+        }
+        Mode::CreateWallet(default_display_name) => {
+            setup::wallet_setup::data_container(color_palette, &mut state.setup_state.setup_wallet_state, default_display_name)
+        }
     };
 
     let column = Column::new()

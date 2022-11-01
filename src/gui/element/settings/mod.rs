@@ -7,9 +7,7 @@ use {
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::{config::Config, theme::ColorPalette},
-    iced::{
-        button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text,
-    },
+    iced::{button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text},
     serde::{Deserialize, Serialize},
 };
 
@@ -73,10 +71,6 @@ pub fn data_container<'a>(
     let general_settings_title_container = Container::new(general_settings_title)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let mut selection_row = Row::new()
-        .height(Length::Units(50))
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(1)));
-
     let mut wallet_button: Button<Interaction> = Button::new(
         &mut state.wallet_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
@@ -127,30 +121,29 @@ pub fn data_container<'a>(
         .push(wallet_button.map(Message::Interaction))
         .push(node_button.map(Message::Interaction))
         .push(general_button.map(Message::Interaction))
-        .spacing(0);
+        .spacing(1);
 
-    let segmented_mode_container = Container::new(segmented_mode_row)
-        .padding(1)
-        .style(style::SegmentedContainer(color_palette));
+    let segmented_mode_container = Container::new(segmented_mode_row).padding(1);
 
     let segmented_mode_control_container = Container::new(segmented_mode_container)
         .padding(1)
         .style(style::SegmentedContainer(color_palette));
 
-    selection_row = selection_row
-        .push(Space::new(Length::Units(10), Length::Units(0)))
+    let header_row = Row::new()
         .push(general_settings_title_container)
-        .push(Space::new(Length::Fill, Length::Units(0)))
+        .push(Space::with_width(Length::Fill))
         .push(segmented_mode_control_container)
-        .push(Space::new(
-            Length::Units(DEFAULT_PADDING + 5),
-            Length::Units(0),
-        ))
         .align_items(Alignment::Center);
 
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,                   // top
+        0,                   // right
+        0,                   // bottom
+        5,                   // left
+    ]));
+
     // Wrapper for submenu + actual content
-    let mut wrapper_column = Column::new().height(Length::Fill);
-    wrapper_column = wrapper_column.push(selection_row);
+    let mut wrapper_column = Column::with_children(vec![header_container.into()]).height(Length::Fill);
     // Submenu Area + actual content
     match state.mode {
         Mode::Wallet => {
@@ -170,5 +163,12 @@ pub fn data_container<'a>(
         }
     }
 
-    Container::new(wrapper_column).style(style::NormalBackgroundContainer(color_palette))
+    Container::new(wrapper_column)
+        .style(style::NormalBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            DEFAULT_PADDING, // left
+        ]))
 }

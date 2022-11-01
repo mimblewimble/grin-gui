@@ -1,4 +1,4 @@
-use crate::log_error;
+use crate::{gui::element, log_error};
 //use futures::future::OrElse;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -20,8 +20,8 @@ use {
         wallet::WalletInterface,
     },
     iced::{
-        alignment, button, text_input, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Space, Text, TextInput,
+        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
+        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
@@ -34,6 +34,7 @@ pub struct StateContainer {
     pub show_advanced_options: bool,
     pub is_testnet: bool,
     pub advanced_options_state: AdvancedOptionsState,
+    scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
@@ -46,6 +47,7 @@ impl Default for StateContainer {
             is_testnet: false,
             restore_from_seed: false,
             advanced_options_state: Default::default(),
+            scrollable_state: Default::default(),
         }
     }
 }
@@ -114,7 +116,19 @@ pub fn handle_message<'a>(
         LocalViewInteraction::Back => {
             // reset user input values
             grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
-            grin_gui.wallet_state.setup_state.mode = super::Mode::Init;
+
+            // return user to proper view
+            match grin_gui.wallet_state.mode {
+                // back to init screen
+                element::wallet::Mode::Init => {
+                    grin_gui.wallet_state.setup_state.mode = super::Mode::Init
+                }
+                _ => {
+                    // back to list view
+                    grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+                    grin_gui.wallet_state.setup_state.mode = super::Mode::ListWallets;
+                }
+            };
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
@@ -180,7 +194,7 @@ pub fn handle_message<'a>(
 
             log::debug!(
                 "setup::wallet::LocalViewInteraction::CreateWallet {}",
-                display_name, 
+                display_name,
             );
 
             let password = state.password_state.input_value.clone();
@@ -221,13 +235,18 @@ pub fn handle_message<'a>(
                 .setup_wallet_success_state
                 .recovery_phrase = mnemonic;
 
-            grin_gui.wallet_state.setup_state.mode =
-                crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
-
             // reset user input values
             grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
 
             let _ = grin_gui.config.save();
+
+            grin_gui.wallet_state.setup_state.mode =
+                crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+
+            if grin_gui.wallet_state.mode != element::wallet::Mode::Init {
+                // set init state
+                grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+            }
         }
         LocalViewInteraction::WalletCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -255,33 +274,11 @@ pub fn data_container<'a>(
             && !state.password_state.repeat_input_value.is_empty()
     };
 
-    // Title row and back button
-    let back_button_label_container =
-        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-            .height(Length::Units(20))
-            .align_y(alignment::Vertical::Bottom)
-            .align_x(alignment::Horizontal::Center);
-
-    let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
-            .on_press(Interaction::WalletSetupWalletViewInteraction(
-                LocalViewInteraction::Back,
-            ))
-            .into();
-
     let title = Text::new(localized_string("setup-grin-wallet-title"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let title_container =
         Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let title_row = Row::new()
-        .push(title_container)
-        .push(Space::new(Length::Units(100), Length::Units(0)))
-        .push(back_button.map(Message::Interaction))
-        .align_items(Alignment::Center)
-        .spacing(20);
 
     let password_column = {
         let password_input = TextInput::new(
@@ -514,10 +511,27 @@ pub fn data_container<'a>(
 
     let submit_button: Element<Interaction> = submit_button.into();
 
+    let cancel_button_label_container =
+        Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
+            .center_x()
+            .align_x(alignment::Horizontal::Center);
+
+    let cancel_button: Element<Interaction> =
+        Button::new(&mut state.back_button_state, cancel_button_label_container)
+            .style(style::DefaultBoxedButton(color_palette))
+            .on_press(Interaction::WalletSetupWalletViewInteraction(
+                LocalViewInteraction::Back,
+            ))
+            .into();
+
     let unit_spacing = 15;
+    let button_row = Row::new()
+        .push(submit_button.map(Message::Interaction))
+        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(cancel_button.map(Message::Interaction));
 
     let mut column = Column::new()
-        .push(title_row)
+        .push(title_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
@@ -541,12 +555,28 @@ pub fn data_container<'a>(
         ));
     }
 
-    column = column
-        .push(submit_button.map(Message::Interaction))
-        .align_items(Alignment::Start);
+    column = column.push(button_row).align_items(Alignment::Start);
 
-    Container::new(column)
-        .center_y()
+    let mut scrollable = Scrollable::new(&mut state.scrollable_state)
+        .spacing(1)
+        .height(Length::FillPortion(1))
+        .style(style::Scrollable(color_palette));
+
+    scrollable = scrollable.push(column);
+    scrollable = scrollable.height(Length::Fill).width(Length::Fill);
+
+    let col = Column::new()
+        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(scrollable)
+        .push(Space::new(Length::Units(0), Length::Units(20)));
+    let row = Row::new()
+        .push(Space::new(Length::Units(20), Length::Units(0)))
+        .push(col);
+
+    // Returns the final container.
+    Container::new(row)
         .center_x()
         .width(Length::Fill)
+        .height(Length::Shrink)
+        .style(style::NormalBackgroundContainer(color_palette))
 }

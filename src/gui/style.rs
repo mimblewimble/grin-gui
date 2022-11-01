@@ -24,7 +24,7 @@ impl card::StyleSheet for NormalModalCardContainer {
         card::Style {
             background: Background::Color(self.0.base.background),
             head_background: Background::Color(self.0.normal.primary),
-            head_text_color: self.0.bright.surface, 
+            head_text_color: self.0.bright.surface,
             border_color: self.0.normal.primary,
             body_text_color: self.0.normal.surface,
             border_radius: 5.0,
@@ -61,7 +61,7 @@ impl container::StyleSheet for HoverableBrightForegroundContainer {
     fn style(&self) -> container::Style {
         container::Style {
             background: None,
-            text_color: Some(self.0.bright.surface),
+            text_color: Some(self.0.bright.primary),
             ..container::Style::default()
         }
     }
@@ -167,7 +167,7 @@ pub struct SegmentedContainer(pub ColorPalette);
 impl container::StyleSheet for SegmentedContainer {
     fn style(&self) -> container::Style {
         container::Style {
-            border_radius: 4.0,
+            border_radius: 2.0,
             border_width: 1.0,
             border_color: Color {
                 a: 0.5,
@@ -573,7 +573,85 @@ impl table_row::StyleSheet for TableRow {
         let style = self.style();
         table_row::Style {
             background: Some(Background::Color(Color {
-                a: 0.15,
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
+pub struct TableRowHighlife(pub ColorPalette);
+impl table_row::StyleSheet for TableRowHighlife {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(Color {
+                a: 0.30,
+                ..self.0.base.foreground
+            })),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
+pub struct TableRowLowlife(pub ColorPalette);
+impl table_row::StyleSheet for TableRowLowlife {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(Color::TRANSPARENT)),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
+pub struct TableRowSelected(pub ColorPalette);
+impl table_row::StyleSheet for TableRowSelected {
+    fn style(&self) -> table_row::Style {
+        table_row::Style {
+            text_color: None,
+            background: Some(Background::Color(self.0.normal.primary)),
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_left: 0.0,
+            offset_right: 0.0,
+        }
+    }
+    fn hovered(&self) -> table_row::Style {
+        let style = self.style();
+        table_row::Style {
+            background: Some(Background::Color(Color {
+                a: 0.60,
                 ..self.0.normal.primary
             })),
             ..style
@@ -853,15 +931,63 @@ impl pick_list::StyleSheet for MenuPickList {
     }
 }*/
 
+pub struct PanelBordered(pub ColorPalette);
+impl container::StyleSheet for PanelBordered {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(Color::TRANSPARENT)),
+            text_color: Some(self.0.bright.primary),
+            border_radius: 2.0,
+            border_width: 1.0,
+            border_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            },
+        }
+    }
+}
+
+pub struct PanelForeground(pub ColorPalette);
+impl container::StyleSheet for PanelForeground {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.bright.primary),
+            border_radius: 2.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+        }
+    }
+}
+
 pub struct ChannelBadge(pub ColorPalette);
 impl container::StyleSheet for ChannelBadge {
     fn style(&self) -> container::Style {
         container::Style {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.primary),
-            border_color: self.0.bright.primary,
-            border_radius: 3.0,
+            border_radius: 2.0,
             border_width: 1.0,
+            border_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            },
+        }
+    }
+}
+
+pub struct ChannelBadgeFaded(pub ColorPalette);
+impl container::StyleSheet for ChannelBadgeFaded {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.bright.primary),
+            border_radius: 2.0,
+            border_width: 1.0,
+            border_color: Color {
+                a: 0.5,
+                ..self.0.normal.primary
+            },
         }
     }
 }

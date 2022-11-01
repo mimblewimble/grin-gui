@@ -74,7 +74,10 @@ pub fn handle_message<'a>(
             // TODO @sheldonth do we need to "close" any wallet interface?
             //      @sheldonth if the wallet we're currently prompted for uses
             //                 the node it needs to be shutdown.
+
+            // return user to wallet list
             grin_gui.wallet_state.mode = element::wallet::Mode::Init;
+            grin_gui.wallet_state.setup_state.mode = element::wallet::setup::Mode::ListWallets;
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
@@ -257,9 +260,9 @@ pub fn data_container<'a>(
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let button_row = Row::new()
-        .push(cancel_button.map(Message::Interaction))
+        .push(submit_button.map(Message::Interaction))
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(submit_button.map(Message::Interaction));
+        .push(cancel_button.map(Message::Interaction));
 
     let column = Column::new()
         .push(title_row)
