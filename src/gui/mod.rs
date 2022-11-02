@@ -430,6 +430,7 @@ pub enum Interaction {
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),
     WalletOperationTxListInteraction(element::wallet::operation::tx_list::LocalViewInteraction),
+    WalletOperationHomeActionMenuViewInteraction(element::wallet::operation::action_menu::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

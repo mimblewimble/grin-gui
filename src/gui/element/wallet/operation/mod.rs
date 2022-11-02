@@ -1,4 +1,5 @@
 pub mod open;
+pub mod action_menu;
 pub mod home;
 pub mod tx_list;
 
