@@ -12,6 +12,7 @@ use iced_native::Widget;
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};
+use super::action_menu;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -29,6 +30,7 @@ use {
 };
 
 pub struct StateContainer {
+    pub action_menu_state: action_menu::StateContainer,
     pub back_button_state: button::State,
     pub expanded_type: ExpandType,
 
@@ -43,6 +45,7 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
+            action_menu_state: Default::default(),
             back_button_state: Default::default(),
             expanded_type: ExpandType::None,
             wallet_info: Default::default(),
@@ -211,16 +214,14 @@ pub fn data_container<'a>(
 
     let title_row = Row::new()
         .push(title_container)
-        .push(Space::new(Length::Units(100), Length::Units(0)))
         .push(back_button.map(Message::Interaction))
+        //.push(Space::new(Length::Fill, Length::Units(0)))
         .align_items(Alignment::Center)
         .padding(6)
         .spacing(20);
 
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu_column = Column::new();
-    let operations_menu_container =
-        Container::new(operations_menu_column).width(Length::FillPortion(2));
+    let operations_menu = action_menu::data_container(color_palette, config, &mut state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -349,12 +350,12 @@ pub fn data_container<'a>(
     )
     .style(style::NormalModalCardContainer(color_palette));
 
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(3));
+    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(2));
 
     // Home 'row', operation buttons beside info
     let first_row_container = Row::new()
-        .push(operations_menu_container)
         .push(wallet_info_card_container)
+        .push(operations_menu)
         .padding(10);
 
     // Status container bar at bottom of screen
@@ -487,12 +488,11 @@ pub fn data_container<'a>(
     // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
-        .push(Space::new(Length::Units(0), Length::Fill))
         .push(first_row_container)
-        .push(Space::new(Length::Units(0), Length::Fill))
         .push(tx_list_content)
-        .push(Space::new(Length::Units(0), Length::Units(20)))
+        .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
+        .padding(10) 
         .align_items(Alignment::Center);
 
     Container::new(column)

@@ -222,5 +222,8 @@
     "info-awaiting-finalization": "Awaiting Finalization",
     "info-locked": "Locked",
     "name": "Name",
-    "folder": "Folder"
+    "folder": "Folder",
+    "wallet-create-tx": "Send",
+    "wallet-apply-tx": "Receive",
+    "wallet-home": "Wallet - Set Name Here TBD"
 }

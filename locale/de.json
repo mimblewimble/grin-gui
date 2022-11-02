@@ -213,5 +213,8 @@
     "info-awaiting-confirmation": "Awaiting Confirmation",
     "info-awaiting-finalization": "Awaiting Finalization",
     "info-locked": "Locked",
-    "wallet-default-name": "Default"
+    "wallet-default-name": "Default",
+    "wallet-create-tx": "Send",
+    "wallet-apply-tx": "Receive",
+    "wallet-home": "Wallet - Set Name Here TBD"
 }

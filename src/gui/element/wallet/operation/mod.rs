@@ -1,6 +1,9 @@
 pub mod open;
+pub mod action_menu;
 pub mod home;
 pub mod tx_list;
+pub mod create_tx;
+pub mod apply_tx;
 
 use {
     crate::gui::{style, GrinGui, Message},
@@ -14,6 +17,8 @@ pub struct StateContainer {
     pub mode: Mode,
     pub open_state: open::StateContainer,
     pub home_state: home::StateContainer,
+    pub create_tx_state: create_tx::StateContainer,
+    pub apply_tx_state: apply_tx::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
     has_wallet_open_check_failed_one_time: bool,
 }
@@ -22,6 +27,8 @@ pub struct StateContainer {
 pub enum Mode {
     Open,
     Home,
+    CreateTx,
+    ApplyTx
 }
 
 impl Default for StateContainer {
@@ -30,6 +37,8 @@ impl Default for StateContainer {
             mode: Mode::Home,
             open_state: Default::default(),
             home_state: Default::default(),
+            create_tx_state: Default::default(),
+            apply_tx_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
         }
     }
@@ -71,6 +80,12 @@ pub fn data_container<'a>(
         Mode::Open => open::data_container(color_palette, &mut state.open_state, config),
         Mode::Home => {
             home::data_container(color_palette, config, &mut state.home_state)
+        }
+        Mode::CreateTx => {
+            create_tx::data_container(color_palette, config, &mut state.create_tx_state)
+        }
+        Mode::ApplyTx => {
+            apply_tx::data_container(color_palette, config, &mut state.apply_tx_state)
         }
     };
 
