@@ -25,27 +25,26 @@ use {
         alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
         Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
     },
+    serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
-    serde::{Deserialize, Serialize}
 };
 
 pub struct StateContainer {
     pub create_tx_button_state: button::State,
-    pub action_menu_action: Action,
+    pub apply_tx_button_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            action_menu_action: Action::None,
             create_tx_button_state: Default::default(),
+            apply_tx_button_state: Default::default(),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Action {
-    None,
     CreateTx,
     ApplyTx,
 }
@@ -59,11 +58,21 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.home_state.action_menu_state;
+    let state = &mut grin_gui
+        .wallet_state
+        .operation_state
+        .home_state
+        .action_menu_state;
     match message {
         LocalViewInteraction::SelectAction(action) => {
-            log::debug!("Interaction::WalletOperationHomeActionMenuViewInteraction({:?})", action);
-            grin_gui.wallet_state.operation_state.home_state.action_menu_state.action_menu_action = action;
+            log::debug!(
+                "Interaction::WalletOperationHomeActionMenuViewInteraction({:?})",
+                action
+            );
+            match action {
+                Action::CreateTx => grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::CreateTx,
+                Action::ApplyTx => grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::ApplyTx,
+            }
         }
     }
     Ok(Command::none())
@@ -75,23 +84,35 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
     // Buttons to perform wallet operations
-    let menu_column = Column::new();
-    let menu_container = Container::new(menu_column).width(Length::FillPortion(2));
-
     let mut create_tx_button: Button<Interaction> = Button::new(
         &mut state.create_tx_button_state,
-        Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
+        Text::new(localized_string("wallet-create-tx")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
         LocalViewInteraction::SelectAction(Action::CreateTx),
     ));
 
-    // Overall operations menu screen layout column
-    let column = Column::new()
-        .push(menu_container)
-        .align_items(Alignment::Center);
+    let mut apply_tx_button: Button<Interaction> = Button::new(
+        &mut state.apply_tx_button_state,
+        Text::new(localized_string("wallet-apply-tx")).size(DEFAULT_FONT_SIZE),
+    )
+    .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+        LocalViewInteraction::SelectAction(Action::ApplyTx),
+    ));
 
-    Container::new(column)
+    create_tx_button = create_tx_button.style(style::BrightTextButton(color_palette));
+    apply_tx_button = apply_tx_button.style(style::BrightTextButton(color_palette));
+
+    let create_tx_button: Element<Interaction> = create_tx_button.into();
+    let apply_tx_button: Element<Interaction> = apply_tx_button.into();
+
+    let menu_column = Column::new()
+        .push(create_tx_button.map(Message::Interaction))
+        .push(apply_tx_button.map(Message::Interaction));
+
+    let menu_container = Container::new(menu_column).padding(2);
+
+    Container::new(menu_container)
         .center_y()
         .center_x()
         .width(Length::Fill)

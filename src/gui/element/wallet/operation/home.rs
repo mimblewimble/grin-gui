@@ -214,8 +214,8 @@ pub fn data_container<'a>(
 
     let title_row = Row::new()
         .push(title_container)
-        .push(Space::new(Length::Units(100), Length::Units(0)))
         .push(back_button.map(Message::Interaction))
+        //.push(Space::new(Length::Fill, Length::Units(0)))
         .align_items(Alignment::Center)
         .padding(6)
         .spacing(20);
@@ -350,12 +350,12 @@ pub fn data_container<'a>(
     )
     .style(style::NormalModalCardContainer(color_palette));
 
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(3));
+    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(2));
 
     // Home 'row', operation buttons beside info
     let first_row_container = Row::new()
-        .push(operations_menu)
         .push(wallet_info_card_container)
+        .push(operations_menu)
         .padding(10);
 
     // Status container bar at bottom of screen
@@ -488,12 +488,11 @@ pub fn data_container<'a>(
     // Overall Home screen layout column
     let column = Column::new()
         .push(title_row)
-        .push(Space::new(Length::Units(0), Length::Fill))
         .push(first_row_container)
-        .push(Space::new(Length::Units(0), Length::Fill))
         .push(tx_list_content)
-        .push(Space::new(Length::Units(0), Length::Units(20)))
+        .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
+        .padding(10) 
         .align_items(Alignment::Center);
 
     Container::new(column)

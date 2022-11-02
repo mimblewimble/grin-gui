@@ -168,7 +168,19 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationTxListInteraction(l)) => {
             return element::wallet::operation::tx_list::handle_message(grin_gui, l);
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        // Wallet -> Operation -> CreateTx
+        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(l)) => {
+            return element::wallet::operation::create_tx::handle_message(grin_gui, l);
+        }
+        // Wallet -> Operation -> Home -> Action
+        Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(l)) => {
+            return element::wallet::operation::apply_tx::handle_message(grin_gui, l);
+        }
+        // Wallet -> Operation -> Home -> Action
+        Message::Interaction(Interaction::WalletOperationHomeActionMenuViewInteraction(l)) => {
+            return element::wallet::operation::action_menu::handle_message(grin_gui, l);
+        }
+          Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;
