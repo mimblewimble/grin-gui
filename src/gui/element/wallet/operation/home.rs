@@ -65,6 +65,7 @@ pub enum LocalViewInteraction {
     /// was updated from node, info
     WalletInfoUpdateSuccess(bool, WalletInfo, Vec<TxLogEntry>),
     WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
+    WalletSlatepackAddressUpdateSuccess(String),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
 }
@@ -127,6 +128,28 @@ pub fn handle_tick<'a>(
             ))
         }));
     }
+    // If slatepack address is not filled out, go get it
+    let apply_tx_state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
+    if apply_tx_state.address_value.is_empty() {
+
+        let w = grin_gui.wallet_interface.clone();
+
+        let fut =
+            move || WalletInterface::get_slatepack_address(w.clone());
+        return Ok(Command::perform(fut(), |get_slatepack_address_res| {
+            if get_slatepack_address_res.is_err() {
+                let e = get_slatepack_address_res
+                    .context("Failed to retrieve wallet slatepack address")
+                    .unwrap_err();
+                return Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                    LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
+                ));
+            }
+            Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(get_slatepack_address_res.unwrap()),
+            ))
+        }));
+    }
     Ok(Command::none())
 }
 
@@ -180,6 +203,9 @@ pub fn handle_message<'a>(
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
+        },
+        LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
+            grin_gui.wallet_state.operation_state.apply_tx_state.address_value = address;
         }
     }
     Ok(Command::none())

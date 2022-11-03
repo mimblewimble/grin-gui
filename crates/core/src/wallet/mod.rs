@@ -350,6 +350,19 @@ where
         }
     }
 
+    pub async fn get_slatepack_address(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+    ) -> Result<String, GrinWalletInterfaceError> {
+        let w = wallet_interface.read().unwrap();
+        if let Some(o) = &w.owner_api {
+            let res = o.get_slatepack_address(None, 0)?;
+            return Ok(res.to_string());
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+
     /*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface<L, C>>>, password: String) -> String {
         let mut w = wallet_interface.read().unwrap();
         w.owner_api.get_mnemonic(name, password.into())
