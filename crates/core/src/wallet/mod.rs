@@ -20,7 +20,9 @@ use dirs;
 // Re-exports
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
-pub use grin_wallet_libwallet::{StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo};
+pub use grin_wallet_libwallet::{
+    InitTxArgs, Slate, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
+};
 
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
@@ -150,7 +152,7 @@ where
         w.use_embedded_node = value;
     }
 
-    /// Sets the top level directory of the wallet and creates default config if config 
+    /// Sets the top level directory of the wallet and creates default config if config
     /// doesn't already exist. The initial config is created based off of the chain type.
     fn inst_wallet(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
@@ -248,14 +250,28 @@ where
                 let tld = {
                     let mut w_lock = o.wallet_inst.lock();
                     let p = w_lock.lc_provider()?;
-                    let logging_config = w.config.clone().unwrap().clone().members.unwrap().logging.clone(); 
+                    let logging_config = w
+                        .config
+                        .clone()
+                        .unwrap()
+                        .clone()
+                        .members
+                        .unwrap()
+                        .logging
+                        .clone();
 
                     log::debug!(
                         "core::wallet::InitWallet Top Level Directory: {:?}",
                         p.get_top_level_directory(),
                     );
 
-                    p.create_config(&chain_type, WALLET_CONFIG_FILE_NAME, Some(args.config), logging_config, None)?;
+                    p.create_config(
+                        &chain_type,
+                        WALLET_CONFIG_FILE_NAME,
+                        Some(args.config),
+                        logging_config,
+                        None,
+                    )?;
                     p.create_wallet(
                         None,
                         args.recovery_phrase,
@@ -343,7 +359,19 @@ where
     ) -> Result<(bool, Vec<TxLogEntry>), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
-            let res = o.retrieve_txs(None, false, None, None)?;
+            let mut res = o.retrieve_txs(None, false, None, None)?;
+            /*for tx in &mut res.1 {
+                if tx.amount_credited == 0 && tx.amount_debited == 0 {
+                    let saved_tx = o.get_stored_tx(None, Some(tx.id), None);
+                    if let Ok(st) = saved_tx {
+                        // Todo: have to check more things here, this is just for tx display
+                        if let Some(s) = st {
+                            println!("TWO: {}", s.amount);
+                            tx.amount_debited = s.amount;
+                        }
+                    }
+                }
+            };*/
             return Ok(res);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
@@ -362,9 +390,40 @@ where
         }
     }
 
+    pub async fn create_tx(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        init_args: InitTxArgs,
+    ) -> Result<Slate, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let slate = {
+                o.init_send_tx(None, init_args)?
+            };
+            o.tx_lock_outputs(None, &slate)?;
+            return Ok(slate);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    /*pub async fn tx_lock_outputs(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        init_args: InitTxArgs,
+    ) -> Result<Slate, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let slate = {
+                o.init_send_tx(None, init_args)?
+            };
+            return Ok(slate);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }*/
 
     /*pub async fn get_recovery_phrase(wallet_interface: Arc<RwLock<WalletInterface<L, C>>>, password: String) -> String {
         let mut w = wallet_interface.read().unwrap();
         w.owner_api.get_mnemonic(name, password.into())
     }*/
+
 }
