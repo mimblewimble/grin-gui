@@ -99,7 +99,7 @@ pub fn handle_message<'a>(
                 max_outputs: 500,
                 num_change_outputs: 1,
                 selection_strategy_is_use_all: false,
-                late_lock: Some(true),
+                late_lock: Some(false),
                 ..Default::default()
             };
 
