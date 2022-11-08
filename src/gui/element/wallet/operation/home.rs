@@ -11,8 +11,8 @@ use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::tx_list::{HeaderState, TxList};
 use super::action_menu;
+use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -32,6 +32,7 @@ use {
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
     pub back_button_state: button::State,
+    pub cancel_button_states: Vec<button::State>,
     pub expanded_type: ExpandType,
 
     wallet_info: Option<WalletInfo>,
@@ -46,6 +47,7 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             action_menu_state: Default::default(),
+            cancel_button_states: vec![],
             back_button_state: Default::default(),
             expanded_type: ExpandType::None,
             wallet_info: Default::default(),
@@ -68,6 +70,9 @@ pub enum LocalViewInteraction {
     WalletSlatepackAddressUpdateSuccess(String),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
+    CancelTx(u32),
+    TxCancelledOk(u32),
+    TxCancelError(Arc<RwLock<Option<anyhow::Error>>>)
 }
 
 // Okay to modify state and access wallet here
@@ -131,11 +136,9 @@ pub fn handle_tick<'a>(
     // If slatepack address is not filled out, go get it
     let apply_tx_state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
     if apply_tx_state.address_value.is_empty() {
-
         let w = grin_gui.wallet_interface.clone();
 
-        let fut =
-            move || WalletInterface::get_slatepack_address(w.clone());
+        let fut = move || WalletInterface::get_slatepack_address(w.clone());
         return Ok(Command::perform(fut(), |get_slatepack_address_res| {
             if get_slatepack_address_res.is_err() {
                 let e = get_slatepack_address_res
@@ -146,7 +149,9 @@ pub fn handle_tick<'a>(
                 ));
             }
             Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(get_slatepack_address_res.unwrap()),
+                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(
+                    get_slatepack_address_res.unwrap(),
+                ),
             ))
         }));
     }
@@ -186,7 +191,11 @@ pub fn handle_message<'a>(
             );
             state.wallet_info = Some(wallet_info);
             debug!("Update Wallet Txs Summary: {:?}", txs);
-            state.wallet_txs = TxList { txs };
+            let tx_wrap_list = txs
+                .iter()
+                .map(|tx| TxLogEntryWrap::new(tx.clone()))
+                .collect();
+            state.wallet_txs = TxList { txs: tx_wrap_list };
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -203,10 +212,47 @@ pub fn handle_message<'a>(
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
-        },
-        LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
-            grin_gui.wallet_state.operation_state.apply_tx_state.address_value = address;
         }
+        LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state
+                .address_value = address;
+        }
+        LocalViewInteraction::CancelTx(id) => {
+            debug!("Cancel Tx: {}", id);
+            grin_gui.error.take();
+
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
+
+            let w = grin_gui.wallet_interface.clone();
+
+            let fut = move || WalletInterface::cancel_tx(w, id);
+
+            return Ok(Command::perform(fut(), |r| {
+                match r.context("Failed to Cancel Transaction") {
+                    Ok(ret) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                        LocalViewInteraction::TxCancelledOk(ret),
+                    )),
+                    Err(e) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                        LocalViewInteraction::TxCancelError(Arc::new(RwLock::new(Some(e)))),
+                    )),
+                }
+            }));
+        },
+        LocalViewInteraction::TxCancelledOk(id) => {
+            //TODO: Message
+            debug!("TX cancelled okay: {}", id);
+        },
+        LocalViewInteraction::TxCancelError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
+        }
+
+        
     }
     Ok(Command::none())
 }
@@ -247,7 +293,8 @@ pub fn data_container<'a>(
         .spacing(20);
 
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu = action_menu::data_container(color_palette, config, &mut state.action_menu_state);
+    let operations_menu =
+        action_menu::data_container(color_palette, config, &mut state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -458,8 +505,10 @@ pub fn data_container<'a>(
         .style(style::Scrollable(color_palette));
 
     let mut has_txs = false;
+
+    let cancel_states = &mut state.cancel_button_states;
     // Loops though the txs.
-    for (idx, tx) in state.wallet_txs.txs.iter().enumerate() {
+    for (idx, tx_wrap) in state.wallet_txs.txs.iter_mut().enumerate() {
         has_txs = true;
         // If hiding ignored addons, we will skip it.
         /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
@@ -473,7 +522,7 @@ pub fn data_container<'a>(
 
         // Checks if the current tx is expanded.
         let is_tx_expanded = match &state.expanded_type {
-            ExpandType::Details(a) => a.id == tx.id,
+            ExpandType::Details(a) => a.tx.id == tx_wrap.tx.id,
             ExpandType::None => false,
         };
 
@@ -487,7 +536,7 @@ pub fn data_container<'a>(
         // If the tx is expanded, then this is also included in this container.
         let tx_data_cell = tx_list::data_row_container(
             color_palette,
-            tx,
+            tx_wrap,
             is_tx_expanded,
             &state.expanded_type,
             config,
@@ -518,7 +567,7 @@ pub fn data_container<'a>(
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
-        .padding(10) 
+        .padding(10)
         .align_items(Alignment::Center);
 
     Container::new(column)

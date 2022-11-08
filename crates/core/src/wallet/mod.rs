@@ -406,6 +406,20 @@ where
         }
     }
 
+    pub async fn cancel_tx(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        id: u32,
+    ) -> Result<u32, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            o.cancel_tx(None, Some(id), None)?;
+            return Ok(id);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+
     /*pub async fn tx_lock_outputs(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         init_args: InitTxArgs,
