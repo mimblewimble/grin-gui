@@ -22,6 +22,10 @@ use {
     std::sync::{Arc, RwLock},
 };
 
+
+static INPUT_WIDTH: u16 = 200; 
+static UNIT_SPACE: u16 = 15; 
+
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub submit_button_state: button::State,
@@ -163,22 +167,17 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-    // Title row
-    let title = Text::new(localized_string("open-wallet"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
 
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let title_row = Row::new()
-        .push(title_container)
-        .align_items(Alignment::Center);
-
-    let display_name_string = match config.current_wallet_index {
+    let mut display_name_string = match config.current_wallet_index {
         Some(index) => config.wallets[index].display_name.clone(),
         None => "".to_owned(),
     };
+
+    // if there is no wallet display name
+    if display_name_string.is_empty() {
+        display_name_string = localized_string("open-wallet"); 
+    }
+
     let display_name = Text::new(display_name_string)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
@@ -201,7 +200,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(200))
+        .width(Length::Units(INPUT_WIDTH))
         .style(style::AddonsQueryInput(color_palette))
         .password();
 
@@ -217,11 +216,10 @@ pub fn data_container<'a>(
 
     let description = Text::new(localized_string("open-wallet-password"))
         .size(DEFAULT_FONT_SIZE)
-        //.width(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let description_container = Container::new(description)
-        //.width(Length::Fill)
+        .width(Length::Units(INPUT_WIDTH))
         .style(style::NormalBackgroundContainer(color_palette));
 
     let submit_button_label_container =
@@ -256,26 +254,20 @@ pub fn data_container<'a>(
         LocalViewInteraction::CancelOpenWallet,
     ));
 
-    let unit_spacing = 15;
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let button_row = Row::new()
         .push(submit_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(Space::with_width(Length::Units(UNIT_SPACE)))
         .push(cancel_button.map(Message::Interaction));
 
     let column = Column::new()
-        .push(title_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(display_name_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::with_height(Length::Units(UNIT_SPACE + DEFAULT_PADDING)))
         .push(description_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::with_height(Length::Units(UNIT_SPACE)))
         .push(password_column)
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
-        ))
+        .push(Space::with_height(Length::Units(UNIT_SPACE + DEFAULT_PADDING)))
         .push(button_row)
         .align_items(Alignment::Center);
 
