@@ -277,8 +277,28 @@ pub fn data_container<'a>(
     let title = Text::new(localized_string("setup-grin-wallet-title"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
+
+    // we need 2 pts of padding here to match the position with other views: i.e. wallet list, settings. 
+    // otherwise this title container will look like it shifts up slightly when the user toggles
+    // between views with buttons on the header row.
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(style::BrightBackgroundContainer(color_palette)).padding(iced::Padding::from([
+            2,    // top 
+            0,    // right
+            2,    // bottom
+            0,    // left
+    ]));
+
+    // push more items on to header here: e.g. other buttons, things that belong on the header 
+    let header_row = Row::new()
+        .push(title_container);
+
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+            0,                  // top
+            0,                  // right
+            DEFAULT_PADDING,    // bottom
+            5,                  // left
+    ]));
 
     let password_column = {
         let password_input = TextInput::new(
@@ -531,7 +551,6 @@ pub fn data_container<'a>(
         .push(cancel_button.map(Message::Interaction));
 
     let mut column = Column::new()
-        .push(title_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
@@ -565,18 +584,27 @@ pub fn data_container<'a>(
     scrollable = scrollable.push(column);
     scrollable = scrollable.height(Length::Fill).width(Length::Fill);
 
-    let col = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(10)))
-        .push(scrollable)
-        .push(Space::new(Length::Units(0), Length::Units(20)));
-    let row = Row::new()
-        .push(Space::new(Length::Units(20), Length::Units(0)))
-        .push(col);
-
-    // Returns the final container.
-    Container::new(row)
+    let content = Container::new(scrollable)
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(style::NormalBackgroundContainer(color_palette)).padding(iced::Padding::from([
+            0, // top
+            0, // right
+            5, // bottom
+            5, // left
+        ]));
+    
+    let wrapper_column = Column::new()
+        .height(Length::Fill)
+        .push(header_container)
+        .push(content);
+
+    // Returns the final container.
+    Container::new(wrapper_column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
 }
