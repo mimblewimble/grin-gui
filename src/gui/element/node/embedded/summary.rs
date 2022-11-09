@@ -5,7 +5,7 @@ use iced_aw::Card;
 const NANO_TO_MILLIS: f64 = 1.0 / 1_000_000.0;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_SUB_HEADER_FONT_SIZE},
     crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     crate::Result,
@@ -180,15 +180,15 @@ pub fn data_container<'a>(
         value_text: &str,
         color_palette: ColorPalette,
     ) -> Column<'a, Message> {
-        let line_label = Text::new(label_text).size(DEFAULT_HEADER_FONT_SIZE);
+        let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
 
         let line_label_container =
-            Container::new(line_label).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_label).style(style::NormalBackgroundContainer(color_palette));
 
         let line_value = Text::new(value_text).size(DEFAULT_FONT_SIZE);
 
         let line_value_container =
-            Container::new(line_value).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_value).style(style::NormalBackgroundContainer(color_palette));
 
         Column::new()
             .push(line_label_container)
@@ -201,11 +201,11 @@ pub fn data_container<'a>(
     let stats_info_container = match stats {
         Some(s) => {
             let status_line_value = Text::new(&format_sync_status(&s.sync_status))
-                .size(DEFAULT_HEADER_FONT_SIZE)
+                .size(DEFAULT_FONT_SIZE)
                 .horizontal_alignment(alignment::Horizontal::Center);
 
             let status_line_value_container = Container::new(status_line_value)
-                .style(style::BrightBackgroundContainer(color_palette));
+                .style(style::NormalBackgroundContainer(color_palette));
 
             let status_line_column = Column::new()
                 .push(status_line_value_container)
@@ -223,7 +223,7 @@ pub fn data_container<'a>(
             };
 
             let status_line_card = Card::new(
-                Text::new(status_line_title).size(DEFAULT_HEADER_FONT_SIZE),
+                Text::new(status_line_title).size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 status_line_row,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -241,7 +241,7 @@ pub fn data_container<'a>(
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
             let basic_status_card = Card::new(
-                Text::new(localized_string("basic-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
+                Text::new(localized_string("basic-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 basic_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -274,7 +274,7 @@ pub fn data_container<'a>(
                 .push(header_tip_timestamp_row);
 
             let header_status_card = Card::new(
-                Text::new(localized_string("header-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
+                Text::new(localized_string("header-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 header_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -307,7 +307,7 @@ pub fn data_container<'a>(
                 .push(chain_tip_timestamp_row);
 
             let chain_status_card = Card::new(
-                Text::new(localized_string("chain-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
+                Text::new(localized_string("chain-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 chain_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -331,7 +331,7 @@ pub fn data_container<'a>(
 
                     Card::new(
                         Text::new(localized_string("transaction-pool-title"))
-                            .size(DEFAULT_HEADER_FONT_SIZE),
+                            .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                         tx_status_column,
                     )
                 }
