@@ -83,6 +83,9 @@ pub fn handle_message<'a>(
             // return user to wallet list
             grin_gui.wallet_state.mode = element::wallet::Mode::Init;
             grin_gui.wallet_state.setup_state.mode = element::wallet::setup::Mode::ListWallets;
+
+            // reset user input values
+            grin_gui.wallet_state.operation_state.open_state = Default::default();
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
@@ -151,6 +154,9 @@ pub fn handle_message<'a>(
                 .clear_wallet_not_open();
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
+
+            // reset user input values
+            grin_gui.wallet_state.operation_state.open_state = Default::default();
         }
 
         LocalViewInteraction::WalletOpenError(err) => {
