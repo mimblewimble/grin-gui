@@ -24,6 +24,7 @@ use {
 
 
 static INPUT_WIDTH: u16 = 200; 
+static BUTTON_WIDTH: u16 = 84;
 static UNIT_SPACE: u16 = 15; 
 
 pub struct StateContainer {
@@ -225,13 +226,14 @@ pub fn data_container<'a>(
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .width(Length::Units(BUTTON_WIDTH))
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
         &mut state.submit_button_state,
         submit_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::OpenWallet,
@@ -242,24 +244,37 @@ pub fn data_container<'a>(
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .width(Length::Units(BUTTON_WIDTH))
             .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
         &mut state.cancel_button_state,
         cancel_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
 
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::CancelOpenWallet,
     ));
 
 
+    // give our buttons a nice double bordered look to match toolbar buttons
+    let submit_button: Element<Interaction> = submit_button.into();
+    let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
+    let submit_container = Container::new(submit_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let cancel_button: Element<Interaction> = cancel_button.into();
+    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
+    let cancel_container = Container::new(cancel_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let button_row = Row::new()
-        .push(submit_button.map(Message::Interaction))
+        .push(submit_container)
         .push(Space::with_width(Length::Units(UNIT_SPACE)))
-        .push(cancel_button.map(Message::Interaction));
+        .push(cancel_container);
 
     let column = Column::new()
         .push(display_name_container)
