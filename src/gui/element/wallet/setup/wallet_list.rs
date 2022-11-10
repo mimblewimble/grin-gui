@@ -1,5 +1,5 @@
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, BUTTON_HEIGHT, BUTTON_WIDTH},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
@@ -20,6 +20,7 @@ use grin_gui_widgets::{table_row::StyleSheet, TableRow};
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
+
 
 pub struct StateContainer {
     pub back_button_state: button::State,
@@ -137,7 +138,9 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-    let button_height = Length::Units(20);
+    let button_height = Length::Units(BUTTON_HEIGHT);
+    let button_width = Length::Units(BUTTON_WIDTH);
+
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container =
         Container::new(title).style(style::BrightBackgroundContainer(color_palette));
@@ -171,10 +174,10 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,                  // top
-        0,                  // right
-        DEFAULT_PADDING,    // bottom
-        5,                  // left
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        5,               // left
     ]));
 
     let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
@@ -208,10 +211,10 @@ pub fn data_container<'a>(
 
     let table_header_container = Container::new(table_header_row)
         .padding(iced::Padding::from([
-            9,                   // top
-            DEFAULT_PADDING,     // right - should roughly match width of content scroll bar to align table headers
-            9,                   // bottom
-            9,                   // left
+            9,               // top
+            DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
+            9,               // bottom
+            9,               // left
         ]))
         .style(style::PanelForeground(color_palette));
 
@@ -299,11 +302,11 @@ pub fn data_container<'a>(
         wallet_rows.push(table_row.into());
     }
 
-    let wallet_column = Column::new()
-        .push(Column::with_children(wallet_rows));
+    let wallet_column = Column::new().push(Column::with_children(wallet_rows));
 
     let load_wallet_button_container =
         Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
             .height(button_height)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
@@ -312,7 +315,7 @@ pub fn data_container<'a>(
         &mut state.load_wallet_button_state,
         load_wallet_button_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
 
     // the load wallet button should be disabled if there are no wallets
     if !config.wallets.is_empty() {
@@ -326,6 +329,7 @@ pub fn data_container<'a>(
 
     let select_folder_button_container =
         Container::new(Text::new(localized_string("select-other")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
             .height(button_height)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
@@ -334,16 +338,27 @@ pub fn data_container<'a>(
         &mut state.select_folder_button_state,
         select_folder_button_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
+    .style(style::DefaultButton(color_palette))
     .on_press(Interaction::WalletListWalletViewInteraction(
         LocalViewInteraction::LocateWallet,
     ))
     .into();
 
+    // button lipstick
+    let load_container = Container::new(load_wallet_button.map(Message::Interaction)).padding(1);
+    let load_container = Container::new(load_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
+    let select_container = Container::new(select_other_button.map(Message::Interaction)).padding(1);
+    let select_container = Container::new(select_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let button_row = Row::new()
-        .push(load_wallet_button.map(Message::Interaction))
+        .push(load_container)
         .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
-        .push(select_other_button.map(Message::Interaction))
+        .push(select_container)
         .height(Length::Shrink);
 
     let scrollable = Scrollable::new(&mut state.scrollable_state)

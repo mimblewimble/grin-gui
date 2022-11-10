@@ -1,4 +1,4 @@
-use crate::gui::element;
+use crate::gui::element::{self, BUTTON_HEIGHT, BUTTON_WIDTH};
 use crate::log_error;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -22,10 +22,8 @@ use {
     std::sync::{Arc, RwLock},
 };
 
-
-static INPUT_WIDTH: u16 = 200; 
-static BUTTON_WIDTH: u16 = 84;
-static UNIT_SPACE: u16 = 15; 
+static INPUT_WIDTH: u16 = 200;
+static UNIT_SPACE: u16 = 15;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
@@ -174,7 +172,6 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-
     let mut display_name_string = match config.current_wallet_index {
         Some(index) => config.wallets[index].display_name.clone(),
         None => "".to_owned(),
@@ -182,7 +179,7 @@ pub fn data_container<'a>(
 
     // if there is no wallet display name
     if display_name_string.is_empty() {
-        display_name_string = localized_string("open-wallet"); 
+        display_name_string = localized_string("open-wallet");
     }
 
     let display_name = Text::new(display_name_string)
@@ -232,7 +229,9 @@ pub fn data_container<'a>(
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .center_y()
             .width(Length::Units(BUTTON_WIDTH))
+            .height(Length::Units(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
@@ -250,7 +249,9 @@ pub fn data_container<'a>(
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .center_y()
             .width(Length::Units(BUTTON_WIDTH))
+            .height(Length::Units(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
@@ -262,7 +263,6 @@ pub fn data_container<'a>(
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::CancelOpenWallet,
     ));
-
 
     // give our buttons a nice double bordered look to match toolbar buttons
     let submit_button: Element<Interaction> = submit_button.into();
@@ -284,11 +284,15 @@ pub fn data_container<'a>(
 
     let column = Column::new()
         .push(display_name_container)
-        .push(Space::with_height(Length::Units(UNIT_SPACE + DEFAULT_PADDING)))
+        .push(Space::with_height(Length::Units(
+            UNIT_SPACE + DEFAULT_PADDING,
+        )))
         .push(description_container)
         .push(Space::with_height(Length::Units(UNIT_SPACE)))
         .push(password_column)
-        .push(Space::with_height(Length::Units(UNIT_SPACE + DEFAULT_PADDING)))
+        .push(Space::with_height(Length::Units(
+            UNIT_SPACE + DEFAULT_PADDING,
+        )))
         .push(button_row)
         .align_items(Alignment::Center);
 

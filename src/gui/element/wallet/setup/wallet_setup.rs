@@ -6,7 +6,9 @@ use native_dialog::FileDialog;
 use std::path::PathBuf;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{
+        BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
+    },
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
@@ -278,26 +280,26 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
-    // we need 2 pts of padding here to match the position with other views: i.e. wallet list, settings. 
+    // we need 2 pts of padding here to match the position with other views: i.e. wallet list, settings.
     // otherwise this title container will look like it shifts up slightly when the user toggles
     // between views with buttons on the header row.
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette)).padding(iced::Padding::from([
-            2,    // top 
-            0,    // right
-            2,    // bottom
-            0,    // left
-    ]));
+    let title_container = Container::new(title)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            2, // top
+            0, // right
+            2, // bottom
+            0, // left
+        ]));
 
-    // push more items on to header here: e.g. other buttons, things that belong on the header 
-    let header_row = Row::new()
-        .push(title_container);
+    // push more items on to header here: e.g. other buttons, things that belong on the header
+    let header_row = Row::new().push(title_container);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-            0,                  // top
-            0,                  // right
-            DEFAULT_PADDING,    // bottom
-            5,                  // left
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        5,               // left
     ]));
 
     let password_column = {
@@ -505,17 +507,23 @@ pub fn data_container<'a>(
 
     // ** end hideable advanced options
 
+    let button_height = Length::Units(BUTTON_HEIGHT);
+    let button_width = Length::Units(BUTTON_WIDTH);
+
     let submit_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
     )
+    .width(button_width)
+    .height(button_height)
     .center_x()
+    .center_y()
     .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
         &mut state.submit_button_state,
         submit_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
     if check_password() {
         let top_level_directory = state.advanced_options_state.top_level_directory.clone();
         let display_name = if state.advanced_options_state.display_name_value.is_empty() {
@@ -533,22 +541,35 @@ pub fn data_container<'a>(
 
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
             .center_x()
+            .center_y()
             .align_x(alignment::Horizontal::Center);
 
     let cancel_button: Element<Interaction> =
         Button::new(&mut state.back_button_state, cancel_button_label_container)
-            .style(style::DefaultBoxedButton(color_palette))
+            .style(style::DefaultButton(color_palette))
             .on_press(Interaction::WalletSetupWalletViewInteraction(
                 LocalViewInteraction::Back,
             ))
             .into();
 
+    let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
+    let submit_container = Container::new(submit_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
+    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
+    let cancel_container = Container::new(cancel_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let unit_spacing = 15;
     let button_row = Row::new()
-        .push(submit_button.map(Message::Interaction))
+        .push(submit_container)
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(cancel_button.map(Message::Interaction));
+        .push(cancel_container);
 
     let mut column = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
@@ -588,13 +609,14 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(style::NormalBackgroundContainer(color_palette)).padding(iced::Padding::from([
+        .style(style::NormalBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
             0, // top
             0, // right
             5, // bottom
             5, // left
         ]));
-    
+
     let wrapper_column = Column::new()
         .height(Length::Fill)
         .push(header_container)
