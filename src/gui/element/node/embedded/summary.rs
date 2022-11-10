@@ -228,12 +228,13 @@ pub fn data_container<'a>(
                 ChainTypes::Testnet => localized_string("status-line-title-test"),
                 _ => localized_string("status-line-title-main"),
             };
+            let status_line_container =
+                Container::new(Text::new(status_line_title).size(DEFAULT_SUB_HEADER_FONT_SIZE))
+                    .width(Length::Fill)
+                    .center_x();
 
-            let status_line_card = Card::new(
-                Text::new(status_line_title).size(DEFAULT_SUB_HEADER_FONT_SIZE),
-                status_line_row,
-            )
-            .style(style::NormalModalCardContainer(color_palette));
+            let status_line_card = Card::new(status_line_container, status_line_row)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Basic status
             let connected_peers_row = stat_row(
@@ -247,12 +248,16 @@ pub fn data_container<'a>(
                 color_palette,
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
-            let basic_status_card = Card::new(
+
+            let basic_status_container = Container::new(
                 Text::new(localized_string("basic-status-title"))
                     .size(DEFAULT_SUB_HEADER_FONT_SIZE),
-                basic_status_column,
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let basic_status_card = Card::new(basic_status_container, basic_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Tip Status
             let header_tip_hash_row = stat_row(
@@ -281,12 +286,15 @@ pub fn data_container<'a>(
                 .push(header_chain_difficulty_row)
                 .push(header_tip_timestamp_row);
 
-            let header_status_card = Card::new(
+            let header_status_container = Container::new(
                 Text::new(localized_string("header-status-title"))
                     .size(DEFAULT_SUB_HEADER_FONT_SIZE),
-                header_status_column,
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let header_status_card = Card::new(header_status_container, header_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Chain status
             let chain_tip_hash_row = stat_row(
@@ -315,12 +323,15 @@ pub fn data_container<'a>(
                 .push(chain_difficulty_row)
                 .push(chain_tip_timestamp_row);
 
-            let chain_status_card = Card::new(
+            let chain_status_container = Container::new(
                 Text::new(localized_string("chain-status-title"))
                     .size(DEFAULT_SUB_HEADER_FONT_SIZE),
-                chain_status_column,
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let chain_status_card = Card::new(chain_status_container, chain_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // TX Pool
             let tx_status_card = match &s.tx_stats {
@@ -339,11 +350,14 @@ pub fn data_container<'a>(
                         .push(transaction_pool_size_row)
                         .push(stem_pool_size_row);
 
-                    Card::new(
+                    let tx_status_container = Container::new(
                         Text::new(localized_string("transaction-pool-title"))
                             .size(DEFAULT_SUB_HEADER_FONT_SIZE),
-                        tx_status_column,
                     )
+                    .width(Length::Fill)
+                    .center_x();
+
+                    Card::new(tx_status_container, tx_status_column)
                 }
                 None => Card::new(
                     Text::new(localized_string("transaction-pool-title")),
