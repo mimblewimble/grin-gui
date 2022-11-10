@@ -11,14 +11,21 @@ use {
     crate::Result,
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
     grin_gui_core::theme::ColorPalette,
-    iced::{alignment, Alignment, Column, Command, Container, Length, Row, Space, Text},
+    iced::{
+        alignment, scrollable, Alignment, Column, Command, Container, Length, Row, Scrollable,
+        Space, Text,
+    },
 };
 
-pub struct StateContainer {}
+pub struct StateContainer {
+    scrollable_state: scrollable::State,
+}
 
 impl Default for StateContainer {
     fn default() -> Self {
-        Self {}
+        Self {
+            scrollable_state: Default::default(),
+        }
     }
 }
 
@@ -93,7 +100,7 @@ fn format_sync_status(sync_status: &SyncStatus) -> String {
 							dur_secs,
 					)
             }
-        },
+        }
         SyncStatus::TxHashsetSetup {
             headers,
             headers_total,
@@ -241,7 +248,8 @@ pub fn data_container<'a>(
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
             let basic_status_card = Card::new(
-                Text::new(localized_string("basic-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
+                Text::new(localized_string("basic-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 basic_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -274,7 +282,8 @@ pub fn data_container<'a>(
                 .push(header_tip_timestamp_row);
 
             let header_status_card = Card::new(
-                Text::new(localized_string("header-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
+                Text::new(localized_string("header-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 header_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -307,7 +316,8 @@ pub fn data_container<'a>(
                 .push(chain_tip_timestamp_row);
 
             let chain_status_card = Card::new(
-                Text::new(localized_string("chain-status-title")).size(DEFAULT_SUB_HEADER_FONT_SIZE),
+                Text::new(localized_string("chain-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                 chain_status_column,
             )
             .style(style::NormalModalCardContainer(color_palette));
@@ -342,16 +352,35 @@ pub fn data_container<'a>(
             }
             .style(style::NormalModalCardContainer(color_palette));
 
-            let display_row_1 = Row::new().push(status_line_card).padding(6).spacing(10);
+            let display_row_1 = Row::new()
+                .push(status_line_card)
+                .padding(iced::Padding::from([
+                    0, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
+                .spacing(10);
+
             let display_row_2 = Row::new()
                 .push(header_status_card)
                 .push(chain_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
             let display_row_3 = Row::new()
                 .push(basic_status_card)
                 .push(tx_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    0, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
 
             let status_column = Column::new()
@@ -365,15 +394,16 @@ pub fn data_container<'a>(
     };
 
     let stats_info_container = stats_info_container.width(Length::Units(600));
-
-    let colum = Column::new()
-        .push(Space::new(Length::Units(0), Length::Fill))
+    let scrollable = Scrollable::new(&mut state.scrollable_state)
         .push(stats_info_container)
-        .push(Space::new(Length::Units(0), Length::Fill))
-        .align_items(Alignment::Center);
+        .align_items(Alignment::Center)
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .style(style::Scrollable(color_palette));
 
-    Container::new(colum)
+    Container::new(scrollable)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Shrink)
 }
