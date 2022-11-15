@@ -5,20 +5,27 @@ use iced_aw::Card;
 const NANO_TO_MILLIS: f64 = 1.0 / 1_000_000.0;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_SUB_HEADER_FONT_SIZE},
     crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
     grin_gui_core::theme::ColorPalette,
-    iced::{alignment, Alignment, Column, Command, Container, Length, Row, Space, Text},
+    iced::{
+        alignment, scrollable, Alignment, Column, Command, Container, Length, Row, Scrollable,
+        Space, Text,
+    },
 };
 
-pub struct StateContainer {}
+pub struct StateContainer {
+    scrollable_state: scrollable::State,
+}
 
 impl Default for StateContainer {
     fn default() -> Self {
-        Self {}
+        Self {
+            scrollable_state: Default::default(),
+        }
     }
 }
 
@@ -93,7 +100,7 @@ fn format_sync_status(sync_status: &SyncStatus) -> String {
 							dur_secs,
 					)
             }
-        },
+        }
         SyncStatus::TxHashsetSetup {
             headers,
             headers_total,
@@ -180,15 +187,15 @@ pub fn data_container<'a>(
         value_text: &str,
         color_palette: ColorPalette,
     ) -> Column<'a, Message> {
-        let line_label = Text::new(label_text).size(DEFAULT_HEADER_FONT_SIZE);
+        let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
 
         let line_label_container =
-            Container::new(line_label).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_label).style(style::NormalBackgroundContainer(color_palette));
 
         let line_value = Text::new(value_text).size(DEFAULT_FONT_SIZE);
 
         let line_value_container =
-            Container::new(line_value).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_value).style(style::NormalBackgroundContainer(color_palette));
 
         Column::new()
             .push(line_label_container)
@@ -201,11 +208,11 @@ pub fn data_container<'a>(
     let stats_info_container = match stats {
         Some(s) => {
             let status_line_value = Text::new(&format_sync_status(&s.sync_status))
-                .size(DEFAULT_HEADER_FONT_SIZE)
+                .size(DEFAULT_FONT_SIZE)
                 .horizontal_alignment(alignment::Horizontal::Center);
 
             let status_line_value_container = Container::new(status_line_value)
-                .style(style::BrightBackgroundContainer(color_palette));
+                .style(style::NormalBackgroundContainer(color_palette));
 
             let status_line_column = Column::new()
                 .push(status_line_value_container)
@@ -221,12 +228,13 @@ pub fn data_container<'a>(
                 ChainTypes::Testnet => localized_string("status-line-title-test"),
                 _ => localized_string("status-line-title-main"),
             };
+            let status_line_container =
+                Container::new(Text::new(status_line_title).size(DEFAULT_SUB_HEADER_FONT_SIZE))
+                    .width(Length::Fill)
+                    .center_x();
 
-            let status_line_card = Card::new(
-                Text::new(status_line_title).size(DEFAULT_HEADER_FONT_SIZE),
-                status_line_row,
-            )
-            .style(style::NormalModalCardContainer(color_palette));
+            let status_line_card = Card::new(status_line_container, status_line_row)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Basic status
             let connected_peers_row = stat_row(
@@ -240,11 +248,16 @@ pub fn data_container<'a>(
                 color_palette,
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
-            let basic_status_card = Card::new(
-                Text::new(localized_string("basic-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                basic_status_column,
+
+            let basic_status_container = Container::new(
+                Text::new(localized_string("basic-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let basic_status_card = Card::new(basic_status_container, basic_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Tip Status
             let header_tip_hash_row = stat_row(
@@ -273,11 +286,15 @@ pub fn data_container<'a>(
                 .push(header_chain_difficulty_row)
                 .push(header_tip_timestamp_row);
 
-            let header_status_card = Card::new(
-                Text::new(localized_string("header-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                header_status_column,
+            let header_status_container = Container::new(
+                Text::new(localized_string("header-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let header_status_card = Card::new(header_status_container, header_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // Chain status
             let chain_tip_hash_row = stat_row(
@@ -306,11 +323,15 @@ pub fn data_container<'a>(
                 .push(chain_difficulty_row)
                 .push(chain_tip_timestamp_row);
 
-            let chain_status_card = Card::new(
-                Text::new(localized_string("chain-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                chain_status_column,
+            let chain_status_container = Container::new(
+                Text::new(localized_string("chain-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let chain_status_card = Card::new(chain_status_container, chain_status_column)
+                .style(style::NormalModalCardContainer(color_palette));
 
             // TX Pool
             let tx_status_card = match &s.tx_stats {
@@ -329,11 +350,14 @@ pub fn data_container<'a>(
                         .push(transaction_pool_size_row)
                         .push(stem_pool_size_row);
 
-                    Card::new(
+                    let tx_status_container = Container::new(
                         Text::new(localized_string("transaction-pool-title"))
-                            .size(DEFAULT_HEADER_FONT_SIZE),
-                        tx_status_column,
+                            .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                     )
+                    .width(Length::Fill)
+                    .center_x();
+
+                    Card::new(tx_status_container, tx_status_column)
                 }
                 None => Card::new(
                     Text::new(localized_string("transaction-pool-title")),
@@ -342,16 +366,35 @@ pub fn data_container<'a>(
             }
             .style(style::NormalModalCardContainer(color_palette));
 
-            let display_row_1 = Row::new().push(status_line_card).padding(6).spacing(10);
+            let display_row_1 = Row::new()
+                .push(status_line_card)
+                .padding(iced::Padding::from([
+                    0, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
+                .spacing(10);
+
             let display_row_2 = Row::new()
                 .push(header_status_card)
                 .push(chain_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
             let display_row_3 = Row::new()
                 .push(basic_status_card)
                 .push(tx_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    0, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
 
             let status_column = Column::new()
@@ -365,15 +408,16 @@ pub fn data_container<'a>(
     };
 
     let stats_info_container = stats_info_container.width(Length::Units(600));
-
-    let colum = Column::new()
-        .push(Space::new(Length::Units(0), Length::Fill))
+    let scrollable = Scrollable::new(&mut state.scrollable_state)
         .push(stats_info_container)
-        .push(Space::new(Length::Units(0), Length::Fill))
-        .align_items(Alignment::Center);
+        .align_items(Alignment::Center)
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .style(style::Scrollable(color_palette));
 
-    Container::new(colum)
+    Container::new(scrollable)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Shrink)
 }

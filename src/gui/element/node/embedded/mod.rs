@@ -1,11 +1,13 @@
+use crate::gui::element::DEFAULT_PADDING;
+
 pub mod summary;
 
 use {
     crate::gui::{style, GrinGui, Message},
     crate::Result,
-    grin_gui_core::theme::ColorPalette,
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
+    grin_gui_core::theme::ColorPalette,
     iced::{Column, Command, Container, Length},
 };
 
@@ -32,7 +34,6 @@ impl Default for StateContainer {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {}
 
@@ -47,19 +48,29 @@ pub fn data_container<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
     chain_type: ChainTypes,
-    
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Summary => summary::data_container(color_palette, &mut state.summary_state, &state.server_stats, chain_type),
-        _ => Container::new(Column::new())
+        Mode::Summary => summary::data_container(
+            color_palette,
+            &mut state.summary_state,
+            &state.server_stats,
+            chain_type,
+        ),
+        _ => Container::new(Column::new()),
     };
 
-    let column = Column::new()
-        .push(content);
+    let column = Column::new().push(content);
 
     Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Fill)
         .style(style::NormalBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            DEFAULT_PADDING, // left
+        ]))
 }

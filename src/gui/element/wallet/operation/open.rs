@@ -1,4 +1,4 @@
-use crate::gui::element;
+use crate::gui::element::{self, BUTTON_HEIGHT, BUTTON_WIDTH};
 use crate::log_error;
 //use iced::button::StyleSheet;
 //use iced_native::Widget;
@@ -21,6 +21,9 @@ use {
     },
     std::sync::{Arc, RwLock},
 };
+
+static INPUT_WIDTH: u16 = 200;
+static UNIT_SPACE: u16 = 15;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
@@ -78,6 +81,9 @@ pub fn handle_message<'a>(
             // return user to wallet list
             grin_gui.wallet_state.mode = element::wallet::Mode::Init;
             grin_gui.wallet_state.setup_state.mode = element::wallet::setup::Mode::ListWallets;
+
+            // reset user input values
+            grin_gui.wallet_state.operation_state.open_state = Default::default();
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
@@ -146,6 +152,9 @@ pub fn handle_message<'a>(
                 .clear_wallet_not_open();
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
+
+            // reset user input values
+            grin_gui.wallet_state.operation_state.open_state = Default::default();
         }
 
         LocalViewInteraction::WalletOpenError(err) => {
@@ -163,22 +172,16 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
-    // Title row
-    let title = Text::new(localized_string("open-wallet"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let title_row = Row::new()
-        .push(title_container)
-        .align_items(Alignment::Center);
-
-    let display_name_string = match config.current_wallet_index {
+    let mut display_name_string = match config.current_wallet_index {
         Some(index) => config.wallets[index].display_name.clone(),
         None => "".to_owned(),
     };
+
+    // if there is no wallet display name
+    if display_name_string.is_empty() {
+        display_name_string = localized_string("open-wallet");
+    }
+
     let display_name = Text::new(display_name_string)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
@@ -201,7 +204,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(200))
+        .width(Length::Units(INPUT_WIDTH))
         .style(style::AddonsQueryInput(color_palette))
         .password();
 
@@ -217,23 +220,25 @@ pub fn data_container<'a>(
 
     let description = Text::new(localized_string("open-wallet-password"))
         .size(DEFAULT_FONT_SIZE)
-        //.width(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let description_container = Container::new(description)
-        //.width(Length::Fill)
+        .width(Length::Units(INPUT_WIDTH))
         .style(style::NormalBackgroundContainer(color_palette));
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .center_y()
+            .width(Length::Units(BUTTON_WIDTH))
+            .height(Length::Units(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
         &mut state.submit_button_state,
         submit_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::OpenWallet,
@@ -244,38 +249,50 @@ pub fn data_container<'a>(
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
             .center_x()
+            .center_y()
+            .width(Length::Units(BUTTON_WIDTH))
+            .height(Length::Units(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
         &mut state.cancel_button_state,
         cancel_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(style::DefaultButton(color_palette));
 
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::CancelOpenWallet,
     ));
 
-    let unit_spacing = 15;
+    // give our buttons a nice double bordered look to match toolbar buttons
+    let submit_button: Element<Interaction> = submit_button.into();
+    let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
+    let submit_container = Container::new(submit_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
 
     let cancel_button: Element<Interaction> = cancel_button.into();
+    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
+    let cancel_container = Container::new(cancel_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let button_row = Row::new()
-        .push(submit_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(cancel_button.map(Message::Interaction));
+        .push(submit_container)
+        .push(Space::with_width(Length::Units(UNIT_SPACE)))
+        .push(cancel_container);
 
     let column = Column::new()
-        .push(title_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(display_name_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::with_height(Length::Units(
+            UNIT_SPACE + DEFAULT_PADDING,
+        )))
         .push(description_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::with_height(Length::Units(UNIT_SPACE)))
         .push(password_column)
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
-        ))
+        .push(Space::with_height(Length::Units(
+            UNIT_SPACE + DEFAULT_PADDING,
+        )))
         .push(button_row)
         .align_items(Alignment::Center);
 

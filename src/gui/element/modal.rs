@@ -1,5 +1,7 @@
 use iced::Renderer;
 
+use super::{BUTTON_HEIGHT, BUTTON_WIDTH};
+
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE},
     crate::gui::{style, Interaction, Message},
@@ -29,34 +31,52 @@ pub fn exit_card<'a>(
     color_palette: ColorPalette,
     state: &'a mut StateContainer,
 ) -> Card<Message, Renderer> {
+    let button_height = Length::Units(BUTTON_HEIGHT);
+    let button_width = Length::Units(BUTTON_WIDTH);
+
     let yes_button_label =
         Container::new(Text::new(localized_string("yes")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
             .center_x()
+            .center_y()
             .align_x(alignment::Horizontal::Center);
 
     let cancel_button_label =
         Container::new(Text::new(localized_string("no")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
             .center_x()
+            .center_y()
             .align_x(alignment::Horizontal::Center);
 
-    let yes_button: Element<Interaction> =
-        Button::new(&mut state.ok_state, yes_button_label)
-            .style(style::DefaultBoxedButton(color_palette))
-            .on_press(Interaction::Exit)
-            .into();
+    let yes_button: Element<Interaction> = Button::new(&mut state.ok_state, yes_button_label)
+        .style(style::DefaultButton(color_palette))
+        .on_press(Interaction::Exit)
+        .into();
 
     let cancel_button: Element<Interaction> =
         Button::new(&mut state.cancel_state, cancel_button_label)
-            .style(style::DefaultBoxedButton(color_palette))
+            .style(style::DefaultButton(color_palette))
             .on_press(Interaction::ExitCancel)
             .into();
 
     let unit_spacing = 15;
 
+    // button lipstick
+    let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
+    let yes_container = Container::new(yes_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
+    let cancel_container = Container::new(cancel_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
+
     let button_row = Row::new()
-        .push(yes_button.map(Message::Interaction))
+        .push(yes_container)
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(cancel_button.map(Message::Interaction));
+        .push(cancel_container);
 
     Card::new(
         Text::new(localized_string("exit-confirm-title"))
