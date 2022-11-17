@@ -1,5 +1,5 @@
 use super::tx_list::{self, ExpandType};
-use crate::log_error;
+use crate::{gui::element::SMALLER_FONT_SIZE, log_error};
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
@@ -11,8 +11,8 @@ use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::tx_list::{HeaderState, TxList};
 use super::action_menu;
+use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
@@ -131,11 +131,9 @@ pub fn handle_tick<'a>(
     // If slatepack address is not filled out, go get it
     let apply_tx_state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
     if apply_tx_state.address_value.is_empty() {
-
         let w = grin_gui.wallet_interface.clone();
 
-        let fut =
-            move || WalletInterface::get_slatepack_address(w.clone());
+        let fut = move || WalletInterface::get_slatepack_address(w.clone());
         return Ok(Command::perform(fut(), |get_slatepack_address_res| {
             if get_slatepack_address_res.is_err() {
                 let e = get_slatepack_address_res
@@ -146,7 +144,9 @@ pub fn handle_tick<'a>(
                 ));
             }
             Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(get_slatepack_address_res.unwrap()),
+                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(
+                    get_slatepack_address_res.unwrap(),
+                ),
             ))
         }));
     }
@@ -203,9 +203,13 @@ pub fn handle_message<'a>(
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
-        },
+        }
         LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
-            grin_gui.wallet_state.operation_state.apply_tx_state.address_value = address;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state
+                .address_value = address;
         }
     }
     Ok(Command::none())
@@ -216,38 +220,9 @@ pub fn data_container<'a>(
     config: &'a Config,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-    // Title row
-    let title = Text::new(localized_string("wallet-home"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let back_button_label_container =
-        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-            .height(Length::Units(20))
-            .align_y(alignment::Vertical::Bottom)
-            .align_x(alignment::Horizontal::Center);
-
-    let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
-            .on_press(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::Back,
-            ))
-            .into();
-
-    let title_row = Row::new()
-        .push(title_container)
-        .push(back_button.map(Message::Interaction))
-        //.push(Space::new(Length::Fill, Length::Units(0)))
-        .align_items(Alignment::Center)
-        .padding(6)
-        .spacing(20);
-
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu = action_menu::data_container(color_palette, config, &mut state.action_menu_state);
+    let operations_menu =
+        action_menu::data_container(color_palette, config, &mut state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -273,6 +248,72 @@ pub fn data_container<'a>(
             waiting_string.to_owned(),
         ),
     };
+
+    let wallet_name = config.wallets[config.current_wallet_index.unwrap()]
+        .display_name
+        .clone();
+
+    // Title row
+    let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
+    let title_container =
+        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+
+    let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
+    let subtitle_container = Container::new(subtitle)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            3, // top
+            0, // right
+            0, // bottom
+            0, // left
+        ]));
+
+    let close_wallet_label_container =
+        Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
+            .height(Length::Units(14))
+            .width(Length::Units(30))
+            .center_y()
+            .center_x();
+
+    let close_wallet_button: Element<Interaction> =
+        Button::new(&mut state.back_button_state, close_wallet_label_container)
+            .style(style::DefaultBoxedButton(color_palette))
+            .on_press(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::Back,
+            ))
+            .padding(2)
+            .into();
+
+    let subtitle_row = Row::new()
+        .push(subtitle_container)
+        .push(Space::with_width(Length::Units(2)))
+        .push(close_wallet_button.map(Message::Interaction));
+
+    let title_row = Column::new()
+        .push(title_container)
+        .push(subtitle_row)
+        .padding(6);
+
+    // add additional buttons here
+    // let button_row = Row::new().push(new_wallet_button.map(Message::Interaction));
+
+    // let segmented_mode_container = Container::new(button_row).padding(1);
+    // let segmented_mode_control_container = Container::new(segmented_mode_container)
+    //     .style(style::SegmentedContainer(color_palette))
+    //     .padding(1);
+
+    let header_row = Row::new()
+         .push(title_row)
+         .push(Space::with_width(Length::Fill))
+         .push(operations_menu)
+         .align_items(Alignment::Center);
+
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        5,               // left
+    ]));
 
     let total_value_label = Text::new(format!("{}:", localized_string("info-confirmed-total")));
     let total_value_label_container =
@@ -381,7 +422,7 @@ pub fn data_container<'a>(
     // Home 'row', operation buttons beside info
     let first_row_container = Row::new()
         .push(wallet_info_card_container)
-        .push(operations_menu)
+        //.push(operations_menu)
         .padding(10);
 
     // Status container bar at bottom of screen
@@ -513,13 +554,13 @@ pub fn data_container<'a>(
 
     // Overall Home screen layout column
     let column = Column::new()
-        .push(title_row)
+        .push(header_container)
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
-        .padding(10) 
-        .align_items(Alignment::Center);
+        .padding(10);
+        //.align_items(Alignment::Center);
 
     Container::new(column)
         .center_y()
