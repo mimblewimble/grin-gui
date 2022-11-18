@@ -70,8 +70,14 @@ pub fn handle_message<'a>(
                 action
             );
             match action {
-                Action::CreateTx => grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::CreateTx,
-                Action::ApplyTx => grin_gui.wallet_state.operation_state.mode = crate::gui::element::wallet::operation::Mode::ApplyTx,
+                Action::CreateTx => {
+                    grin_gui.wallet_state.operation_state.mode =
+                        crate::gui::element::wallet::operation::Mode::CreateTx
+                }
+                Action::ApplyTx => {
+                    grin_gui.wallet_state.operation_state.mode =
+                        crate::gui::element::wallet::operation::Mode::ApplyTx
+                }
             }
         }
     }
@@ -83,37 +89,55 @@ pub fn data_container<'a>(
     config: &'a Config,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
+    let button_width = Length::Units(70);
+
     // Buttons to perform wallet operations
-    let mut create_tx_button: Button<Interaction> = Button::new(
-        &mut state.create_tx_button_state,
-        Text::new(localized_string("wallet-create-tx")).size(DEFAULT_FONT_SIZE),
-    )
-    .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-        LocalViewInteraction::SelectAction(Action::CreateTx),
-    ));
+    let create_tx_container =
+        Container::new(Text::new(localized_string("wallet-create-tx")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .align_y(alignment::Vertical::Center)
+            .align_x(alignment::Horizontal::Center);
 
-    let mut apply_tx_button: Button<Interaction> = Button::new(
-        &mut state.apply_tx_button_state,
-        Text::new(localized_string("wallet-apply-tx")).size(DEFAULT_FONT_SIZE),
-    )
-    .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-        LocalViewInteraction::SelectAction(Action::ApplyTx),
-    ));
+    let create_tx_button: Element<Interaction> =
+        Button::new(&mut state.create_tx_button_state, create_tx_container)
+            .width(button_width)
+            .style(style::DefaultButton(color_palette))
+            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+                LocalViewInteraction::SelectAction(Action::CreateTx),
+            ))
+            .into();
 
-    create_tx_button = create_tx_button.style(style::BrightTextButton(color_palette));
-    apply_tx_button = apply_tx_button.style(style::BrightTextButton(color_palette));
+    let apply_tx_container =
+        Container::new(Text::new(localized_string("wallet-apply-tx")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .align_y(alignment::Vertical::Center)
+            .align_x(alignment::Horizontal::Center);
 
-    let create_tx_button: Element<Interaction> = create_tx_button.into();
-    let apply_tx_button: Element<Interaction> = apply_tx_button.into();
+    let apply_tx_button: Element<Interaction> =
+        Button::new(&mut state.apply_tx_button_state, apply_tx_container)
+            .width(button_width)
+            .style(style::DefaultButton(color_palette))
+            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+                LocalViewInteraction::SelectAction(Action::ApplyTx),
+            ))
+            .into();
 
-    let menu_column = Column::new()
-        .push(create_tx_button.map(Message::Interaction))
-        .push(apply_tx_button.map(Message::Interaction));
+    // add a nice double border around our buttons
+    // TODO refactor since many of the buttons around the UI repeat this theme
+    let create_container = Container::new(create_tx_button.map(Message::Interaction)).padding(1);
+    let create_container = Container::new(create_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
 
-    let menu_container = Container::new(menu_column).padding(2);
+    let apply_container = Container::new(apply_tx_button.map(Message::Interaction)).padding(1);
+    let apply_container = Container::new(apply_container)
+        .style(style::SegmentedContainer(color_palette))
+        .padding(1);
 
-    Container::new(menu_container)
-        .center_y()
-        .center_x()
-        .width(Length::Fill)
+    let menu_column = Row::new()
+        .push(create_container)
+        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(apply_container);
+
+    Container::new(menu_column)
 }

@@ -1,5 +1,4 @@
 use super::tx_list::{self, ExpandType};
-use crate::{gui::element::SMALLER_FONT_SIZE, log_error};
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
@@ -15,10 +14,14 @@ use super::action_menu;
 use super::tx_list::{HeaderState, TxList};
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{
+        DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, DEFAULT_SUB_HEADER_FONT_SIZE,
+        SMALLER_FONT_SIZE,
+    },
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
+    crate::log_error,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
@@ -289,24 +292,12 @@ pub fn data_container<'a>(
         .push(Space::with_width(Length::Units(2)))
         .push(close_wallet_button.map(Message::Interaction));
 
-    let title_row = Column::new()
-        .push(title_container)
-        .push(subtitle_row)
-        .padding(6);
-
-    // add additional buttons here
-    // let button_row = Row::new().push(new_wallet_button.map(Message::Interaction));
-
-    // let segmented_mode_container = Container::new(button_row).padding(1);
-    // let segmented_mode_control_container = Container::new(segmented_mode_container)
-    //     .style(style::SegmentedContainer(color_palette))
-    //     .padding(1);
+    let title_column = Column::new().push(title_container).push(subtitle_row);
 
     let header_row = Row::new()
-         .push(title_row)
-         .push(Space::with_width(Length::Fill))
-         .push(operations_menu)
-         .align_items(Alignment::Center);
+        .push(title_column)
+        .push(Space::with_width(Length::Fill))
+        .push(operations_menu);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
@@ -315,11 +306,12 @@ pub fn data_container<'a>(
         5,               // left
     ]));
 
-    let total_value_label = Text::new(format!("{}:", localized_string("info-confirmed-total")));
+    let total_value_label =
+        Text::new(format!("{}:", localized_string("info-confirmed-total"))).size(DEFAULT_FONT_SIZE);
     let total_value_label_container =
         Container::new(total_value_label).style(style::BrightBackgroundContainer(color_palette));
 
-    let total_value = Text::new(total_string);
+    let total_value = Text::new(total_string).size(DEFAULT_FONT_SIZE);
     let total_value_container = Container::new(total_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -334,11 +326,13 @@ pub fn data_container<'a>(
     let awaiting_confirmation_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-confirmation")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let awaiting_confirmation_value = Text::new(awaiting_confirmation_string);
+    let awaiting_confirmation_value =
+        Text::new(awaiting_confirmation_string).size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -353,11 +347,13 @@ pub fn data_container<'a>(
     let awaiting_finalization_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-finalization")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let awaiting_finalization_value = Text::new(awaiting_finalization_string);
+    let awaiting_finalization_value =
+        Text::new(awaiting_finalization_string).size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -369,11 +365,12 @@ pub fn data_container<'a>(
         .width(Length::Fill)
         .spacing(5);
 
-    let locked_label = Text::new(format!("{}:", localized_string("info-locked")));
+    let locked_label =
+        Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
     let locked_label_container =
         Container::new(locked_label).style(style::BrightBackgroundContainer(color_palette));
 
-    let locked_value = Text::new(locked_string);
+    let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -386,11 +383,12 @@ pub fn data_container<'a>(
         .spacing(5);
 
     let amount_spendable_label =
-        Text::new(format!("{}:", localized_string("info-amount-spendable")));
+        Text::new(format!("{}:", localized_string("info-amount-spendable")))
+            .size(DEFAULT_FONT_SIZE);
     let amount_spendable_label_container = Container::new(amount_spendable_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let amount_spendable_value = Text::new(amount_spendable_string);
+    let amount_spendable_value = Text::new(amount_spendable_string).size(DEFAULT_FONT_SIZE);
     let amount_spendable_value_container = Container::new(amount_spendable_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -410,20 +408,16 @@ pub fn data_container<'a>(
         .push(amount_spendable_row)
         .spacing(10);
 
-    let wallet_info_card_title_string = "".to_owned();
+    let wallet_info_card_title_string = "??".to_owned();
     let wallet_info_card = Card::new(
-        Text::new(wallet_info_card_title_string).size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(wallet_info_card_title_string).size(DEFAULT_SUB_HEADER_FONT_SIZE),
         info_column,
     )
     .style(style::NormalModalCardContainer(color_palette));
 
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(2));
+    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::Units(240));
 
-    // Home 'row', operation buttons beside info
-    let first_row_container = Row::new()
-        .push(wallet_info_card_container)
-        //.push(operations_menu)
-        .padding(10);
+    let first_row_container = Row::new().push(wallet_info_card_container);
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -558,12 +552,12 @@ pub fn data_container<'a>(
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(status_row)
-        .padding(10);
-        //.align_items(Alignment::Center);
+        .push(status_row);
 
-    Container::new(column)
-        .center_y()
-        .center_x()
-        .width(Length::Fill)
+    Container::new(column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
 }
