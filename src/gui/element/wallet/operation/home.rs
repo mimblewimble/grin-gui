@@ -20,8 +20,8 @@ use {
     },
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
-    crate::Result,
     crate::log_error,
+    crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
@@ -320,8 +320,7 @@ pub fn data_container<'a>(
     let total_row = Row::new()
         .push(total_value_label_container)
         .push(total_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_confirmation_label = Text::new(format!(
         "{}:",
@@ -341,8 +340,7 @@ pub fn data_container<'a>(
     let awaiting_confirmation_row = Row::new()
         .push(awaiting_confirmation_label_container)
         .push(awaiting_confirmation_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_finalization_label = Text::new(format!(
         "{}:",
@@ -362,8 +360,7 @@ pub fn data_container<'a>(
     let awaiting_finalization_row = Row::new()
         .push(awaiting_finalization_label_container)
         .push(awaiting_finalization_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let locked_label =
         Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
@@ -379,8 +376,7 @@ pub fn data_container<'a>(
     let locked_row = Row::new()
         .push(locked_label_container)
         .push(locked_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let amount_spendable_label =
         Text::new(format!("{}:", localized_string("info-amount-spendable")))
@@ -397,8 +393,7 @@ pub fn data_container<'a>(
     let amount_spendable_row = Row::new()
         .push(amount_spendable_label_container)
         .push(amount_spendable_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let info_column = Column::new()
         .push(total_row)
@@ -406,16 +401,16 @@ pub fn data_container<'a>(
         .push(awaiting_finalization_row)
         .push(locked_row)
         .push(amount_spendable_row)
-        .spacing(10);
+        .spacing(7);
 
-    let wallet_info_card_title_string = "??".to_owned();
-    let wallet_info_card = Card::new(
-        Text::new(wallet_info_card_title_string).size(DEFAULT_SUB_HEADER_FONT_SIZE),
-        info_column,
-    )
-    .style(style::NormalModalCardContainer(color_palette));
-
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::Units(240));
+    let wallet_info_card_container = Container::new(info_column)
+        .width(Length::Units(240))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            5,               // left
+        ]));
 
     let first_row_container = Row::new().push(wallet_info_card_container);
 
