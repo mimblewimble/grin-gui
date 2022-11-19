@@ -1,9 +1,10 @@
 #![allow(clippy::type_complexity)]
 
 pub use crate::style::table_row::{Style, StyleSheet};
+use iced::Theme;
 use iced_native::{
     event, layout, mouse, overlay, renderer, Alignment, Clipboard, Element, Event, Layout, Length,
-    Padding, Point, Rectangle, Shell, Widget,
+    Padding, Point, Rectangle, Shell, Widget, widget, widget::Tree,
 };
 
 #[allow(missing_debug_implementations)]
@@ -122,6 +123,7 @@ where
 impl<'a, Message, Renderer> Widget<Message, Renderer> for TableRow<'a, Message, Renderer>
 where
     Renderer: 'a + self::Renderer,
+    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
     Message: 'a,
 {
     fn width(&self) -> Length {
@@ -139,7 +141,7 @@ where
             .height(self.height)
             .pad(self.padding);
 
-        let mut content = self.content.layout(renderer, &limits.loose());
+        let mut content = self.content.as_widget().layout(renderer, &limits.loose());
         let size = limits.resolve(content.size());
 
         // TODO: MODIFIED COORDINATES, CHECK
@@ -154,7 +156,9 @@ where
 
     fn draw(
         &self,
+        tree: &Tree,
         renderer: &mut Renderer,
+        theme: &Renderer::Theme,
         _style: &renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -169,7 +173,9 @@ where
 
         self::Renderer::draw(
             renderer,
+            tree,
             layout,
+            theme,
             cursor_position,
             self.style_sheet.as_ref(),
             &self.content,
@@ -180,6 +186,7 @@ where
 
     fn mouse_interaction(
         &self,
+        tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
@@ -204,6 +211,7 @@ where
 
     fn on_event(
         &mut self,
+        tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -211,7 +219,8 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
-        let status_from_content = self.content.on_event(
+        let status_from_content = self.content.as_widget_mut().on_event(
+            tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -242,22 +251,26 @@ where
         }
     }
 
-    fn overlay(
-        &mut self,
+    fn overlay<'b>(
+        &'b self,
+        tree: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-    ) -> Option<overlay::Element<'_, Message, Renderer>> {
-        self.content
-            .overlay(layout.children().next().unwrap(), renderer)
+    ) -> Option<overlay::Element<'b, Message, Renderer>> {
+         self.content.as_widget()
+             .overlay(&mut tree.children[0], layout.children().next().unwrap(), renderer)
     }
 }
 
-pub trait Renderer: iced_native::Renderer {
+pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
     type Style: Default;
+
     #[allow(clippy::too_many_arguments)]
     fn draw<Message>(
         &mut self,
+        tree: &Tree,
         layout: Layout<'_>,
+        theme: &Theme,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
@@ -276,6 +289,7 @@ pub trait Renderer: iced_native::Renderer {
 impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
     Renderer: 'a + self::Renderer,
+    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn from(table_row: TableRow<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {

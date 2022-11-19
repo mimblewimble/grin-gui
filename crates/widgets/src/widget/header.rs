@@ -1,15 +1,14 @@
 #![allow(clippy::type_complexity)]
 
+use crate::renderer;
 pub use crate::style::header::{Style, StyleSheet};
+
+use iced::{widget, Theme};
 
 use iced_native::{
     event, layout, mouse,
-    widget::{
-        container::Container,
-        space::Space,
-    },
-    Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell,
-    Widget,
+    widget::{container::Container, space::Space, Tree},
+    Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
 
 mod state;
@@ -35,6 +34,7 @@ where
 impl<'a, Message, Renderer> Header<'a, Message, Renderer>
 where
     Renderer: 'a + self::Renderer,
+    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
     Message: 'a,
 {
     pub fn new(
@@ -133,6 +133,7 @@ where
 impl<'a, Message, Renderer> Widget<Message, Renderer> for Header<'a, Message, Renderer>
 where
     Renderer: 'a + self::Renderer,
+    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn width(&self) -> Length {
@@ -159,6 +160,7 @@ where
 
     fn on_event(
         &mut self,
+        tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -268,7 +270,8 @@ where
             .iter_mut()
             .zip(layout.children())
             .map(|(child, layout)| {
-                child.on_event(
+                child.as_widget_mut().on_event(
+                    tree,
                     event.clone(),
                     layout,
                     cursor_position,
@@ -282,19 +285,21 @@ where
 
     fn draw(
         &self,
+        tree: &Tree,
         renderer: &mut Renderer,
-        _style: &iced_native::renderer::Style,
+        theme: &Renderer::Theme,
+        _inherited_style: &iced_native::renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
         let height = {
-        if let Length::Units(height) = self.height {
-            height as f32
-        } else {
-            bounds.height
-        }
+            if let Length::Units(height) = self.height {
+                height as f32
+            } else {
+                bounds.height
+            }
         };
         let custom_bounds = Rectangle {
             x: bounds.x,
@@ -304,7 +309,9 @@ where
         };
         self::Renderer::draw(
             renderer,
+            tree,
             layout,
+            theme,
             cursor_position,
             self.style_sheet.as_ref(),
             &self.children,
@@ -315,15 +322,14 @@ where
 
     fn mouse_interaction(
         &self,
+        tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
-        self::Renderer::mouse_interaction(renderer, layout, cursor_position, viewport)
+        self::Renderer::mouse_interaction(renderer,  tree, layout, cursor_position, viewport)
     }
-
-
 
     /*fn hash_layout(&self, state: &mut Hasher) {
         use std::hash::Hash;
@@ -344,12 +350,15 @@ where
     }*/
 }
 
-pub trait Renderer: iced_native::Renderer {
+pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
     type Style: Default;
+
     #[allow(clippy::too_many_arguments)]
     fn draw<Message>(
         &mut self,
+        tree: &Tree,
         layout: Layout<'_>,
+        theme: &Theme,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Vec<Element<'_, Message, Self>>,
@@ -359,6 +368,7 @@ pub trait Renderer: iced_native::Renderer {
 
     fn mouse_interaction(
         &self,
+        tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
@@ -368,6 +378,7 @@ pub trait Renderer: iced_native::Renderer {
 impl<'a, Message, Renderer> From<Header<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
     Renderer: 'a + self::Renderer,
+    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn from(header: Header<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {

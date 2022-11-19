@@ -7,26 +7,21 @@ use {
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
-    iced::{
-        alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
-        Space, Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
 };
 
 pub struct StateContainer {
     pub setup_wallet_defaults_is_selected: bool,
-    create_default_wallet_btn: button::State,
-    select_wallet_toml_btn: button::State,
-    execute_btn: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             setup_wallet_defaults_is_selected: true,
-            create_default_wallet_btn: Default::default(),
-            select_wallet_toml_btn: Default::default(),
-            execute_btn: Default::default(),
         }
     }
 }
@@ -112,7 +107,6 @@ pub fn data_container<'a>(
     .align_x(alignment::Horizontal::Center);
 
     let create_default_wallet_button: Element<Interaction> = Button::new(
-        &mut state.create_default_wallet_btn,
         create_default_wallet_button_label_container,
     )
     .style(style::DefaultBoxedButton(color_palette))
@@ -127,7 +121,6 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let select_wallet_button: Element<Interaction> = Button::new(
-        &mut state.select_wallet_toml_btn,
         select_wallet_button_label_container,
     )
     .style(style::DefaultBoxedButton(color_palette))

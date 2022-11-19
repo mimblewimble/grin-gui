@@ -6,7 +6,7 @@ use grin_gui_core::{
     wallet::{TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+use iced::alignment;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -21,24 +21,25 @@ use {
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    iced::{Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
-    pub create_tx_button_state: button::State,
-    pub apply_tx_button_state: button::State,
+    // pub create_tx_button_state: button::State,
+    // pub apply_tx_button_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            create_tx_button_state: Default::default(),
-            apply_tx_button_state: Default::default(),
+            // create_tx_button_state: Default::default(),
+            // apply_tx_button_state: Default::default(),
         }
     }
 }
@@ -99,7 +100,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let create_tx_button: Element<Interaction> =
-        Button::new(&mut state.create_tx_button_state, create_tx_container)
+        Button::new(create_tx_container)
             .width(button_width)
             .style(style::DefaultButton(color_palette))
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
@@ -114,7 +115,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let apply_tx_button: Element<Interaction> =
-        Button::new(&mut state.apply_tx_button_state, apply_tx_container)
+        Button::new( apply_tx_container)
             .width(button_width)
             .style(style::DefaultButton(color_palette))
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(

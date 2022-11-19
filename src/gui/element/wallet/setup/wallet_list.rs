@@ -8,9 +8,10 @@ use {
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
-    iced::{
-        alignment, button, scrollable, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Scrollable, Space, Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     native_dialog::FileDialog,
     std::path::PathBuf,
@@ -23,23 +24,13 @@ use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
 
 
 pub struct StateContainer {
-    pub back_button_state: button::State,
     selected_wallet_index: usize,
-    load_wallet_button_state: button::State,
-    select_folder_button_state: button::State,
-    new_wallet_button_state: button::State,
-    scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            back_button_state: Default::default(),
             selected_wallet_index: 0,
-            load_wallet_button_state: Default::default(),
-            select_folder_button_state: Default::default(),
-            new_wallet_button_state: Default::default(),
-            scrollable_state: Default::default(),
         }
     }
 }
@@ -152,7 +143,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let new_wallet_button: Element<Interaction> =
-        Button::new(&mut state.new_wallet_button_state, new_wallet_container)
+        Button::new( new_wallet_container)
             .style(style::DefaultButton(color_palette))
             .on_press(Interaction::WalletListWalletViewInteraction(
                 LocalViewInteraction::CreateWallet,
@@ -312,7 +303,6 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut load_wallet_button = Button::new(
-        &mut state.load_wallet_button_state,
         load_wallet_button_container,
     )
     .style(style::DefaultButton(color_palette));
@@ -335,7 +325,6 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let select_other_button: Element<Interaction> = Button::new(
-        &mut state.select_folder_button_state,
         select_folder_button_container,
     )
     .style(style::DefaultButton(color_palette))

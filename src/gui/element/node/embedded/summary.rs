@@ -12,19 +12,17 @@ use {
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
     grin_gui_core::theme::ColorPalette,
     iced::{
-        alignment, scrollable, Alignment, Column, Command, Container, Length, Row, Scrollable,
-        Space, Text,
+        alignment, Alignment, Command, Length, 
     },
+    iced::widget::{scrollable, Column, Container, Row, Scrollable, Space, Text}
 };
 
 pub struct StateContainer {
-    scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            scrollable_state: Default::default(),
         }
     }
 }

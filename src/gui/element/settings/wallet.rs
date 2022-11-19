@@ -3,9 +3,10 @@ use {
     crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     grin_gui_core::{theme::ColorPalette},
-    iced::{
-        scrollable, Column, Container, Length, Row, Scrollable, Space,
-        Text,
+    iced::Length,
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     serde::{Deserialize, Serialize},
 };
@@ -13,14 +14,14 @@ use {
 #[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
-    scrollable_state: scrollable::State,
+    // scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             mode: Mode::Wallet,
-            scrollable_state: Default::default(),
+            // scrollable_state: Default::default(),
         }
     }
 }

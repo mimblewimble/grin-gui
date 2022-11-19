@@ -3,7 +3,8 @@ pub mod embedded;
 use {
     crate::gui::{style, Message},
     grin_gui_core::{theme::ColorPalette, node::ChainTypes},
-    iced::{Column, Container, Length},
+    iced::Length,
+    iced::widget::{Column, Container}
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

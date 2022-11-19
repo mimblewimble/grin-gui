@@ -1,11 +1,13 @@
 use crate::style::header::StyleSheet;
 
 use crate::widget::header;
+use iced::theme::Theme;
 use iced_graphics::{Backend, Renderer};
 use iced_native::mouse;
+use iced_native::widget::Tree;
 use iced_native::{Element, Layout, Point, Rectangle};
 
-impl<B> header::Renderer for Renderer<B>
+impl<B> header::Renderer for Renderer<B, Theme>
 where
     B: Backend,
 {
@@ -13,6 +15,7 @@ where
 
     fn mouse_interaction(
         &self,
+        tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         _viewport: &Rectangle,
@@ -29,7 +32,9 @@ where
 
     fn draw<Message>(
         &mut self,
+        tree: &Tree,
         layout: Layout<'_>,
+        theme: &Theme,
         cursor_position: Point,
         _style_sheet: &dyn StyleSheet,
         content: &Vec<Element<'_, Message, Self>>,
@@ -37,7 +42,7 @@ where
         _custom_bounds: &Rectangle,
     ) {
         for (child, layout) in content.iter().zip(layout.children()) {
-            child.draw(self, &iced_native::renderer::Style::default(), layout, cursor_position, viewport);
+            child.as_widget().draw(tree, self, theme, &iced_native::renderer::Style::default(), layout, cursor_position, viewport);
         }
     }
 }

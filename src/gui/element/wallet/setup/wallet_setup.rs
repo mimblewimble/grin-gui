@@ -21,42 +21,35 @@ use {
         wallet::create_grin_wallet_path,
         wallet::WalletInterface,
     },
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
     pub password_state: PasswordState,
-    pub back_button_state: button::State,
-    pub submit_button_state: button::State,
     pub restore_from_seed: bool,
     pub show_advanced_options: bool,
     pub is_testnet: bool,
     pub advanced_options_state: AdvancedOptionsState,
-    scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             password_state: Default::default(),
-            back_button_state: Default::default(),
-            submit_button_state: Default::default(),
             show_advanced_options: false,
             is_testnet: false,
             restore_from_seed: false,
             advanced_options_state: Default::default(),
-            scrollable_state: Default::default(),
         }
     }
 }
 
 pub struct AdvancedOptionsState {
-    folder_select_button_state: button::State,
-    pub display_name_input_state: text_input::State,
     pub display_name_value: String,
     pub top_level_directory: PathBuf,
 }
@@ -64,9 +57,7 @@ pub struct AdvancedOptionsState {
 impl Default for AdvancedOptionsState {
     fn default() -> Self {
         Self {
-            display_name_input_state: Default::default(),
             display_name_value: Default::default(),
-            folder_select_button_state: Default::default(),
             top_level_directory: Default::default(),
         }
     }
@@ -74,18 +65,14 @@ impl Default for AdvancedOptionsState {
 
 #[derive(Debug, Clone)]
 pub struct PasswordState {
-    pub input_state: text_input::State,
     pub input_value: String,
-    pub repeat_input_state: text_input::State,
     pub repeat_input_value: String,
 }
 
 impl Default for PasswordState {
     fn default() -> Self {
         PasswordState {
-            input_state: Default::default(),
             input_value: Default::default(),
-            repeat_input_state: Default::default(),
             repeat_input_value: Default::default(),
         }
     }
@@ -306,7 +293,6 @@ pub fn data_container<'a>(
         let password_input = TextInput::new(
             &mut state.password_state.input_state,
             &localized_string("password")[..],
-            &state.password_state.input_value,
             |s| {
                 Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::PasswordInput(
                     s,
@@ -325,7 +311,6 @@ pub fn data_container<'a>(
         let password_input: Element<Interaction> = password_input.into();
 
         let repeat_password_input = TextInput::new(
-            &mut state.password_state.repeat_input_state,
             &localized_string("password-repeat")[..],
             &state.password_state.repeat_input_value,
             |s| {
@@ -432,7 +417,6 @@ pub fn data_container<'a>(
         Container::new(display_name).style(style::NormalBackgroundContainer(color_palette));
 
     let display_name_input = TextInput::new(
-        &mut state.advanced_options_state.display_name_input_state,
         default_display_name,
         &state.advanced_options_state.display_name_value,
         |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
@@ -451,7 +435,6 @@ pub fn data_container<'a>(
     let folder_select_button_container =
         Container::new(Text::new(localized_string("select-directory")).size(DEFAULT_FONT_SIZE));
     let folder_select_button = Button::new(
-        &mut state.advanced_options_state.folder_select_button_state,
         folder_select_button_container,
     )
     .style(style::DefaultBoxedButton(color_palette))
@@ -520,7 +503,6 @@ pub fn data_container<'a>(
     .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
-        &mut state.submit_button_state,
         submit_button_label_container,
     )
     .style(style::DefaultButton(color_palette));
@@ -548,7 +530,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let cancel_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, cancel_button_label_container)
+        Button::new( cancel_button_label_container)
             .style(style::DefaultButton(color_palette))
             .on_press(Interaction::WalletSetupWalletViewInteraction(
                 LocalViewInteraction::Back,

@@ -6,7 +6,7 @@ use grin_gui_core::{
     wallet::{TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+//use iced::button::StyleSheet;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -21,27 +21,28 @@ use {
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
-    pub back_button_state: button::State,
-    pub copy_address_button_state: button::State,
-    pub address_state: text_input::State,
+    // pub back_button_state: button::State,
+    // pub copy_address_button_state: button::State,
+    // pub address_state: text_input::State,
     pub address_value: String,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            back_button_state: Default::default(),
-            copy_address_button_state: Default::default(),
-            address_state: Default::default(),
+            // back_button_state: Default::default(),
+            // copy_address_button_state: Default::default(),
+            // address_state: Default::default(),
             address_value: Default::default(),
         }
     }
@@ -98,7 +99,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
+        Button::new( back_button_label_container)
             .style(style::NormalTextButton(color_palette))
             .on_press(Interaction::WalletOperationApplyTxViewInteraction(
                 LocalViewInteraction::Back,
@@ -120,7 +121,7 @@ pub fn data_container<'a>(
     let address_name_container =
         Container::new(address_name).style(style::NormalBackgroundContainer(color_palette));
 
-    let address_input = TextInput::new(&mut state.address_state, "", &state.address_value, |s| {
+    let address_input = TextInput::new( "", &state.address_value, |s| {
         Interaction::WalletOperationApplyTxViewInteraction(LocalViewInteraction::Address(s))
     })
     .size(DEFAULT_FONT_SIZE)
@@ -131,7 +132,7 @@ pub fn data_container<'a>(
     let address_input: Element<Interaction> = address_input.into();
 
     let copy_address_button = Button::new(
-        &mut state.copy_address_button_state,
+        // &mut state.copy_address_button_state,
         Text::new(localized_string("copy-to-clipboard"))
             .size(SMALLER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Center),

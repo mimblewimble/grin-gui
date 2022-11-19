@@ -7,22 +7,20 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::ColorPalette,
-    iced::{
-        alignment, button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     iced_aw::{modal, native::card::Card, Modal},
 };
 
 pub struct StateContainer {
-    ok_state: button::State,
-    cancel_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            ok_state: Default::default(),
-            cancel_state: Default::default(),
         }
     }
 }
@@ -50,13 +48,13 @@ pub fn exit_card<'a>(
             .center_y()
             .align_x(alignment::Horizontal::Center);
 
-    let yes_button: Element<Interaction> = Button::new(&mut state.ok_state, yes_button_label)
+    let yes_button: Element<Interaction> = Button::new( yes_button_label)
         .style(style::DefaultButton(color_palette))
         .on_press(Interaction::Exit)
         .into();
 
     let cancel_button: Element<Interaction> =
-        Button::new(&mut state.cancel_state, cancel_button_label)
+        Button::new( cancel_button_label)
             .style(style::DefaultButton(color_palette))
             .on_press(Interaction::ExitCancel)
             .into();
@@ -114,7 +112,6 @@ pub fn error_card<'a>(
             .align_items(Alignment::Center)
             .push(
                 Button::new(
-                    &mut state.cancel_state,
                     Text::new(localized_string("ok-caps"))
                         .size(DEFAULT_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
@@ -124,7 +121,6 @@ pub fn error_card<'a>(
             )
             .push(
                 Button::new(
-                    &mut state.ok_state,
                     Text::new(localized_string("copy-to-clipboard"))
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),

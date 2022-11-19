@@ -8,7 +8,8 @@ use {
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,
-    iced::{Column, Command, Container, Length, Space},
+    iced::{Command, Length},
+    iced::widget::{Column, Container, Space}
 };
 
 pub struct StateContainer {

@@ -1,12 +1,13 @@
 use crate::style::table_row::StyleSheet;
 
 use crate::widget::table_row;
+use iced::theme::Theme;
 use iced_graphics::{Backend, Renderer};
 use iced_native::{
-    mouse, Background, Color, Element, Layout, Point, Rectangle, Renderer as iced_native_Renderer,
+    mouse, Background, Color, Element, Layout, Point, Rectangle, Renderer as iced_native_Renderer, widget::Tree,
 };
 
-impl<B> table_row::Renderer for Renderer<B>
+impl<B> table_row::Renderer for Renderer<B, Theme>
 where
     B: Backend,
 {
@@ -30,7 +31,9 @@ where
 
     fn draw<Message>(
         &mut self,
+        tree: &Tree,
         layout: Layout<'_>,
+        theme: &Theme,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
@@ -76,8 +79,10 @@ where
             style.background,
         );*/
 
-        content.draw(
+        content.as_widget().draw(
+            tree,
             self,
+            theme,
             &iced_native::renderer::Style::default(),
             content_layout,
             cursor_position,

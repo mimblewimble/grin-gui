@@ -85,9 +85,9 @@ log4rs = { version = "0.12", features = ["rolling_file_appender", "compound_poli
 backtrace = "0.3"
 lazy_static = "1"
 
-iced = { version = "0.4.0", default-features = false }
-iced_futures = { version = "0.4.1", features = ["async-std"] }
-iced_native = { version = "0.5.1", optional = true }
+iced = { version = "0.5.2", default-features = false }
+iced_futures = { version = "0.5.1", features = ["async-std"] }
+iced_native = { version = "0.6.1", optional = true }
 
 [dev-dependencies]
 tempfile = "3.2.0"

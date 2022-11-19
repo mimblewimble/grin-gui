@@ -8,7 +8,8 @@ use {
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
     grin_gui_core::theme::ColorPalette,
-    iced::{Column, Command, Container, Length},
+    iced::{Command, Length},
+    iced::widget::{Column, Container},
 };
 
 pub struct StateContainer {

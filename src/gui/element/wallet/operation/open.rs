@@ -15,9 +15,10 @@ use {
     grin_gui_core::{
         node::ChainTypes::Mainnet, node::ChainTypes::Testnet, wallet::WalletInterface,
     },
-    iced::{
-        alignment, button, text_input, Alignment, Button, Column, Command, Container, Element,
-        Length, Row, Space, Text, TextInput,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
@@ -27,30 +28,30 @@ static UNIT_SPACE: u16 = 15;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
-    pub submit_button_state: button::State,
-    cancel_button_state: button::State,
+    // pub submit_button_state: button::State,
+    // cancel_button_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             password_state: Default::default(),
-            submit_button_state: Default::default(),
-            cancel_button_state: Default::default(),
+            // submit_button_state: Default::default(),
+            // cancel_button_state: Default::default(),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct PasswordState {
-    pub input_state: text_input::State,
+    // pub input_state: text_input::State,
     pub input_value: String,
 }
 
 impl Default for PasswordState {
     fn default() -> Self {
         PasswordState {
-            input_state: Default::default(),
+            // input_state: Default::default(),
             input_value: Default::default(),
         }
     }
@@ -190,7 +191,7 @@ pub fn data_container<'a>(
 
     let password_column = {
         let password_input = TextInput::new(
-            &mut state.password_state.input_state,
+            // &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
             |s| {
@@ -235,7 +236,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
-        &mut state.submit_button_state,
+        // &mut state.submit_button_state,
         submit_button_label_container,
     )
     .style(style::DefaultButton(color_palette));
@@ -255,7 +256,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
-        &mut state.cancel_button_state,
+        // &mut state.cancel_button_state,
         cancel_button_label_container,
     )
     .style(style::DefaultButton(color_palette));

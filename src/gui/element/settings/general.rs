@@ -10,10 +10,11 @@ use {
         fs::{import_theme, PersistentData},
         theme::{ColorPalette, Theme},
     },
-    iced::{
-        button, pick_list, scrollable, text_input, Alignment, Button, Column, Command,
-        Container, Checkbox, Element, Length, PickList, Row, Scrollable, Space, Text, TextInput,
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
+    iced::{Alignment, Command, Element, Length},
     std::sync::{Arc, RwLock},
 };
 
@@ -21,17 +22,17 @@ use {
 pub struct StateContainer {
     pub theme_state: ThemeState,
     pub scale_state: ScaleState,
-    scrollable_state: scrollable::State,
-    localization_picklist_state: pick_list::State<Language>,
+    //scrollable_state: scrollable::State,
+    //localization_picklist_state: pick_list::State<Language>,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             theme_state: Default::default(),
-            scrollable_state: Default::default(),
+            //scrollable_state: Default::default(),
             scale_state: Default::default(),
-            localization_picklist_state: Default::default(),
+            //localization_picklist_state: Default::default(),
         }
     }
 }
@@ -40,11 +41,11 @@ impl Default for StateContainer {
 pub struct ThemeState {
     pub themes: Vec<(String, Theme)>,
     pub current_theme_name: String,
-    pick_list_state: pick_list::State<String>,
-    input_state: text_input::State,
+    //pick_list_state: pick_list::State<String>,
+    //input_state: text_input::State,
     input_url: String,
-    import_button_state: button::State,
-    open_builder_button_state: button::State,
+    //import_button_state: button::State,
+    //open_builder_button_state: button::State,
 }
 
 impl Default for ThemeState {
@@ -54,11 +55,11 @@ impl Default for ThemeState {
         ThemeState {
             themes,
             current_theme_name: "Dark".to_string(),
-            pick_list_state: Default::default(),
-            input_state: Default::default(),
+            //pick_list_state: Default::default(),
+            //input_state: Default::default(),
             input_url: Default::default(),
-            import_button_state: Default::default(),
-            open_builder_button_state: Default::default(),
+            //import_button_state: Default::default(),
+            //open_builder_button_state: Default::default(),
         }
     }
 }
@@ -66,16 +67,16 @@ impl Default for ThemeState {
 #[derive(Debug, Clone)]
 pub struct ScaleState {
     pub scale: f64,
-    up_btn_state: button::State,
-    down_btn_state: button::State,
+    //up_btn_state: button::State,
+    //down_btn_state: button::State,
 }
 
 impl Default for ScaleState {
     fn default() -> Self {
         ScaleState {
             scale: 1.0,
-            up_btn_state: Default::default(),
-            down_btn_state: Default::default(),
+            //up_btn_state: Default::default(),
+            //down_btn_state: Default::default(),
         }
     }
 }
@@ -305,7 +306,7 @@ pub fn data_container<'a>(
         let scale_title_row = Row::new().push(title_container);
 
         let scale_down_button: Element<Interaction> = Button::new(
-            &mut state.scale_state.down_btn_state,
+            // &mut state.scale_state.down_btn_state,
             Text::new("  -  ").size(DEFAULT_FONT_SIZE),
         )
         .style(style::DefaultBoxedButton(color_palette))
@@ -315,7 +316,7 @@ pub fn data_container<'a>(
         .into();
 
         let scale_up_button: Element<Interaction> = Button::new(
-            &mut state.scale_state.up_btn_state,
+            // &mut state.scale_state.up_btn_state,
             Text::new("  +  ").size(DEFAULT_FONT_SIZE),
         )
         .style(style::DefaultBoxedButton(color_palette))
@@ -351,7 +352,7 @@ pub fn data_container<'a>(
                 .style(style::NormalBackgroundContainer(color_palette));
 
         let theme_input = TextInput::new(
-            &mut state.theme_state.input_state,
+            //&mut state.theme_state.input_state,
             &localized_string("paste-url")[..],
             &state.theme_state.input_url,
             |s| Interaction::GeneralSettingsViewInteraction(LocalViewInteraction::ThemeUrlInput(s)),
@@ -364,7 +365,7 @@ pub fn data_container<'a>(
         let theme_input: Element<Interaction> = theme_input.into();
 
         let mut import_button = Button::new(
-            &mut state.theme_state.import_button_state,
+            // &mut state.theme_state.import_button_state,
             Text::new(localized_string("import-theme-button")).size(DEFAULT_FONT_SIZE),
         )
         .style(style::DefaultBoxedButton(color_palette));
@@ -392,7 +393,7 @@ pub fn data_container<'a>(
 
     let open_theme_row = {
         let open_button = Button::new(
-            &mut state.theme_state.open_builder_button_state,
+           // &mut state.theme_state.open_builder_button_state,
             Text::new(localized_string("open-theme-builder")).size(DEFAULT_FONT_SIZE),
         )
         .on_press(Interaction::OpenLink(String::from(

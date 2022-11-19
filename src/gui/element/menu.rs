@@ -4,9 +4,10 @@ use {
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,
-    iced::{
-        alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
-        Space, Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     serde::{Deserialize, Serialize},
 };
@@ -14,22 +15,12 @@ use {
 #[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
-    wallet_mode_btn: button::State,
-    node_mode_btn: button::State,
-    settings_mode_btn: button::State,
-    about_mode_btn: button::State,
-    error_detail_btn: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             mode: Mode::Wallet,
-            wallet_mode_btn: Default::default(),
-            node_mode_btn: Default::default(),
-            settings_mode_btn: Default::default(),
-            about_mode_btn: Default::default(),
-            error_detail_btn: Default::default(),
         }
     }
 }
@@ -67,7 +58,6 @@ pub fn data_container<'a>(
     error: &mut Option<anyhow::Error>,
 ) -> Container<'a, Message> {
     let mut wallet_mode_button: Button<Interaction> = Button::new(
-        &mut state.wallet_mode_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::MenuViewInteraction(
@@ -75,7 +65,6 @@ pub fn data_container<'a>(
     ));
 
     let mut node_mode_button: Button<Interaction> = Button::new(
-        &mut state.node_mode_btn,
         Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::MenuViewInteraction(
@@ -83,7 +72,6 @@ pub fn data_container<'a>(
     ));
 
     let mut settings_mode_button: Button<Interaction> = Button::new(
-        &mut state.settings_mode_btn,
         Text::new(localized_string("settings"))
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
@@ -93,7 +81,6 @@ pub fn data_container<'a>(
     ));
 
     let mut about_mode_button: Button<Interaction> = Button::new(
-        &mut state.about_mode_btn,
         Text::new(localized_string("about"))
             .horizontal_alignment(alignment::Horizontal::Center)
             .size(DEFAULT_FONT_SIZE),
@@ -168,7 +155,6 @@ pub fn data_container<'a>(
         let error_text = Text::new(e.to_string()).size(DEFAULT_FONT_SIZE);
 
         let error_detail_button: Button<Interaction> = Button::new(
-            &mut state.error_detail_btn,
             Text::new(localized_string("more-error-detail"))
                 .horizontal_alignment(alignment::Horizontal::Center)
                 .vertical_alignment(alignment::Vertical::Center)

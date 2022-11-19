@@ -1,15 +1,17 @@
 use grin_gui_core::theme::ColorPalette;
-use grin_gui_widgets::table_row;
-use iced::{
-    button, checkbox, container, pick_list, scrollable, slider, text_input, Background, Color,
-};
-
+use grin_gui_widgets::{table_row, style};
+use iced::widget::{button, checkbox, container, scrollable, slider, text_input};
+use iced::{Background, Color};
+use iced_aw::style::{ModalStyles, CardStyles};
+use iced_aw::style::modal::Appearance;
 use iced_aw::{card, modal};
 
 pub struct NormalModalContainer(pub ColorPalette);
 impl modal::StyleSheet for NormalModalContainer {
-    fn active(&self) -> modal::Style {
-        modal::Style {
+    type Style = ModalStyles;
+
+    fn active(&self, style: Self::Style) -> Appearance {
+        Appearance {
             background: Background::Color(Color {
                 a: 0.9,
                 ..self.0.base.foreground
@@ -20,300 +22,425 @@ impl modal::StyleSheet for NormalModalContainer {
 
 pub struct NormalModalCardContainer(pub ColorPalette);
 impl card::StyleSheet for NormalModalCardContainer {
-    fn active(&self) -> card::Style {
-        card::Style {
+    type Style = CardStyles;
+
+    fn active(&self, style: Self::Style) -> iced_aw::style::card::Appearance {
+        iced_aw::style::card::Appearance {
             background: Background::Color(self.0.base.background),
             head_background: Background::Color(self.0.normal.primary),
             head_text_color: self.0.bright.surface,
             border_color: self.0.normal.primary,
             body_text_color: self.0.normal.surface,
             border_radius: 5.0,
-            ..card::Style::default()
+            ..card::Appearance::default()
         }
     }
 }
 
-
 pub struct BrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for BrightForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.surface),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct NormalForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+   
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.normal.surface),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct HoverableBrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for HoverableBrightForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: None,
-            text_color: Some(self.0.bright.primary),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: None,
+    //         text_color: Some(self.0.bright.primary),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct HoverableForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for HoverableForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: None,
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: None,
+    //         text_color: Some(self.0.normal.surface),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.normal.surface),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct HoverableSegmentContainer(pub ColorPalette);
 impl container::StyleSheet for HoverableSegmentContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: None,
-            text_color: Some(self.0.bright.primary),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: None,
+    //         text_color: Some(self.0.bright.primary),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct HoverableSegmentAlternateContainer(pub ColorPalette);
 impl container::StyleSheet for HoverableSegmentAlternateContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.foreground)),
+    //         text_color: Some(self.0.bright.primary),
+    //         border_radius: 15.0,
+    //         border_width: 1.0,
+    //         border_color: Color {
+    //             a: 1.0,
+    //             ..self.0.normal.primary
+    //         },
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
-            text_color: Some(self.0.bright.primary),
-            border_radius: 15.0,
-            border_width: 1.0,
-            border_color: Color {
-                a: 1.0,
-                ..self.0.normal.primary
-            },
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct FadedNormalForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for FadedNormalForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(Color {
-                a: 0.80,
-                ..self.0.base.foreground
-            })),
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(Color {
+    //             a: 0.80,
+    //             ..self.0.base.foreground
+    //         })),
 
+    //         text_color: Some(self.0.normal.surface),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.normal.surface),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct SelectedBrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for SelectedBrightForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: None,
-            text_color: Some(self.0.bright.primary),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: None,
+    //         text_color: Some(self.0.bright.primary),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct FadedBrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for FadedBrightForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            text_color: Some(self.0.bright.surface),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         text_color: Some(self.0.bright.surface),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct NormalBackgroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalBackgroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(self.0.base.background)),
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.background)),
+    //         text_color: Some(self.0.normal.surface),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.normal.surface),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct BrightBackgroundContainer(pub ColorPalette);
 impl container::StyleSheet for BrightBackgroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(self.0.base.background)),
-            text_color: Some(self.0.bright.surface),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.background)),
+    //         text_color: Some(self.0.bright.surface),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct SegmentedContainer(pub ColorPalette);
 impl container::StyleSheet for SegmentedContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            border_radius: 2.0,
-            border_width: 1.0,
-            border_color: Color {
-                a: 0.5,
-                ..self.0.normal.primary
-            },
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         border_radius: 2.0,
+    //         border_width: 1.0,
+    //         border_color: Color {
+    //             a: 0.5,
+    //             ..self.0.normal.primary
+    //         },
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct NormalErrorBackgroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalErrorBackgroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(self.0.base.background)),
-            text_color: Some(self.0.normal.error),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.background)),
+    //         text_color: Some(self.0.normal.error),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct NormalSuccessBackgroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalSuccessBackgroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(self.0.base.background)),
-            text_color: Some(self.0.normal.secondary),
-            ..container::Style::default()
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.background)),
+    //         text_color: Some(self.0.normal.secondary),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
+            background: Some(Background::Color(self.0.base.foreground)),
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct NormalErrorForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalErrorForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.foreground)),
+    //         text_color: Some(self.0.normal.error),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
-            text_color: Some(self.0.normal.error),
-            ..container::Style::default()
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 pub struct NormalSuccessForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalSuccessForegroundContainer {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    // fn style(&self) -> container::Style {
+    //     container::Style {
+    //         background: Some(Background::Color(self.0.base.foreground)),
+    //         text_color: Some(self.0.normal.secondary),
+    //         ..container::Style::default()
+    //     }
+    // }
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
-            text_color: Some(self.0.normal.secondary),
-            ..container::Style::default()
+            text_color: Some(self.0.normal.surface),
+            ..container::Appearance::default()
         }
     }
 }
 
 pub struct BrightTextButton(pub ColorPalette);
 impl button::StyleSheet for BrightTextButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: self.0.bright.surface,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color::TRANSPARENT)),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct NormalTextButton(pub ColorPalette);
 impl button::StyleSheet for NormalTextButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: self.0.normal.surface,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color::TRANSPARENT)),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct SelectedBrightTextButton(pub ColorPalette);
 impl button::StyleSheet for SelectedBrightTextButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: self.0.bright.primary,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color::TRANSPARENT)),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct DefaultButton(pub ColorPalette);
 impl button::StyleSheet for DefaultButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: self.0.bright.primary,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.25,
                 ..self.0.normal.primary
             })),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style {
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: Color {
                 a: 0.25,
                 ..self.0.normal.surface
             },
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct DefaultBoxedButton(pub ColorPalette);
 impl button::StyleSheet for DefaultBoxedButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             border_color: Color {
                 a: 0.5,
                 ..self.0.normal.primary
@@ -321,23 +448,23 @@ impl button::StyleSheet for DefaultBoxedButton {
             border_width: 1.0,
             border_radius: 2.0,
             text_color: self.0.bright.primary,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.25,
                 ..self.0.normal.primary
             })),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style {
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.05,
                 ..self.0.normal.primary
@@ -346,35 +473,36 @@ impl button::StyleSheet for DefaultBoxedButton {
                 a: 0.50,
                 ..self.0.normal.primary
             },
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct SecondaryBoxedButton(pub ColorPalette);
 impl button::StyleSheet for SecondaryBoxedButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.15,
                 ..self.0.normal.secondary
             })),
             text_color: self.0.bright.secondary,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.normal.secondary)),
             text_color: self.0.bright.secondary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style {
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.05,
                 ..self.0.normal.secondary
@@ -383,175 +511,189 @@ impl button::StyleSheet for SecondaryBoxedButton {
                 a: 0.15,
                 ..self.0.bright.secondary
             },
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct SecondaryButton(pub ColorPalette);
 impl button::StyleSheet for SecondaryButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: self.0.bright.secondary,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.normal.secondary)),
             text_color: self.0.bright.secondary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style {
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             text_color: Color {
                 a: 0.25,
                 ..self.0.normal.surface
             },
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct DefaultDeleteButton(pub ColorPalette);
 impl button::StyleSheet for DefaultDeleteButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             border_radius: 2.0,
             text_color: self.0.bright.error,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.25,
                 ..self.0.normal.error
             })),
             text_color: self.0.bright.error,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct ColumnHeaderButton(pub ColorPalette);
 impl button::StyleSheet for ColumnHeaderButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.base.background)),
             text_color: Color {
                 ..self.0.bright.surface
             },
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.15,
                 ..self.0.normal.primary
             })),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct UnclickableColumnHeaderButton(pub ColorPalette);
 impl button::StyleSheet for UnclickableColumnHeaderButton {
-    fn active(&self) -> button::Style {
-        ColumnHeaderButton(self.0).active()
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        ColumnHeaderButton(self.0).active(style)
     }
 
-    fn disabled(&self) -> button::Style {
-        self.active()
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        self.active(style)
     }
 }
 
 pub struct SelectedColumnHeaderButton(pub ColorPalette);
 impl button::StyleSheet for SelectedColumnHeaderButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.base.background)),
             text_color: Color {
                 ..self.0.bright.primary
             },
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color {
                 a: 0.25,
                 ..self.0.normal.primary
             })),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
 pub struct DisabledDefaultButton(pub ColorPalette);
 impl button::StyleSheet for DisabledDefaultButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(Color::TRANSPARENT)),
             text_color: Color {
                 a: 0.25,
                 ..self.0.normal.surface
             },
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style { ..self.active() }
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
+            ..self.active(style)
+        }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style { ..self.active() }
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
+            ..self.active(style)
+        }
     }
 }
 
 pub struct SelectedDefaultButton(pub ColorPalette);
 impl button::StyleSheet for SelectedDefaultButton {
-    fn active(&self) -> button::Style {
-        button::Style {
+    type Style = iced_style::theme::Button;
+    fn active(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.normal.primary)),
             text_color: self.0.bright.primary,
             border_radius: 2.0,
-            ..button::Style::default()
+            ..button::Appearance::default()
         }
     }
 
-    fn hovered(&self) -> button::Style {
-        button::Style {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             background: Some(Background::Color(self.0.normal.primary)),
             text_color: self.0.bright.primary,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn disabled(&self) -> button::Style {
-        button::Style { ..self.active() }
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
+            ..self.active(style)
+        }
     }
 }
 
 pub struct Row(pub ColorPalette);
 impl container::StyleSheet for Row {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.background)),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
@@ -730,7 +872,9 @@ impl table_row::StyleSheet for TableRowAlternate {
 
 pub struct ForegroundScrollable(pub ColorPalette);
 impl scrollable::StyleSheet for ForegroundScrollable {
-    fn active(&self) -> scrollable::Scrollbar {
+    type Style = iced_style::theme::Scrollable;
+
+    fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         scrollable::Scrollbar {
             background: Some(Background::Color(self.0.base.foreground)),
             border_radius: 0.0,
@@ -745,8 +889,8 @@ impl scrollable::StyleSheet for ForegroundScrollable {
         }
     }
 
-    fn hovered(&self) -> scrollable::Scrollbar {
-        let active = self.active();
+    fn hovered(&self, style: &Self::Style) -> scrollable::Scrollbar {
+        let active = self.active(style);
 
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..active.scroller },
@@ -754,8 +898,8 @@ impl scrollable::StyleSheet for ForegroundScrollable {
         }
     }
 
-    fn dragging(&self) -> scrollable::Scrollbar {
-        let hovered = self.hovered();
+    fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
+        let hovered = self.hovered(style);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..hovered.scroller },
             ..hovered
@@ -765,7 +909,8 @@ impl scrollable::StyleSheet for ForegroundScrollable {
 
 pub struct Scrollable(pub ColorPalette);
 impl scrollable::StyleSheet for Scrollable {
-    fn active(&self) -> scrollable::Scrollbar {
+    type Style = iced_style::theme::Scrollable;
+    fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         scrollable::Scrollbar {
             background: Some(Background::Color(self.0.base.background)),
             border_radius: 0.0,
@@ -780,8 +925,8 @@ impl scrollable::StyleSheet for Scrollable {
         }
     }
 
-    fn hovered(&self) -> scrollable::Scrollbar {
-        let active = self.active();
+    fn hovered(&self, style: &Self::Style) -> scrollable::Scrollbar {
+        let active = self.active(style);
 
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..active.scroller },
@@ -789,8 +934,8 @@ impl scrollable::StyleSheet for Scrollable {
         }
     }
 
-    fn dragging(&self) -> scrollable::Scrollbar {
-        let hovered = self.hovered();
+    fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
+        let hovered = self.hovered(style);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..hovered.scroller },
             ..hovered
@@ -799,23 +944,24 @@ impl scrollable::StyleSheet for Scrollable {
 }
 
 pub struct PickList(pub ColorPalette);
-impl pick_list::StyleSheet for PickList {
-    fn menu(&self) -> pick_list::Menu {
-        pick_list::Menu {
-            text_color: self.0.bright.surface,
-            background: Background::Color(self.0.base.foreground),
-            border_width: 1.0,
-            border_color: self.0.base.background,
-            selected_background: Background::Color(Color {
-                a: 0.15,
-                ..self.0.normal.primary
-            }),
-            selected_text_color: self.0.bright.primary,
-        }
-    }
+impl iced::widget::pick_list::StyleSheet for PickList {
+    type Style = iced_style::theme::PickList;
+    // fn menu(&self) -> t::Menu {
+    //     pick_list::Menu {
+    //         text_color: self.0.bright.surface,
+    //         background: Background::Color(self.0.base.foreground),
+    //         border_width: 1.0,
+    //         border_color: self.0.base.background,
+    //         selected_background: Background::Color(Color {
+    //             a: 0.15,
+    //             ..self.0.normal.primary
+    //         }),
+    //         selected_text_color: self.0.bright.primary,
+    //     }
+    // }
 
-    fn active(&self) -> pick_list::Style {
-        pick_list::Style {
+    fn active(&self, style: &Self::Style) -> iced::widget::pick_list::Appearance {
+        iced::widget::pick_list::Appearance {
             text_color: self.0.bright.surface,
             background: self.0.base.background.into(),
             border_width: 1.0,
@@ -832,9 +978,9 @@ impl pick_list::StyleSheet for PickList {
         }
     }
 
-    fn hovered(&self) -> pick_list::Style {
-        let active = self.active();
-        pick_list::Style {
+    fn hovered(&self, style: &Self::Style) -> iced::widget::pick_list::Appearance { 
+        let active = self.active(style);
+        iced::widget::pick_list::Appearance {
             text_color: self.0.bright.primary,
             ..active
         }
@@ -842,23 +988,24 @@ impl pick_list::StyleSheet for PickList {
 }
 
 pub struct SecondaryPickList(pub ColorPalette);
-impl pick_list::StyleSheet for SecondaryPickList {
-    fn menu(&self) -> pick_list::Menu {
-        pick_list::Menu {
-            text_color: self.0.bright.surface,
-            background: Background::Color(self.0.base.background),
-            border_width: 1.0,
-            border_color: self.0.base.foreground,
-            selected_background: Background::Color(Color {
-                a: 0.15,
-                ..self.0.normal.primary
-            }),
-            selected_text_color: self.0.bright.primary,
-        }
-    }
+impl iced::widget::pick_list::StyleSheet for SecondaryPickList {
+    type Style = iced_style::theme::PickList;
+    // fn menu(&self) -> pick_list::Menu {
+    //     pick_list::Menu {
+    //         text_color: self.0.bright.surface,
+    //         background: Background::Color(self.0.base.background),
+    //         border_width: 1.0,
+    //         border_color: self.0.base.foreground,
+    //         selected_background: Background::Color(Color {
+    //             a: 0.15,
+    //             ..self.0.normal.primary
+    //         }),
+    //         selected_text_color: self.0.bright.primary,
+    //     }
+    // }
 
-    fn active(&self) -> pick_list::Style {
-        pick_list::Style {
+    fn active(&self, style: &Self::Style) -> iced::widget::pick_list::Appearance {
+        iced::widget::pick_list::Appearance {
             text_color: self.0.bright.surface,
             background: self.0.base.foreground.into(),
             border_width: 0.0,
@@ -872,9 +1019,9 @@ impl pick_list::StyleSheet for SecondaryPickList {
         }
     }
 
-    fn hovered(&self) -> pick_list::Style {
-        let active = self.active();
-        pick_list::Style {
+    fn hovered(&self, style: &Self::Style) -> iced::widget::pick_list::Appearance { 
+        let active = self.active(style);
+        iced::widget::pick_list::Appearance {
             background: Background::Color(Color {
                 a: 0.25,
                 ..self.0.normal.primary
@@ -933,8 +1080,10 @@ impl pick_list::StyleSheet for MenuPickList {
 
 pub struct PanelBordered(pub ColorPalette);
 impl container::StyleSheet for PanelBordered {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(Color::TRANSPARENT)),
             text_color: Some(self.0.bright.primary),
             border_radius: 2.0,
@@ -949,8 +1098,10 @@ impl container::StyleSheet for PanelBordered {
 
 pub struct PanelForeground(pub ColorPalette);
 impl container::StyleSheet for PanelForeground {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.primary),
             border_radius: 2.0,
@@ -962,8 +1113,9 @@ impl container::StyleSheet for PanelForeground {
 
 pub struct ChannelBadge(pub ColorPalette);
 impl container::StyleSheet for ChannelBadge {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.primary),
             border_radius: 2.0,
@@ -978,8 +1130,9 @@ impl container::StyleSheet for ChannelBadge {
 
 pub struct ChannelBadgeFaded(pub ColorPalette);
 impl container::StyleSheet for ChannelBadgeFaded {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = iced_style::theme::Container;
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
             text_color: Some(self.0.bright.primary),
             border_radius: 2.0,
@@ -994,8 +1147,9 @@ impl container::StyleSheet for ChannelBadgeFaded {
 
 pub struct DefaultCheckbox(pub ColorPalette);
 impl checkbox::StyleSheet for DefaultCheckbox {
-    fn active(&self, _is_checked: bool) -> checkbox::Style {
-        checkbox::Style {
+    type Style = iced_style::theme::Checkbox;
+    fn active(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
+        checkbox::Appearance {
             background: Background::Color(self.0.base.background),
             checkmark_color: self.0.bright.primary,
             border_radius: 2.0,
@@ -1005,8 +1159,8 @@ impl checkbox::StyleSheet for DefaultCheckbox {
         }
     }
 
-    fn hovered(&self, _is_checked: bool) -> checkbox::Style {
-        checkbox::Style {
+    fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
+        checkbox::Appearance {
             background: Background::Color(self.0.base.foreground),
             checkmark_color: self.0.bright.primary,
             border_radius: 2.0,
@@ -1036,9 +1190,10 @@ impl checkbox::StyleSheet for AlwaysCheckedCheckbox {
 
 pub struct CatalogQueryInput(pub ColorPalette);
 impl text_input::StyleSheet for CatalogQueryInput {
+    type Style = iced_style::theme::TextInput;
     /// Produces the style of an active text input.
-    fn active(&self) -> text_input::Style {
-        text_input::Style {
+    fn active(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
             background: Background::Color(self.0.base.foreground),
             border_radius: 0.0,
             border_width: 0.0,
@@ -1047,8 +1202,8 @@ impl text_input::StyleSheet for CatalogQueryInput {
     }
 
     /// Produces the style of a focused text input.
-    fn focused(&self) -> text_input::Style {
-        text_input::Style {
+    fn focused(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
             background: Background::Color(self.0.base.foreground),
             border_radius: 2.0,
             border_width: 1.0,
@@ -1059,28 +1214,30 @@ impl text_input::StyleSheet for CatalogQueryInput {
         }
     }
 
-    fn placeholder_color(&self) -> Color {
+    fn placeholder_color(&self, style: &Self::Style) -> Color {
         self.0.normal.surface
     }
 
-    fn value_color(&self) -> Color {
+    fn value_color(&self, style: &Self::Style) -> Color {
         self.0.bright.primary
     }
 
-    fn selection_color(&self) -> Color {
+    fn selection_color(&self, style: &Self::Style) -> Color {
         self.0.bright.secondary
     }
 
     /// Produces the style of an hovered text input.
-    fn hovered(&self) -> text_input::Style {
-        self.focused()
+    fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
+        self.focused(style)
     }
 }
 
 pub struct Slider(pub ColorPalette);
 impl slider::StyleSheet for Slider {
-    fn active(&self) -> slider::Style {
-        slider::Style {
+    type Style = iced_style::theme::Slider;
+
+    fn active(&self, style: &Self::Style) -> slider::Appearance {
+        slider::Appearance {
             rail_colors: (self.0.base.foreground, self.0.base.foreground),
             handle: slider::Handle {
                 shape: slider::HandleShape::Circle { radius: 9.0 },
@@ -1091,10 +1248,10 @@ impl slider::StyleSheet for Slider {
         }
     }
 
-    fn hovered(&self) -> slider::Style {
-        let active = self.active();
+    fn hovered(&self, style: &Self::Style) -> slider::Appearance {
+        let active = self.active(style);
 
-        slider::Style {
+        slider::Appearance {
             handle: slider::Handle {
                 color: self.0.bright.primary,
                 ..active.handle
@@ -1103,10 +1260,10 @@ impl slider::StyleSheet for Slider {
         }
     }
 
-    fn dragging(&self) -> slider::Style {
-        let active = self.active();
+    fn dragging(&self, style: &Self::Style) -> slider::Appearance {
+        let active = self.active(style);
 
-        slider::Style {
+        slider::Appearance {
             handle: slider::Handle {
                 color: self.0.bright.primary,
                 ..active.handle
@@ -1118,9 +1275,11 @@ impl slider::StyleSheet for Slider {
 
 pub struct AddonsQueryInput(pub ColorPalette);
 impl text_input::StyleSheet for AddonsQueryInput {
+    type Style = iced_style::theme::TextInput;
+
     /// Produces the style of an active text input.
-    fn active(&self) -> text_input::Style {
-        text_input::Style {
+    fn active(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
             background: Background::Color(self.0.base.foreground),
             border_radius: 4.0,
             border_width: 1.0,
@@ -1129,8 +1288,8 @@ impl text_input::StyleSheet for AddonsQueryInput {
     }
 
     /// Produces the style of a focused text input.
-    fn focused(&self) -> text_input::Style {
-        text_input::Style {
+    fn focused(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
             background: Background::Color(self.0.base.foreground),
             border_radius: 4.0,
             border_width: 1.0,
@@ -1141,20 +1300,20 @@ impl text_input::StyleSheet for AddonsQueryInput {
         }
     }
 
-    fn placeholder_color(&self) -> Color {
+    fn placeholder_color(&self, style: &Self::Style) -> Color {
         self.0.normal.surface
     }
 
-    fn value_color(&self) -> Color {
+    fn value_color(&self, style: &Self::Style) -> Color {
         self.0.bright.primary
     }
 
-    fn selection_color(&self) -> Color {
+    fn selection_color(&self, style: &Self::Style) -> Color {
         self.0.bright.secondary
     }
 
     /// Produces the style of an hovered text input.
-    fn hovered(&self) -> text_input::Style {
-        self.focused()
+    fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
+        self.focused(style)
     }
 }

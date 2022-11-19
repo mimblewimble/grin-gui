@@ -4,16 +4,15 @@ use {
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    iced::{
-        alignment, button, Alignment, Button, Column, Command, Container,
-        Element, Length, Row, Space, Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     iced_aw::Card,
 };
 
 pub struct StateContainer {
-    pub copy_button_state: button::State,
-    pub next_button_state: button::State,
     // TODO: ZeroingString this
     pub recovery_phrase: String,
 }
@@ -21,8 +20,6 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            copy_button_state: Default::default(),
-            next_button_state: Default::default(),
             recovery_phrase: Default::default(),
         }
     }
@@ -82,7 +79,6 @@ pub fn data_container<'a>(
             .align_items(Alignment::Center)
             .push(
                 Button::new(
-                    &mut state.copy_button_state,
                     Text::new(localized_string("copy-to-clipboard"))
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
@@ -101,7 +97,7 @@ pub fn data_container<'a>(
             .center_x()
             .align_x(alignment::Horizontal::Center);
 
-    let next_button = Button::new(&mut state.next_button_state, submit_button_label_container)
+    let next_button = Button::new(submit_button_label_container)
         .style(style::DefaultBoxedButton(color_palette))
         .on_press(Interaction::WalletSetupWalletSuccessViewInteraction(
             LocalViewInteraction::Submit,

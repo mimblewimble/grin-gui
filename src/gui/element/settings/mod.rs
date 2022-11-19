@@ -7,25 +7,28 @@ use {
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::{config::Config, theme::ColorPalette},
-    iced::{button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text},
+    iced::widget::{
+        button, Button, Column, Container, PickList, Row, Scrollable, Space, Text, TextInput,
+    },
+    iced::{Alignment, Element, Length},
     serde::{Deserialize, Serialize},
 };
 
 #[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
-    wallet_btn: button::State,
-    node_btn: button::State,
-    general_btn: button::State,
+    // wallet_btn: button::State,
+    // node_btn: button::State,
+    // general_btn: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             mode: Mode::Wallet,
-            wallet_btn: Default::default(),
-            node_btn: Default::default(),
-            general_btn: Default::default(),
+            // wallet_btn: Default::default(),
+            // node_btn: Default::default(),
+            // general_btn: Default::default(),
         }
     }
 }
@@ -72,7 +75,7 @@ pub fn data_container<'a>(
         .style(style::BrightBackgroundContainer(color_palette));
 
     let mut wallet_button: Button<Interaction> = Button::new(
-        &mut state.wallet_btn,
+        // &mut state.wallet_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -80,7 +83,7 @@ pub fn data_container<'a>(
     ));
 
     let mut node_button: Button<Interaction> = Button::new(
-        &mut state.node_btn,
+        // &mut state.node_btn,
         Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -88,7 +91,7 @@ pub fn data_container<'a>(
     ));
 
     let mut general_button: Button<Interaction> = Button::new(
-        &mut state.general_btn,
+        // &mut state.general_btn,
         Text::new(localized_string("general")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -136,14 +139,15 @@ pub fn data_container<'a>(
         .align_items(Alignment::Center);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,                   // top
-        0,                   // right
-        0,                   // bottom
-        5,                   // left
+        0, // top
+        0, // right
+        0, // bottom
+        5, // left
     ]));
 
     // Wrapper for submenu + actual content
-    let mut wrapper_column = Column::with_children(vec![header_container.into()]).height(Length::Fill);
+    let mut wrapper_column =
+        Column::with_children(vec![header_container.into()]).height(Length::Fill);
     // Submenu Area + actual content
     match state.mode {
         Mode::Wallet => {

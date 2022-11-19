@@ -3,26 +3,21 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::{theme::ColorPalette, utility::Release},
-    iced::{
-        button, scrollable, Button, Column, Container, Element, Length, Row, Scrollable, Space,
-        Text,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     std::collections::HashMap,
     strfmt::strfmt,
 };
 
 pub struct StateContainer {
-    scrollable: scrollable::State,
-    website_button: button::State,
-    donation_button: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            scrollable: Default::default(),
-            website_button: Default::default(),
-            donation_button: Default::default(),
         }
     }
 }
@@ -55,7 +50,6 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE);
 
     let website_button: Element<Interaction> = Button::new(
-        &mut state.website_button,
         Text::new(localized_string("website")).size(DEFAULT_FONT_SIZE),
     )
     .style(style::DefaultBoxedButton(color_palette))
@@ -63,7 +57,6 @@ pub fn data_container<'a>(
     .into();
 
     let donation_button: Element<Interaction> = Button::new(
-        &mut state.donation_button,
         Text::new(localized_string("donate")).size(DEFAULT_FONT_SIZE),
     )
     .style(style::DefaultBoxedButton(color_palette))

@@ -5,7 +5,7 @@ use grin_gui_core::{
     wallet::{TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+//use iced::button::StyleSheet;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -25,22 +25,23 @@ use {
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    iced::{alignment, Alignment, Command, Element, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+        Row, Scrollable, Space, Text, TextInput,
     },
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
-    pub back_button_state: button::State,
+    // pub back_button_state: button::State,
     pub expanded_type: ExpandType,
 
     wallet_info: Option<WalletInfo>,
     wallet_txs: TxList,
     wallet_status: String,
-    txs_scrollable_state: scrollable::State,
+    // txs_scrollable_state: scrollable::State,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 }
@@ -49,12 +50,12 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             action_menu_state: Default::default(),
-            back_button_state: Default::default(),
+            // back_button_state: Default::default(),
             expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
-            txs_scrollable_state: Default::default(),
+            // txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
         }
@@ -279,7 +280,7 @@ pub fn data_container<'a>(
             .center_x();
 
     let close_wallet_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, close_wallet_label_container)
+        Button::new( close_wallet_label_container)
             .style(style::DefaultBoxedButton(color_palette))
             .on_press(Interaction::WalletOperationHomeViewInteraction(
                 LocalViewInteraction::Back,

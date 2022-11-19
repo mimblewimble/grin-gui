@@ -15,14 +15,13 @@ use grin_gui_core::{
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-
-use iced::{
-    button, pick_list, text_input, Alignment, Application, Button, Column,
-    Command, Container, Element, Length, Settings, Subscription,
-    Text, Row, Space,
+use iced::{alignment, Alignment, Application, Command, Element, Length, Subscription, Settings,};
+use iced::widget::{
+    button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
+    Row, Scrollable, Space, Text, TextInput,
 };
 
-use iced_native::alignment;
+//use iced_native::alignment;
 
 use iced_aw::{modal, Card, Modal};
 
@@ -130,6 +129,10 @@ impl Application for GrinGui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = Config;
+
+    // fn theme(&self) -> Theme {
+    //     self.theme.clone()
+    // }
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
@@ -395,7 +398,6 @@ impl std::fmt::Display for SelfUpdateStatus {
 #[derive(Default, Debug)]
 pub struct SelfUpdateState {
     status: Option<SelfUpdateStatus>,
-    btn_state: button::State,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -467,11 +469,9 @@ pub enum Interaction {
 pub struct ThemeState {
     themes: Vec<(String, Theme)>,
     current_theme_name: String,
-    pick_list_state: pick_list::State<String>,
-    input_state: text_input::State,
+    // pick_list_state: pick_list::State<String>,
+    // input_state: text_input::State,
     input_url: String,
-    import_button_state: button::State,
-    open_builder_button_state: button::State,
 }
 
 impl Default for ThemeState {
@@ -481,11 +481,7 @@ impl Default for ThemeState {
         ThemeState {
             themes,
             current_theme_name: "Dark".to_string(),
-            pick_list_state: Default::default(),
-            input_state: Default::default(),
             input_url: Default::default(),
-            import_button_state: Default::default(),
-            open_builder_button_state: Default::default(),
         }
     }
 }
