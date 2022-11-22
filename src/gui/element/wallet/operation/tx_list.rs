@@ -6,11 +6,13 @@ use {
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_widgets::{header, Header, TableRow},
-    iced::{alignment, Alignment, Command, Element, Length},
+    grin_gui_widgets::{header, Header},
+    iced::{alignment, Alignment, Command, Length},
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, TableRow
+    },
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Space,
     },
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
@@ -927,20 +929,20 @@ pub fn titles_row_header<'a>(
         //}
 
         if previous_column_key == Some(column_key) {
-            row_header = row_header.style(style::SelectedColumnHeaderButton(color_palette));
+            row_header = row_header.style(grin_gui_core::theme::button::Button::SelectedColumn(color_palette));
         }
         /*else if column_key == ColumnKey::Install {
             row_header = row_header.style(style::UnclickableColumnHeaderButton(color_palette));
         } */
         else {
-            row_header = row_header.style(style::ColumnHeaderButton(color_palette));
+            row_header = row_header.style(grin_gui_core::theme::button::Button::ColumnHeader(color_palette));
         }
 
         let row_header: Element<Interaction> = row_header.into();
 
         let row_container = Container::new(row_header.map(Message::Interaction))
             .width(column.width)
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         // Only shows row titles if we have any catalog results.
         if !tx_list.txs.is_empty() {
@@ -1047,7 +1049,7 @@ pub fn data_row_container<'a, 'b>(
                 title_container.style(style::SelectedBrightForegroundContainer(color_palette));
         } else {
             title_container =
-                title_container.style(style::HoverableBrightForegroundContainer(color_palette));
+                title_container.style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
         }
 
         row_containers.push((idx, title_container));
@@ -1072,7 +1074,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, id_container));
     }
@@ -1096,7 +1098,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, display_creation_time_container));
     }
@@ -1120,7 +1122,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, display_confirmation_time_container));
     }
@@ -1144,7 +1146,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, display_net_difference_container));
     }
@@ -1168,7 +1170,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, display_status_container));
     }
@@ -1194,7 +1196,7 @@ pub fn data_row_container<'a, 'b>(
 
         let mut remote_version_button =
             Button::new(&mut addon.remote_version_btn_state, remote_version)
-                .style(style::NormalTextButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::NormalText(color_palette));
 
         if changelog_url.is_some() {
             remote_version_button =
@@ -1211,7 +1213,7 @@ pub fn data_row_container<'a, 'b>(
                 .height(default_height)
                 .width(*width)
                 .center_y()
-                .style(style::HoverableForegroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, remote_version_container));
     }*/
@@ -1234,7 +1236,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, display_tx_type_container));
     }
@@ -1257,7 +1259,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, author_container));
     }*/
@@ -1281,7 +1283,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, game_version_container));
     }*/
@@ -1316,7 +1318,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, game_version_container));
     }*/
@@ -1341,7 +1343,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, source_container));
     }*/
@@ -1365,7 +1367,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette));
 
         row_containers.push((idx, container));
     }*/
@@ -1388,14 +1390,14 @@ pub fn data_row_container<'a, 'b>(
                 .width(*width)
                 .center_y()
                 .center_x()
-                .style(style::HoverableForegroundContainer(color_palette)),
+                .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette)),
             AddonState::Completed => {
                 Container::new(Text::new(localized_string("completed")).size(DEFAULT_FONT_SIZE))
                     .height(default_height)
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Error(message) => {
                 Container::new(Text::new(message).size(DEFAULT_FONT_SIZE))
@@ -1403,7 +1405,7 @@ pub fn data_row_container<'a, 'b>(
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Updatable | AddonState::Retry => {
                 let id = addon.primary_folder_id.clone();
@@ -1430,7 +1432,7 @@ pub fn data_row_container<'a, 'b>(
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableBrightForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette))
             }
             AddonState::Downloading => {
                 Container::new(Text::new(localized_string("downloading")).size(DEFAULT_FONT_SIZE))
@@ -1439,7 +1441,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Unpacking => {
                 Container::new(Text::new(localized_string("unpacking")).size(DEFAULT_FONT_SIZE))
@@ -1448,7 +1450,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Fingerprint => {
                 Container::new(Text::new(localized_string("hashing")).size(DEFAULT_FONT_SIZE))
@@ -1457,7 +1459,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Ignored => {
                 Container::new(Text::new(localized_string("ignored")).size(DEFAULT_FONT_SIZE))
@@ -1466,7 +1468,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette))
             }
             AddonState::Unknown => Container::new(Text::new("").size(DEFAULT_FONT_SIZE))
                 .height(default_height)
@@ -1474,7 +1476,7 @@ pub fn data_row_container<'a, 'b>(
                 .center_y()
                 .center_x()
                 .padding(5)
-                .style(style::HoverableForegroundContainer(color_palette)),
+                .style(grin_gui_core::theme::container::Container::HoverableForeground(color_palette)),
         };
 
         row_containers.push((idx, update_button_container));
@@ -1502,11 +1504,11 @@ pub fn data_row_container<'a, 'b>(
                 let id_title_text =
                     Text::new(format!("{}: ", localized_string("tx-id"))).size(DEFAULT_FONT_SIZE);
                 let id_title_container = Container::new(id_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let id_text = Text::new(id).size(DEFAULT_FONT_SIZE);
                 let id_text_container = Container::new(id_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let id_row = Row::new()
                     .push(id_title_container)
@@ -1517,11 +1519,11 @@ pub fn data_row_container<'a, 'b>(
                 let uuid_title_text =
                     Text::new(format!("{}: ", localized_string("tx-shared-id"))).size(DEFAULT_FONT_SIZE);
                 let uuid_title_container = Container::new(uuid_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let uuid_text = Text::new(shared_tx_id).size(DEFAULT_FONT_SIZE);
                 let uuid_text_container = Container::new(uuid_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let uuid_row = Row::new()
                     .push(uuid_title_container)
@@ -1532,11 +1534,11 @@ pub fn data_row_container<'a, 'b>(
                 let type_title_text =
                     Text::new(format!("{}: ", localized_string("tx-type"))).size(DEFAULT_FONT_SIZE);
                 let type_title_container = Container::new(type_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let type_text = Text::new(tx_type).size(DEFAULT_FONT_SIZE);
                 let type_text_container = Container::new(type_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let type_row = Row::new()
                     .push(type_title_container)
@@ -1557,9 +1559,9 @@ pub fn data_row_container<'a, 'b>(
                 let author_title_text =
                     Text::new(localized_string("authors")).size(DEFAULT_FONT_SIZE);
                 let author_title_container = Container::new(author_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
                 let notes_title_container = Container::new(notes_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground(color_palette));
 
                 let release_date_text: String = if let Some(package) = &release_package {
                     let f = localized_timeago_formatter();
@@ -1577,12 +1579,12 @@ pub fn data_row_container<'a, 'b>(
                 let release_date_text_container = Container::new(release_date_text)
                     .center_y()
                     .padding(5)
-                    .style(style::FadedBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
                 let release_channel_title =
                     Text::new(localized_string("remote-release-channel")).size(DEFAULT_FONT_SIZE);
                 let release_channel_title_container = Container::new(release_channel_title)
-                    .style(style::FadedBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
                 let release_channel_list = PickList::new(
                     &mut addon.pick_release_channel_state,
                     &ReleaseChannel::ALL[..],
@@ -1597,7 +1599,7 @@ pub fn data_row_container<'a, 'b>(
                     &mut addon.website_btn_state,
                     Text::new(localized_string("website")).size(DEFAULT_FONT_SIZE),
                 )
-                .style(style::DefaultButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
                 if let Some(link) = website_url {
                     website_button = website_button.on_press(Interaction::OpenLink(link));
@@ -1615,7 +1617,7 @@ pub fn data_row_container<'a, 'b>(
                 let mut ignore_button =
                     Button::new(&mut addon.ignore_btn_state, ignore_button_text)
                         .on_press(Interaction::Ignore(addon.primary_folder_id.clone()))
-                        .style(style::DefaultButton(color_palette));
+                        .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
                 if is_ignored {
                     ignore_button = ignore_button
@@ -1673,7 +1675,7 @@ pub fn data_row_container<'a, 'b>(
                     &mut addon.changelog_btn_state,
                     Text::new(localized_string("changelog")).size(DEFAULT_FONT_SIZE),
                 )
-                .style(style::DefaultButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
                 if changelog_url.is_some() {
                     changelog_button =
@@ -1721,7 +1723,7 @@ pub fn data_row_container<'a, 'b>(
                 let details_container = Container::new(column)
                     .width(Length::Fill)
                     .padding(20)
-                    .style(style::FadedNormalForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
                 let row = Row::new()
                     .push(left_spacer)

@@ -37,6 +37,8 @@ impl card::StyleSheet for NormalModalCardContainer {
     }
 }
 
+
+
 pub struct BrightForegroundContainer(pub ColorPalette);
 impl container::StyleSheet for BrightForegroundContainer {
     type Style = iced_style::theme::Container;
@@ -207,13 +209,7 @@ impl container::StyleSheet for FadedBrightForegroundContainer {
 pub struct NormalBackgroundContainer(pub ColorPalette);
 impl container::StyleSheet for NormalBackgroundContainer {
     type Style = iced_style::theme::Container;
-    // fn style(&self) -> container::Style {
-    //     container::Style {
-    //         background: Some(Background::Color(self.0.base.background)),
-    //         text_color: Some(self.0.normal.surface),
-    //         ..container::Style::default()
-    //     }
-    // }
+
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
         container::Appearance {
             background: Some(Background::Color(self.0.base.foreground)),
@@ -946,6 +942,7 @@ impl scrollable::StyleSheet for Scrollable {
 pub struct PickList(pub ColorPalette);
 impl iced::widget::pick_list::StyleSheet for PickList {
     type Style = iced_style::theme::PickList;
+
     // fn menu(&self) -> t::Menu {
     //     pick_list::Menu {
     //         text_color: self.0.bright.surface,

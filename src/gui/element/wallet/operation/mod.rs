@@ -11,7 +11,9 @@ use {
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,
     iced::{Command, Length},
-    iced::widget::{Column, Container},
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+    },
 };
 
 pub struct StateContainer {
@@ -97,5 +99,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
 }

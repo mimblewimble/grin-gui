@@ -7,10 +7,10 @@ use {
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
-    iced::{alignment, Alignment, Command, Element, Length},
+    grin_gui_core::theme::{Column, Element, Container, PickList, Row, Scrollable, Text, TextInput},
+    iced::{alignment, Alignment, Command, Length},
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Button, Checkbox, Space,
     },
 };
 
@@ -79,7 +79,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let title_row = Row::new()
         .push(title_container)
@@ -91,14 +91,14 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
     let description_container =
-        Container::new(description).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(description).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let or_text = Text::new(localized_string("or-caps"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let or_text_container =
-        Container::new(or_text).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(or_text).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let create_default_wallet_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-autogenerate-wallet")).size(DEFAULT_FONT_SIZE),
@@ -109,7 +109,7 @@ pub fn data_container<'a>(
     let create_default_wallet_button: Element<Interaction> = Button::new(
         create_default_wallet_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
+    .style(grin_gui_core::theme::button::Button::Bordered(color_palette))
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletSetup,
     ))
@@ -123,7 +123,7 @@ pub fn data_container<'a>(
     let select_wallet_button: Element<Interaction> = Button::new(
         select_wallet_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
+    .style(grin_gui_core::theme::button::Button::Bordered(color_palette))
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletList,
     ))
@@ -139,14 +139,14 @@ pub fn data_container<'a>(
             localized_string("setup-grin-autogenerate-wallet"),
             Interaction::ToggleCloseToTray,
         )
-        .style(style::DefaultCheckbox(color_palette))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         Column::new().push(checkbox_container)
     };*/

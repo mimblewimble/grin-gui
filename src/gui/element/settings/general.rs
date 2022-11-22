@@ -8,13 +8,13 @@ use {
         config::{Config, Language},
         error::ThemeError,
         fs::{import_theme, PersistentData},
-        theme::{ColorPalette, Theme},
+        theme::{
+            Button, ColorPalette, Column, Container, Element, PickList, Row, Scrollable, Text,
+            TextInput, Theme,
+        },
     },
-    iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
-    },
-    iced::{Alignment, Command, Element, Length},
+    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
+    iced::{Alignment, Command, Length},
     std::sync::{Arc, RwLock},
 };
 
@@ -217,7 +217,7 @@ pub fn handle_message(
             }
             // Reset text input
             state.theme_state.input_url = Default::default();
-            state.theme_state.input_state = Default::default();
+            //state.theme_state.input_state = Default::default();
         }
     }
     Ok(Command::none())
@@ -228,31 +228,25 @@ pub fn data_container<'a>(
     config: &mut Config,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
-    let mut scrollable = Scrollable::new(&mut state.scrollable_state)
-        .spacing(1)
-        .height(Length::FillPortion(1))
-        .style(style::Scrollable(color_palette));
-
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
-            .style(style::NormalBackgroundContainer(color_palette));
-        let pick_list = PickList::new(
-            &mut state.localization_picklist_state,
-            &Language::ALL[..],
-            Some(config.language),
-            |l| {
-                Message::Interaction(Interaction::GeneralSettingsViewInteraction(
-                    LocalViewInteraction::LanguageSelected(l),
-                ))
-            },
-        )
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+
+        let pick_list = PickList::new(&Language::ALL[..], Some(config.language), |l| {
+            Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                LocalViewInteraction::LanguageSelected(l),
+            ))
+        })
         .text_size(14)
         .width(Length::Units(120))
-        .style(style::PickList(color_palette));
+        .style(grin_gui_core::theme::picklist::PickListStyles::Primary(
+            color_palette,
+        ));
+
         let container = Container::new(pick_list)
             .center_y()
             .width(Length::Units(120))
-            .style(style::NormalForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         Column::new()
             .push(title)
@@ -263,7 +257,7 @@ pub fn data_container<'a>(
     let theme_column = {
         let title_container =
             Container::new(Text::new(localized_string("theme")).size(DEFAULT_FONT_SIZE))
-                .style(style::NormalBackgroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         let theme_names = state
             .theme_state
@@ -272,8 +266,8 @@ pub fn data_container<'a>(
             .cloned()
             .map(|(name, _)| name)
             .collect::<Vec<_>>();
+
         let theme_pick_list = PickList::new(
-            &mut state.theme_state.pick_list_state,
             theme_names,
             Some(state.theme_state.current_theme_name.clone()),
             |t| {
@@ -284,7 +278,9 @@ pub fn data_container<'a>(
         )
         .text_size(DEFAULT_FONT_SIZE)
         .width(Length::Units(120))
-        .style(style::PickList(color_palette));
+        .style(grin_gui_core::theme::picklist::PickListStyles::Primary(
+            color_palette,
+        ));
 
         // Data row for theme picker list.
         let theme_data_row = Row::new()
@@ -302,14 +298,16 @@ pub fn data_container<'a>(
     let scale_column = {
         let title_container =
             Container::new(Text::new(localized_string("scale")).size(DEFAULT_FONT_SIZE))
-                .style(style::NormalBackgroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
         let scale_title_row = Row::new().push(title_container);
 
         let scale_down_button: Element<Interaction> = Button::new(
             // &mut state.scale_state.down_btn_state,
             Text::new("  -  ").size(DEFAULT_FONT_SIZE),
         )
-        .style(style::DefaultBoxedButton(color_palette))
+        .style(grin_gui_core::theme::button::Button::Bordered(
+            color_palette,
+        ))
         .on_press(Interaction::GeneralSettingsViewInteraction(
             LocalViewInteraction::ScaleDown,
         ))
@@ -319,7 +317,9 @@ pub fn data_container<'a>(
             // &mut state.scale_state.up_btn_state,
             Text::new("  +  ").size(DEFAULT_FONT_SIZE),
         )
-        .style(style::DefaultBoxedButton(color_palette))
+        .style(grin_gui_core::theme::button::Button::Bordered(
+            color_palette,
+        ))
         .on_press(Interaction::GeneralSettingsViewInteraction(
             LocalViewInteraction::ScaleUp,
         ))
@@ -331,7 +331,7 @@ pub fn data_container<'a>(
         let current_scale_container = Container::new(current_scale_text)
             .height(Length::Fill)
             .center_y()
-            .style(style::BrightBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         let scale_buttons_row = Row::new()
             .push(scale_down_button.map(Message::Interaction))
@@ -349,10 +349,9 @@ pub fn data_container<'a>(
     let import_theme_column = {
         let title_container =
             Container::new(Text::new(localized_string("import-theme")).size(DEFAULT_FONT_SIZE))
-                .style(style::NormalBackgroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         let theme_input = TextInput::new(
-            //&mut state.theme_state.input_state,
             &localized_string("paste-url")[..],
             &state.theme_state.input_url,
             |s| Interaction::GeneralSettingsViewInteraction(LocalViewInteraction::ThemeUrlInput(s)),
@@ -360,7 +359,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(185))
-        .style(style::AddonsQueryInput(color_palette));
+        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette));
 
         let theme_input: Element<Interaction> = theme_input.into();
 
@@ -368,7 +367,9 @@ pub fn data_container<'a>(
             // &mut state.theme_state.import_button_state,
             Text::new(localized_string("import-theme-button")).size(DEFAULT_FONT_SIZE),
         )
-        .style(style::DefaultBoxedButton(color_palette));
+        .style(grin_gui_core::theme::button::Button::Bordered(
+            color_palette,
+        ));
 
         if !state.theme_state.input_url.is_empty() {
             import_button = import_button.on_press(Interaction::GeneralSettingsViewInteraction(
@@ -393,13 +394,15 @@ pub fn data_container<'a>(
 
     let open_theme_row = {
         let open_button = Button::new(
-           // &mut state.theme_state.open_builder_button_state,
+            // &mut state.theme_state.open_builder_button_state,
             Text::new(localized_string("open-theme-builder")).size(DEFAULT_FONT_SIZE),
         )
         .on_press(Interaction::OpenLink(String::from(
             "https://theme.getajour.com",
         )))
-        .style(style::DefaultBoxedButton(color_palette));
+        .style(grin_gui_core::theme::button::Button::Bordered(
+            color_palette,
+        ));
 
         let open_button: Element<Interaction> = open_button.into();
 
@@ -422,14 +425,14 @@ pub fn data_container<'a>(
             localized_string("close-to-tray"),
             Interaction::ToggleCloseToTray,
         )
-        .style(style::DefaultCheckbox(color_palette))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
         Column::new().push(checkbox_container)
     };
 
@@ -440,14 +443,14 @@ pub fn data_container<'a>(
             localized_string("toggle-autostart"),
             Interaction::ToggleAutoStart,
         )
-        .style(style::DefaultCheckbox(color_palette))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
         Column::new().push(checkbox_container)
     };
 
@@ -458,23 +461,37 @@ pub fn data_container<'a>(
             localized_string("start-closed-to-tray"),
             Interaction::ToggleStartClosedToTray,
         )
-        .style(style::DefaultCheckbox(color_palette))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(color_palette))
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
         Column::new().push(checkbox_container)
     };
 
-    scrollable = scrollable
+    let column = Column::new()
+        .spacing(1)
         .push(language_container)
         .push(Space::new(Length::Units(0), Length::Units(10)))
         .push(theme_scale_row)
         .push(Space::new(Length::Units(0), Length::Units(10)))
-        .push(open_theme_row);
+        .push(open_theme_row)
+        .spacing(1);
+
+    let scrollable = Scrollable::new(column)
+        .height(Length::FillPortion(1))
+        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary(
+            color_palette,
+        ));
+
+    // scrollable = scrollable
+    //     .push(Space::new(Length::Units(0), Length::Units(10)))
+    //     .push(theme_scale_row)
+    //     .push(Space::new(Length::Units(0), Length::Units(10)))
+    //     .push(open_theme_row);
 
     #[cfg(target_os = "windows")]
     {
@@ -488,7 +505,7 @@ pub fn data_container<'a>(
     }
 
     // Colum wrapping all the settings content.
-    scrollable = scrollable.height(Length::Fill).width(Length::Fill);
+    scrollable = scrollable.height(Length::Fill);
 
     let col = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(10)))
@@ -503,5 +520,5 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
 }

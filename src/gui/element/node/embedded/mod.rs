@@ -8,8 +8,9 @@ use {
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
     grin_gui_core::theme::ColorPalette,
+    grin_gui_core::theme::{Container, Column},
     iced::{Command, Length},
-    iced::widget::{Column, Container},
+    iced::widget::{container},
 };
 
 pub struct StateContainer {
@@ -61,13 +62,13 @@ pub fn data_container<'a>(
     };
 
     let column = Column::new().push(content);
-
+    
     Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)
         .height(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

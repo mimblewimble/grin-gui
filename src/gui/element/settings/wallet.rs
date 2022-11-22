@@ -3,10 +3,10 @@ use {
     crate::gui::{style, GrinGui, Message},
     crate::localization::localized_string,
     grin_gui_core::{theme::ColorPalette},
+    grin_gui_core::theme::{Button, Column, Container, PickList, Row, Scrollable, Text, TextInput},
     iced::Length,
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Checkbox, Space,
     },
     serde::{Deserialize, Serialize},
 };
@@ -55,14 +55,10 @@ pub fn data_container<'a>(
     state: &'a mut StateContainer,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
-    let mut scrollable = Scrollable::new(&mut state.scrollable_state)
-        .spacing(1)
-        .height(Length::FillPortion(1))
-        .style(style::Scrollable(color_palette));
-
+   
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
         /*let pick_list: Element<_> = PickList::new(
             localization_picklist_state,
             &Language::ALL[..],
@@ -76,7 +72,7 @@ pub fn data_container<'a>(
         let container = Container::new(pick_list.map(Message::Interaction))
             .center_y()
             .width(Length::Units(120))
-            .style(style::NormalForegroundContainer(color_palette));*/
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));*/
 
         Column::new()
             .push(title)
@@ -84,11 +80,15 @@ pub fn data_container<'a>(
             //.push(container)
     };
 
-    scrollable = scrollable
-        .push(language_container);
+    let scrollable = Scrollable::new(language_container)
+    .height(Length::Fill)
+    .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary(color_palette));
+
+    // scrollable = scrollable
+    //     .push(language_container);
 
     // Colum wrapping all the settings content.
-    scrollable = scrollable.height(Length::Fill).width(Length::Fill);
+    //scrollable = scrollable.height(Length::Fill);
 
     let col = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(10)))
@@ -103,5 +103,5 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
 }

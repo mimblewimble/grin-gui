@@ -6,11 +6,12 @@ use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
-    grin_gui_core::{config::Config, theme::ColorPalette},
-    iced::widget::{
-        button, Button, Column, Container, PickList, Row, Scrollable, Space, Text, TextInput,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
     },
-    iced::{Alignment, Element, Length},
+    grin_gui_core::{config::Config, theme::ColorPalette},
+    iced::widget::{button, Space},
+    iced::{Alignment, Length},
     serde::{Deserialize, Serialize},
 };
 
@@ -72,7 +73,7 @@ pub fn data_container<'a>(
     // Submenu title to appear of left side of panel
     let general_settings_title = Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
     let general_settings_title_container = Container::new(general_settings_title)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let mut wallet_button: Button<Interaction> = Button::new(
         // &mut state.wallet_btn,
@@ -100,19 +101,31 @@ pub fn data_container<'a>(
 
     match state.mode {
         Mode::Wallet => {
-            wallet_button = wallet_button.style(style::SelectedDefaultButton(color_palette));
-            node_button = node_button.style(style::DefaultButton(color_palette));
-            general_button = general_button.style(style::DefaultButton(color_palette));
+            wallet_button = wallet_button.style(grin_gui_core::theme::button::Button::Selected(
+                color_palette,
+            ));
+            node_button =
+                node_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            general_button =
+                general_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
         }
         Mode::Node => {
-            wallet_button = wallet_button.style(style::DefaultButton(color_palette));
-            node_button = node_button.style(style::SelectedDefaultButton(color_palette));
-            general_button = general_button.style(style::DefaultButton(color_palette));
+            wallet_button =
+                wallet_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            node_button = node_button.style(grin_gui_core::theme::button::Button::Selected(
+                color_palette,
+            ));
+            general_button =
+                general_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
         }
         Mode::General => {
-            wallet_button = wallet_button.style(style::DefaultButton(color_palette));
-            node_button = node_button.style(style::DefaultButton(color_palette));
-            general_button = general_button.style(style::SelectedDefaultButton(color_palette));
+            wallet_button =
+                wallet_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            node_button =
+                node_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            general_button = general_button.style(grin_gui_core::theme::button::Button::Selected(
+                color_palette,
+            ));
         }
     }
 
@@ -128,9 +141,10 @@ pub fn data_container<'a>(
 
     let segmented_mode_container = Container::new(segmented_mode_row).padding(1);
 
-    let segmented_mode_control_container = Container::new(segmented_mode_container)
-        .padding(1)
-        .style(style::SegmentedContainer(color_palette));
+    let segmented_mode_control_container =
+        Container::new(segmented_mode_container).padding(1).style(
+            grin_gui_core::theme::container::Container::Segmented(color_palette),
+        );
 
     let header_row = Row::new()
         .push(general_settings_title_container)
@@ -168,7 +182,7 @@ pub fn data_container<'a>(
     }
 
     Container::new(wrapper_column)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

@@ -7,23 +7,23 @@ use crate::cli::Opts;
 use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
 use crate::gui::element::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE};
+use grin_gui_core::theme::Element;
 use grin_gui_core::{
     config::Config,
     fs::PersistentData,
-    theme::Theme,
+    theme::{Theme, Container, Column, ColorPalette, Button, PickList, Row, Scrollable, Text, Modal},
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-use iced::{alignment, Alignment, Application, Command, Element, Length, Subscription, Settings,};
+use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings,};
 use iced::widget::{
-    button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-    Row, Scrollable, Space, Text, TextInput,
+    button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
 
 //use iced_native::alignment;
 
-use iced_aw::{modal, Card, Modal};
+use iced_aw::{modal, Card};
 
 use iced_futures::futures::channel::mpsc;
 
@@ -68,6 +68,7 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
+    show_modal: bool,
     show_exit: bool,
     exit: bool,
 }
@@ -108,6 +109,7 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
+            show_modal: false,
             show_exit: false,
             exit: false,
         }
@@ -129,10 +131,7 @@ impl Application for GrinGui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = Config;
-
-    // fn theme(&self) -> Theme {
-    //     self.theme.clone()
-    // }
+    type Theme = Theme;
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
@@ -217,7 +216,7 @@ impl Application for GrinGui {
         }
     }
 
-    fn view(&mut self) -> Element<Self::Message> {
+    fn view(&self) -> Element<Message> {
         let color_palette = self
             .general_settings_state
             .theme_state
@@ -277,12 +276,12 @@ impl Application for GrinGui {
             }
         }
  
-        let content: Element<Self::Message> = 
+        let content: Element<Message> = 
         // Wraps everything in a container.
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .style(style::NormalBackgroundContainer(color_palette))
+            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
             .into();
 
         let show_exit = self.show_exit;
@@ -292,16 +291,16 @@ impl Application for GrinGui {
             "".into()
         };
 
-        Modal::new(&mut self.modal_state, content, move|state| {
+        Modal::new(self.show_modal, content, move|state| {
             if show_exit {
-                element::modal::exit_card(color_palette, state).into()
+                element::modal::exit_card(color_palette).into()
             } else {
-                element::modal::error_card(color_palette, state, error_cause.clone()).into()
+                element::modal::error_card(color_palette, error_cause.clone()).into()
             }
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
-        .style(style::NormalModalContainer(color_palette))
+        //.style(style::NormalModalContainer(color_palette))
         .into()
 
     }

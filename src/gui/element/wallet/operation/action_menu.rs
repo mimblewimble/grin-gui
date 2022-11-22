@@ -21,10 +21,10 @@ use {
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{Alignment, Command, Element, Length},
+    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput},
+    iced::{Alignment, Command, Length},
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Checkbox, Space,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
@@ -102,7 +102,7 @@ pub fn data_container<'a>(
     let create_tx_button: Element<Interaction> =
         Button::new(create_tx_container)
             .width(button_width)
-            .style(style::DefaultButton(color_palette))
+            .style(grin_gui_core::theme::button::Button::Primary(color_palette))
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::CreateTx),
             ))
@@ -117,7 +117,7 @@ pub fn data_container<'a>(
     let apply_tx_button: Element<Interaction> =
         Button::new( apply_tx_container)
             .width(button_width)
-            .style(style::DefaultButton(color_palette))
+            .style(grin_gui_core::theme::button::Button::Primary(color_palette))
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::ApplyTx),
             ))
@@ -127,12 +127,12 @@ pub fn data_container<'a>(
     // TODO refactor since many of the buttons around the UI repeat this theme
     let create_container = Container::new(create_tx_button.map(Message::Interaction)).padding(1);
     let create_container = Container::new(create_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
 
     let apply_container = Container::new(apply_tx_button.map(Message::Interaction)).padding(1);
     let apply_container = Container::new(apply_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
 
     let menu_column = Row::new()

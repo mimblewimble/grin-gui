@@ -15,10 +15,12 @@ use {
     grin_gui_core::{
         node::ChainTypes::Mainnet, node::ChainTypes::Testnet, wallet::WalletInterface,
     },
-    iced::{alignment, Alignment, Command, Element, Length},
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+    },
+    iced::{alignment, Alignment, Command, Length},
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Space,
     },
     std::sync::{Arc, RwLock},
 };
@@ -90,7 +92,7 @@ pub fn handle_message<'a>(
             state.password_state.input_value = password;
         }
         LocalViewInteraction::PasswordInputEnterPressed => {
-            state.password_state.input_state.unfocus();
+            //state.password_state.input_state.unfocus();
         }
         LocalViewInteraction::OpenWallet => {
             grin_gui.error.take();
@@ -187,7 +189,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let display_name_container =
-        Container::new(display_name).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(display_name).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let password_column = {
         let password_input = TextInput::new(
@@ -206,7 +208,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(INPUT_WIDTH))
-        .style(style::AddonsQueryInput(color_palette))
+        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette))
         .password();
 
         let password_input: Element<Interaction> = password_input.into();
@@ -225,7 +227,7 @@ pub fn data_container<'a>(
 
     let description_container = Container::new(description)
         .width(Length::Units(INPUT_WIDTH))
-        .style(style::NormalBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
@@ -239,7 +241,7 @@ pub fn data_container<'a>(
         // &mut state.submit_button_state,
         submit_button_label_container,
     )
-    .style(style::DefaultButton(color_palette));
+    .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::OpenWallet,
@@ -259,7 +261,7 @@ pub fn data_container<'a>(
         // &mut state.cancel_button_state,
         cancel_button_label_container,
     )
-    .style(style::DefaultButton(color_palette));
+    .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::CancelOpenWallet,
@@ -269,13 +271,13 @@ pub fn data_container<'a>(
     let submit_button: Element<Interaction> = submit_button.into();
     let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
     let submit_container = Container::new(submit_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
 
     let button_row = Row::new()

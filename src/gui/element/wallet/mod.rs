@@ -5,8 +5,8 @@ use {
     crate::gui::{style, Message},
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
+    grin_gui_core::theme::{Container, Column},
     iced::Length,
-    iced::widget::{Column, Container},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -74,5 +74,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
 }

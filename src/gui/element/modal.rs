@@ -7,12 +7,12 @@ use {
     crate::gui::{style, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::ColorPalette,
-    iced::{alignment, Alignment, Command, Element, Length},
+    grin_gui_core::theme::{Card, Container, Column, Button, Element, Scrollable, Text, PickList, Row},
+    iced::{alignment, Alignment, Command, Length},
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
     },
-    iced_aw::{modal, native::card::Card, Modal},
+    iced_aw::{modal, Modal},
 };
 
 pub struct StateContainer {
@@ -25,10 +25,9 @@ impl Default for StateContainer {
     }
 }
 
-pub fn exit_card<'a>(
+pub fn exit_card(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
-) -> Card<Message, Renderer> {
+) -> Card<'static, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);
     let button_width = Length::Units(BUTTON_WIDTH);
 
@@ -49,13 +48,13 @@ pub fn exit_card<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let yes_button: Element<Interaction> = Button::new( yes_button_label)
-        .style(style::DefaultButton(color_palette))
+        .style(grin_gui_core::theme::button::Button::Primary(color_palette))
         .on_press(Interaction::Exit)
         .into();
 
     let cancel_button: Element<Interaction> =
         Button::new( cancel_button_label)
-            .style(style::DefaultButton(color_palette))
+            .style(grin_gui_core::theme::button::Button::Primary(color_palette))
             .on_press(Interaction::ExitCancel)
             .into();
 
@@ -64,11 +63,11 @@ pub fn exit_card<'a>(
     // button lipstick
     let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
     let yes_container = Container::new(yes_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
         .padding(1);
 
     let button_row = Row::new()
@@ -92,14 +91,13 @@ pub fn exit_card<'a>(
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(style::NormalModalCardContainer(color_palette))
+    .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette))
 }
 
-pub fn error_card<'a>(
+pub fn error_card(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
     error_cause: String,
-) -> Card<Message, Renderer> {
+) -> Card<'static, Message> {
     Card::new(
         Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(error_cause.clone()).size(DEFAULT_FONT_SIZE),
@@ -116,7 +114,7 @@ pub fn error_card<'a>(
                         .size(DEFAULT_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(style::DefaultButton(color_palette))
+                .style(grin_gui_core::theme::button::Button::Primary(color_palette))
                 .on_press(Message::Interaction(Interaction::CloseErrorModal)),
             )
             .push(
@@ -125,7 +123,7 @@ pub fn error_card<'a>(
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(style::NormalTextButton(color_palette))
+                .style(grin_gui_core::theme::button::Button::NormalText(color_palette))
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
                     error_cause,
                 ))),
@@ -133,5 +131,5 @@ pub fn error_card<'a>(
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(style::NormalModalCardContainer(color_palette))
+    .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette))
 }

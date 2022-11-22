@@ -1,6 +1,15 @@
 use crate::fs;
+use grin_core::core::pmmr::Backend;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+
+pub mod button;
+pub mod card;
+pub mod checkbox;
+pub mod container;
+pub mod picklist;
+pub mod scrollable;
+pub mod text_input;
 
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
@@ -8,13 +17,29 @@ pub async fn load_user_themes() -> Vec<Theme> {
     fs::load_user_themes().await
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Theme {
     pub name: String,
     pub palette: ColorPalette,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub type Renderer = iced::Renderer<Theme>;
+pub type Element<'a, Message> = iced::Element<'a, Message, Renderer>;
+pub type Container<'a, Message> = iced::widget::Container<'a, Message, Renderer>;
+pub type Column<'a, Message> = iced::widget::Column<'a, Message, Renderer>;
+pub type Row<'a, Message> = iced::widget::Row<'a, Message, Renderer>;
+pub type Text<'a> = iced::widget::Text<'a, Renderer>;
+pub type TextInput<'a, Message> = iced::widget::TextInput<'a, Message, Renderer>;
+pub type Button<'a, Message> = iced::widget::Button<'a, Message, Renderer>;
+pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Renderer>;
+pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
+pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
+pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
+pub type Header<'a, Message> = grin_gui_widgets::header::Header<'a, Message, Renderer>;
+pub type TableRow<'a, Message> = grin_gui_widgets::table_row::TableRow<'a, Message, Renderer>;
+
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {
     #[serde(with = "serde_color")]
     pub background: iced_native::Color,
@@ -22,7 +47,7 @@ pub struct BaseColors {
     pub foreground: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct NormalColors {
     #[serde(with = "serde_color")]
     pub primary: iced_native::Color,
@@ -34,7 +59,7 @@ pub struct NormalColors {
     pub error: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BrightColors {
     #[serde(with = "serde_color")]
     pub primary: iced_native::Color,
@@ -46,7 +71,7 @@ pub struct BrightColors {
     pub error: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct ColorPalette {
     pub base: BaseColors,
     pub normal: NormalColors,
@@ -431,6 +456,30 @@ impl Theme {
                     error: hex_to_color("#e06b75").unwrap(),
                 },
             },
+        }
+    }
+}
+
+use iced::widget::{text};
+use iced::{application};
+
+impl application::StyleSheet for Theme {
+    type Style = ();
+
+    fn appearance(&self, _style: &Self::Style) -> application::Appearance {
+        application::Appearance {
+            background_color: hex_to_color("#282828").unwrap(),
+            text_color: hex_to_color("#ebdbb2").unwrap(),
+        }
+    }
+}
+
+impl text::StyleSheet for Theme {
+    type Style = ();
+
+    fn appearance(&self, _style: Self::Style) -> text::Appearance {
+        text::Appearance {
+            color:  Some(hex_to_color("#ebdbb2").unwrap())
         }
     }
 }

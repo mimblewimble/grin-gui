@@ -4,10 +4,10 @@ use {
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,
-    iced::{alignment, Alignment, Command, Element, Length},
+    grin_gui_core::theme::{Button, Column, Element, Scrollable, Text, Row, Container, PickList},
+    iced::{alignment, Alignment, Command, Length},
     iced::widget::{
-        button, pick_list, scrollable, text_input, Button, Checkbox, Column, Container, PickList,
-        Row, Scrollable, Space, Text, TextInput,
+        button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
     },
     serde::{Deserialize, Serialize},
 };
@@ -92,30 +92,30 @@ pub fn data_container<'a>(
     match state.mode {
         Mode::Wallet => {
             wallet_mode_button =
-                wallet_mode_button.style(style::SelectedDefaultButton(color_palette));
-            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
-            about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
-            settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
+                wallet_mode_button.style(grin_gui_core::theme::button::Button::Selected(color_palette));
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
         }
         Mode::Node => {
-            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
-            node_mode_button = node_mode_button.style(style::SelectedDefaultButton(color_palette));
-            about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
-            settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Selected(color_palette));
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
         }
         Mode::Settings => {
-            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
-            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
-            about_mode_button = about_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
             settings_mode_button =
-                settings_mode_button.style(style::SelectedDefaultButton(color_palette));
+                settings_mode_button.style(grin_gui_core::theme::button::Button::Selected(color_palette));
         }
         Mode::About => {
-            wallet_mode_button = wallet_mode_button.style(style::DefaultButton(color_palette));
-            node_mode_button = node_mode_button.style(style::DefaultButton(color_palette));
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
             about_mode_button =
-                about_mode_button.style(style::SelectedDefaultButton(color_palette));
-            settings_mode_button = settings_mode_button.style(style::DefaultButton(color_palette));
+                about_mode_button.style(grin_gui_core::theme::button::Button::Selected(color_palette));
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary(color_palette));
         } /*Mode::Setup => {
               wallet_mode_button =
                   wallet_mode_button.style(style::DisabledDefaultButton(color_palette));
@@ -141,11 +141,11 @@ pub fn data_container<'a>(
     /*let mut segmented_mode_row = Row::new().push(my_wallet_table_row).spacing(1);
     let segmented_mode_container = Container::new(segmented_mode_row)
         .padding(2)
-        .style(style::SegmentedContainer(color_palette));*/
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette));*/
 
     let segmented_addon_container = Container::new(segmented_addons_row)
         .padding(2)
-        .style(style::SegmentedContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette));
 
     // Empty container shown if no error message
     let mut error_column = Column::new();
@@ -160,7 +160,7 @@ pub fn data_container<'a>(
                 .vertical_alignment(alignment::Vertical::Center)
                 .size(SMALLER_FONT_SIZE),
         )
-        .style(style::NormalTextButton(color_palette))
+        .style(grin_gui_core::theme::button::Button::NormalText(color_palette))
         .on_press(Interaction::OpenErrorModal);
 
         let error_detail_button: Element<Interaction> = error_detail_button.into();
@@ -177,7 +177,7 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalErrorForegroundContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::ErrorForeground(color_palette));
 
     /*let version_text = Text::new(if let Some(release) = &self_update_state.latest_release {
         if VersionCompare::compare_to(&release.tag_name, VERSION, &CompOp::Gt).unwrap_or(false) {
@@ -205,7 +205,7 @@ pub fn data_container<'a>(
     let version_container = Container::new(version_text)
         .center_y()
         .padding(5)
-        .style(style::NormalForegroundContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
     let segmented_mode_control_row: Row<Message> = Row::with_children(vec![
         about_mode_button.map(Message::Interaction),
@@ -215,7 +215,7 @@ pub fn data_container<'a>(
 
     let segmented_mode_control_container = Container::new(segmented_mode_control_row)
         .padding(2)
-        .style(style::SegmentedContainer(color_palette));
+        .style(grin_gui_core::theme::container::Container::Segmented(color_palette));
 
     let settings_row = Row::with_children(vec![
         segmented_addon_container.into(),
@@ -228,7 +228,7 @@ pub fn data_container<'a>(
 
     // Wraps it in a container with even padding on all sides
     Container::new(settings_row)
-        .style(style::BrightForegroundContainer(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightForeground(color_palette))
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

@@ -11,10 +11,11 @@ use {
     crate::Result,
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
     grin_gui_core::theme::ColorPalette,
+    grin_gui_core::theme::{Container, Column, Row, Text, Scrollable},
     iced::{
         alignment, Alignment, Command, Length, 
     },
-    iced::widget::{scrollable, Column, Container, Row, Scrollable, Space, Text}
+    iced::widget::{scrollable, Space}
 };
 
 pub struct StateContainer {
@@ -188,12 +189,12 @@ pub fn data_container<'a>(
         let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
 
         let line_label_container =
-            Container::new(line_label).style(style::NormalBackgroundContainer(color_palette));
+            Container::new(line_label).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         let line_value = Text::new(value_text).size(DEFAULT_FONT_SIZE);
 
         let line_value_container =
-            Container::new(line_value).style(style::NormalBackgroundContainer(color_palette));
+            Container::new(line_value).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
         Column::new()
             .push(line_label_container)
@@ -210,7 +211,7 @@ pub fn data_container<'a>(
                 .horizontal_alignment(alignment::Horizontal::Center);
 
             let status_line_value_container = Container::new(status_line_value)
-                .style(style::NormalBackgroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
 
             let status_line_column = Column::new()
                 .push(status_line_value_container)
@@ -232,7 +233,7 @@ pub fn data_container<'a>(
                     .center_x();
 
             let status_line_card = Card::new(status_line_container, status_line_row)
-                .style(style::NormalModalCardContainer(color_palette));
+                .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
 
             // Basic status
             let connected_peers_row = stat_row(
@@ -255,7 +256,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let basic_status_card = Card::new(basic_status_container, basic_status_column)
-                .style(style::NormalModalCardContainer(color_palette));
+                .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
 
             // Tip Status
             let header_tip_hash_row = stat_row(
@@ -292,7 +293,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let header_status_card = Card::new(header_status_container, header_status_column)
-                .style(style::NormalModalCardContainer(color_palette));
+                .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
 
             // Chain status
             let chain_tip_hash_row = stat_row(
@@ -329,7 +330,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let chain_status_card = Card::new(chain_status_container, chain_status_column)
-                .style(style::NormalModalCardContainer(color_palette));
+                .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
 
             // TX Pool
             let tx_status_card = match &s.tx_stats {
@@ -362,7 +363,7 @@ pub fn data_container<'a>(
                     Column::new(),
                 ),
             }
-            .style(style::NormalModalCardContainer(color_palette));
+            .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
 
             let display_row_1 = Row::new()
                 .push(status_line_card)
@@ -406,12 +407,11 @@ pub fn data_container<'a>(
     };
 
     let stats_info_container = stats_info_container.width(Length::Units(600));
-    let scrollable = Scrollable::new(&mut state.scrollable_state)
-        .push(stats_info_container)
-        .align_items(Alignment::Center)
+    let scrollable = Scrollable::new(stats_info_container)
+        //.align_items(Alignment::Center)
         .height(Length::Fill)
-        .width(Length::Fill)
-        .style(style::Scrollable(color_palette));
+        //.width(Length::Fill)
+        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary(color_palette));
 
     Container::new(scrollable)
         .center_y()
