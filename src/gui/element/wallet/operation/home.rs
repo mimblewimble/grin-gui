@@ -1,5 +1,4 @@
 use super::tx_list::{self, ExpandType};
-use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
@@ -11,13 +10,17 @@ use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::tx_list::{HeaderState, TxList};
 use super::action_menu;
+use super::tx_list::{HeaderState, TxList};
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{
+        DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, DEFAULT_SUB_HEADER_FONT_SIZE,
+        SMALLER_FONT_SIZE,
+    },
     crate::gui::{style, GrinGui, Interaction, Message},
     crate::localization::localized_string,
+    crate::log_error,
     crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
@@ -131,11 +134,9 @@ pub fn handle_tick<'a>(
     // If slatepack address is not filled out, go get it
     let apply_tx_state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
     if apply_tx_state.address_value.is_empty() {
-
         let w = grin_gui.wallet_interface.clone();
 
-        let fut =
-            move || WalletInterface::get_slatepack_address(w.clone());
+        let fut = move || WalletInterface::get_slatepack_address(w.clone());
         return Ok(Command::perform(fut(), |get_slatepack_address_res| {
             if get_slatepack_address_res.is_err() {
                 let e = get_slatepack_address_res
@@ -146,7 +147,9 @@ pub fn handle_tick<'a>(
                 ));
             }
             Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(get_slatepack_address_res.unwrap()),
+                LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(
+                    get_slatepack_address_res.unwrap(),
+                ),
             ))
         }));
     }
@@ -203,9 +206,13 @@ pub fn handle_message<'a>(
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
-        },
+        }
         LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
-            grin_gui.wallet_state.operation_state.apply_tx_state.address_value = address;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state
+                .address_value = address;
         }
     }
     Ok(Command::none())
@@ -216,38 +223,9 @@ pub fn data_container<'a>(
     config: &'a Config,
     state: &'a mut StateContainer,
 ) -> Container<'a, Message> {
-    // Title row
-    let title = Text::new(localized_string("wallet-home"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let back_button_label_container =
-        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-            .height(Length::Units(20))
-            .align_y(alignment::Vertical::Bottom)
-            .align_x(alignment::Horizontal::Center);
-
-    let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
-            .on_press(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::Back,
-            ))
-            .into();
-
-    let title_row = Row::new()
-        .push(title_container)
-        .push(back_button.map(Message::Interaction))
-        //.push(Space::new(Length::Fill, Length::Units(0)))
-        .align_items(Alignment::Center)
-        .padding(6)
-        .spacing(20);
-
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu = action_menu::data_container(color_palette, config, &mut state.action_menu_state);
+    let operations_menu =
+        action_menu::data_container(color_palette, config, &mut state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -274,11 +252,66 @@ pub fn data_container<'a>(
         ),
     };
 
-    let total_value_label = Text::new(format!("{}:", localized_string("info-confirmed-total")));
+    let wallet_name = config.wallets[config.current_wallet_index.unwrap()]
+        .display_name
+        .clone();
+
+    // Title row
+    let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
+    let title_container =
+        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+
+    let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
+    let subtitle_container = Container::new(subtitle)
+        .style(style::BrightBackgroundContainer(color_palette))
+        .padding(iced::Padding::from([
+            3, // top
+            0, // right
+            0, // bottom
+            0, // left
+        ]));
+
+    let close_wallet_label_container =
+        Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
+            .height(Length::Units(14))
+            .width(Length::Units(30))
+            .center_y()
+            .center_x();
+
+    let close_wallet_button: Element<Interaction> =
+        Button::new(&mut state.back_button_state, close_wallet_label_container)
+            .style(style::DefaultBoxedButton(color_palette))
+            .on_press(Interaction::WalletOperationHomeViewInteraction(
+                LocalViewInteraction::Back,
+            ))
+            .padding(2)
+            .into();
+
+    let subtitle_row = Row::new()
+        .push(subtitle_container)
+        .push(Space::with_width(Length::Units(2)))
+        .push(close_wallet_button.map(Message::Interaction));
+
+    let title_column = Column::new().push(title_container).push(subtitle_row);
+
+    let header_row = Row::new()
+        .push(title_column)
+        .push(Space::with_width(Length::Fill))
+        .push(operations_menu);
+
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        5,               // left
+    ]));
+
+    let total_value_label =
+        Text::new(format!("{}:", localized_string("info-confirmed-total"))).size(DEFAULT_FONT_SIZE);
     let total_value_label_container =
         Container::new(total_value_label).style(style::BrightBackgroundContainer(color_palette));
 
-    let total_value = Text::new(total_string);
+    let total_value = Text::new(total_string).size(DEFAULT_FONT_SIZE);
     let total_value_container = Container::new(total_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -287,17 +320,18 @@ pub fn data_container<'a>(
     let total_row = Row::new()
         .push(total_value_label_container)
         .push(total_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_confirmation_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-confirmation")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let awaiting_confirmation_value = Text::new(awaiting_confirmation_string);
+    let awaiting_confirmation_value =
+        Text::new(awaiting_confirmation_string).size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -306,17 +340,18 @@ pub fn data_container<'a>(
     let awaiting_confirmation_row = Row::new()
         .push(awaiting_confirmation_label_container)
         .push(awaiting_confirmation_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_finalization_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-finalization")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let awaiting_finalization_value = Text::new(awaiting_finalization_string);
+    let awaiting_finalization_value =
+        Text::new(awaiting_finalization_string).size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -325,14 +360,14 @@ pub fn data_container<'a>(
     let awaiting_finalization_row = Row::new()
         .push(awaiting_finalization_label_container)
         .push(awaiting_finalization_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
-    let locked_label = Text::new(format!("{}:", localized_string("info-locked")));
+    let locked_label =
+        Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
     let locked_label_container =
         Container::new(locked_label).style(style::BrightBackgroundContainer(color_palette));
 
-    let locked_value = Text::new(locked_string);
+    let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -341,15 +376,15 @@ pub fn data_container<'a>(
     let locked_row = Row::new()
         .push(locked_label_container)
         .push(locked_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let amount_spendable_label =
-        Text::new(format!("{}:", localized_string("info-amount-spendable")));
+        Text::new(format!("{}:", localized_string("info-amount-spendable")))
+            .size(DEFAULT_FONT_SIZE);
     let amount_spendable_label_container = Container::new(amount_spendable_label)
         .style(style::BrightBackgroundContainer(color_palette));
 
-    let amount_spendable_value = Text::new(amount_spendable_string);
+    let amount_spendable_value = Text::new(amount_spendable_string).size(DEFAULT_FONT_SIZE);
     let amount_spendable_value_container = Container::new(amount_spendable_value)
         .style(style::BrightBackgroundContainer(color_palette))
         .width(Length::Fill)
@@ -358,8 +393,7 @@ pub fn data_container<'a>(
     let amount_spendable_row = Row::new()
         .push(amount_spendable_label_container)
         .push(amount_spendable_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let info_column = Column::new()
         .push(total_row)
@@ -367,22 +401,18 @@ pub fn data_container<'a>(
         .push(awaiting_finalization_row)
         .push(locked_row)
         .push(amount_spendable_row)
-        .spacing(10);
+        .spacing(7);
 
-    let wallet_info_card_title_string = "".to_owned();
-    let wallet_info_card = Card::new(
-        Text::new(wallet_info_card_title_string).size(DEFAULT_HEADER_FONT_SIZE),
-        info_column,
-    )
-    .style(style::NormalModalCardContainer(color_palette));
+    let wallet_info_card_container = Container::new(info_column)
+        .width(Length::Units(240))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            5,               // left
+        ]));
 
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(2));
-
-    // Home 'row', operation buttons beside info
-    let first_row_container = Row::new()
-        .push(wallet_info_card_container)
-        .push(operations_menu)
-        .padding(10);
+    let first_row_container = Row::new().push(wallet_info_card_container);
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -513,16 +543,16 @@ pub fn data_container<'a>(
 
     // Overall Home screen layout column
     let column = Column::new()
-        .push(title_row)
+        .push(header_container)
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(status_row)
-        .padding(10) 
-        .align_items(Alignment::Center);
+        .push(status_row);
 
-    Container::new(column)
-        .center_y()
-        .center_x()
-        .width(Length::Fill)
+    Container::new(column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
 }
