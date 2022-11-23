@@ -1,4 +1,4 @@
-use iced::{application, Color};
+use iced::{application};
 use super::Theme;
 
 impl application::StyleSheet for Theme {
