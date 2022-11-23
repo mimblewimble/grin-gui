@@ -78,6 +78,7 @@ impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
         self.modal_state.show(show);
         self.show_exit = show;
+        self.show_modal = show;
     }
 
     pub fn safe_exit (&mut self) {
@@ -301,7 +302,7 @@ impl Application for GrinGui {
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
-        //.style(style::NormalModalContainer(color_palette))
+        .style(grin_gui_core::theme::modal::ModalStyles::Normal(color_palette))
         .into()
 
     }

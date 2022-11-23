@@ -6,10 +6,10 @@ pub mod button;
 pub mod card;
 pub mod checkbox;
 pub mod container;
+pub mod modal;
 pub mod picklist;
 pub mod scrollable;
 pub mod text_input;
-pub mod modal;
 
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
@@ -35,7 +35,6 @@ pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Rendere
 pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
 pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
-
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {
@@ -458,8 +457,8 @@ impl Theme {
     }
 }
 
-use iced::widget::{text};
-use iced::{application};
+use iced::application;
+use iced::widget::text;
 
 impl application::StyleSheet for Theme {
     type Style = ();
@@ -477,7 +476,7 @@ impl text::StyleSheet for Theme {
 
     fn appearance(&self, _style: Self::Style) -> text::Appearance {
         text::Appearance {
-            color:  Some(hex_to_color("#ebdbb2").unwrap())
+            color: Some(hex_to_color("#ebdbb2").unwrap()),
         }
     }
 }
