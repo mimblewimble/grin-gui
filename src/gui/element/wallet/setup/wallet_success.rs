@@ -46,7 +46,7 @@ pub fn handle_message(
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("setup-grin-wallet-success"))

@@ -53,9 +53,9 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     color_palette: ColorPalette,
-    error: &mut Option<anyhow::Error>,
+    error: &Option<anyhow::Error>,
 ) -> Container<'a, Message> {
     let mut wallet_mode_button: Button<Interaction> = Button::new(
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),

@@ -224,8 +224,8 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    state: &'a mut StateContainer,
-    config: &mut Config,
+    state: &'a StateContainer,
+    config: &Config,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let language_container = {
@@ -482,7 +482,7 @@ pub fn data_container<'a>(
         .spacing(1);
 
     let scrollable = Scrollable::new(column)
-        .height(Length::FillPortion(1))
+        .height(Length::Fill)
         .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary(
             color_palette,
         ));
@@ -505,7 +505,7 @@ pub fn data_container<'a>(
     }
 
     // Colum wrapping all the settings content.
-    scrollable = scrollable.height(Length::Fill);
+    //scrollable = scrollable.height(Length::Fill);
 
     let col = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(10)))

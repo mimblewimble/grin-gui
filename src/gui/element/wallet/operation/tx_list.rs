@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
     crate::gui::{style, GrinGui, Interaction, Message},
@@ -6,10 +8,10 @@ use {
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_widgets::{header, Header},
+    grin_gui_widgets::{header, Header, TableRow},
     iced::{alignment, Alignment, Command, Length},
     grin_gui_core::theme::{
-        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, TableRow
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput
     },
     iced::widget::{
         button, pick_list, scrollable, text_input, Space,
@@ -897,15 +899,15 @@ fn row_title<T: PartialEq>(
 pub fn titles_row_header<'a>(
     color_palette: ColorPalette,
     tx_list: &TxList,
-    header_state: &'a mut header::State,
-    column_state: &'a mut [ColumnState],
+    header_state: &'a header::State,
+    column_state: &'a [ColumnState],
     previous_column_key: Option<ColumnKey>,
     previous_sort_direction: Option<SortDirection>,
 ) -> Header<'a, Message> {
     // A row containing titles above the addon rows.
     let mut row_titles = vec![];
 
-    for column in column_state.iter_mut().filter(|c| !c.hidden) {
+    for column in column_state.iter().filter(|c| !c.hidden) {
         let column_key = column.key;
 
         let row_title = row_title(
@@ -951,7 +953,7 @@ pub fn titles_row_header<'a>(
     }
 
     Header::new(
-        header_state,
+        header_state.clone(),
         row_titles,
         Some(Length::Units(DEFAULT_PADDING)),
         Some(Length::Units(DEFAULT_PADDING + 5)),

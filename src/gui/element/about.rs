@@ -21,7 +21,7 @@ impl Default for StateContainer {
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     release: &Option<Release>,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     let grin_gui_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
     let grin_gui_title_container = Container::new(grin_gui_title)

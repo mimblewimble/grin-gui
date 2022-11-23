@@ -250,7 +250,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     default_display_name: &str,
 ) -> Container<'a, Message> {
     let check_password = || {

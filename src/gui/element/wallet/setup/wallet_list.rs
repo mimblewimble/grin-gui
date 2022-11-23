@@ -9,7 +9,7 @@ use {
         wallet::{create_grin_wallet_path, ChainTypes},
     },
     iced::{alignment, Alignment, Command, Length},
-    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput},
     iced::widget::{
         button, pick_list, scrollable, text_input, Checkbox, Space,
     },
@@ -17,7 +17,7 @@ use {
     std::path::PathBuf,
 };
 
-use grin_gui_widgets::{table_row::StyleSheet};
+use grin_gui_widgets::{table_row::StyleSheet, Header, TableRow};
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
@@ -126,7 +126,7 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);

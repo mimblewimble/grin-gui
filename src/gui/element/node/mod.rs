@@ -33,11 +33,11 @@ impl StateContainer {
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Embedded => embedded::data_container(color_palette, &mut state.embedded_state, chain_type),
+        Mode::Embedded => embedded::data_container(color_palette, &state.embedded_state, chain_type),
         //_ => Container::new(Column::new()),
     };
 

@@ -177,13 +177,14 @@ fn format_sync_status(sync_status: &SyncStatus) -> String {
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     stats: &'a Option<ServerStats>,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
+
     fn stat_row<'a>(
-        label_text: &str,
-        value_text: &str,
+        label_text: String,
+        value_text: String,
         color_palette: ColorPalette,
     ) -> Column<'a, Message> {
         let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
@@ -206,7 +207,7 @@ pub fn data_container<'a>(
     // Basic Info "Box"
     let stats_info_container = match stats {
         Some(s) => {
-            let status_line_value = Text::new(&format_sync_status(&s.sync_status))
+            let status_line_value = Text::new(format_sync_status(&s.sync_status))
                 .size(DEFAULT_FONT_SIZE)
                 .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -237,13 +238,13 @@ pub fn data_container<'a>(
 
             // Basic status
             let connected_peers_row = stat_row(
-                &localized_string("connected-peers-label"),
-                &format!("{}", &s.peer_count),
+                localized_string("connected-peers-label"),
+                format!("{}", &s.peer_count),
                 color_palette,
             );
             let disk_usage_row = stat_row(
-                &localized_string("disk-usage-label"),
-                &format!("{}", &s.disk_usage_gb),
+                localized_string("disk-usage-label"),
+                format!("{}", &s.disk_usage_gb),
                 color_palette,
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
@@ -260,23 +261,23 @@ pub fn data_container<'a>(
 
             // Tip Status
             let header_tip_hash_row = stat_row(
-                &localized_string("header-tip-label"),
-                &format!("{}", &s.header_stats.last_block_h),
+                localized_string("header-tip-label"),
+                format!("{}", &s.header_stats.last_block_h),
                 color_palette,
             );
             let header_chain_height_row = stat_row(
-                &localized_string("header-chain-height-label"),
-                &format!("{}", &s.header_stats.height),
+                localized_string("header-chain-height-label"),
+                format!("{}", &s.header_stats.height),
                 color_palette,
             );
             let header_chain_difficulty_row = stat_row(
-                &localized_string("header-chain-difficulty-label"),
-                &format!("{}", &s.header_stats.total_difficulty),
+                localized_string("header-chain-difficulty-label"),
+                format!("{}", &s.header_stats.total_difficulty),
                 color_palette,
             );
             let header_tip_timestamp_row = stat_row(
-                &localized_string("header-tip-timestamp-label"),
-                &format!("{}", &s.header_stats.latest_timestamp),
+                localized_string("header-tip-timestamp-label"),
+                format!("{}", &s.header_stats.latest_timestamp),
                 color_palette,
             );
             let header_status_column = Column::new()
@@ -297,23 +298,23 @@ pub fn data_container<'a>(
 
             // Chain status
             let chain_tip_hash_row = stat_row(
-                &localized_string("chain-tip-label"),
-                &format!("{}", &s.chain_stats.last_block_h),
+                localized_string("chain-tip-label"),
+                format!("{}", &s.chain_stats.last_block_h),
                 color_palette,
             );
             let chain_height_row = stat_row(
-                &localized_string("chain-height-label"),
-                &format!("{}", &s.chain_stats.height),
+                localized_string("chain-height-label"),
+                format!("{}", &s.chain_stats.height),
                 color_palette,
             );
             let chain_difficulty_row = stat_row(
-                &localized_string("chain-difficulty-label"),
-                &format!("{}", &s.chain_stats.total_difficulty),
+                localized_string("chain-difficulty-label"),
+                format!("{}", &s.chain_stats.total_difficulty),
                 color_palette,
             );
             let chain_tip_timestamp_row = stat_row(
-                &localized_string("chain-tip-timestamp-label"),
-                &format!("{}", &s.chain_stats.latest_timestamp),
+                localized_string("chain-tip-timestamp-label"),
+                format!("{}", &s.chain_stats.latest_timestamp),
                 color_palette,
             );
             let chain_status_column = Column::new()
@@ -336,13 +337,13 @@ pub fn data_container<'a>(
             let tx_status_card = match &s.tx_stats {
                 Some(t) => {
                     let transaction_pool_size_row = stat_row(
-                        &localized_string("transaction-pool-size-label"),
-                        &format!("{}", t.tx_pool_size),
+                        localized_string("transaction-pool-size-label"),
+                        format!("{}", t.tx_pool_size),
                         color_palette,
                     );
                     let stem_pool_size_row = stat_row(
-                        &localized_string("stem-pool-size-label"),
-                        &format!("{}", t.stem_pool_size),
+                        localized_string("stem-pool-size-label"),
+                        format!("{}", t.stem_pool_size),
                         color_palette,
                     );
                     let tx_status_column = Column::new()

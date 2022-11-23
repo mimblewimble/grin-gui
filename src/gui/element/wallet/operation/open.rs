@@ -172,7 +172,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(
     color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
     let mut display_name_string = match config.current_wallet_index {

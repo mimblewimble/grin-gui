@@ -47,7 +47,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: LocalViewInteraction) {
 }
 
 pub fn data_container<'a>(
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let language_container = {

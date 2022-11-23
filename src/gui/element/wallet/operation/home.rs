@@ -222,11 +222,11 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Buttons to perform operations go here, but empty container for now
     let operations_menu =
-        action_menu::data_container(color_palette, config, &mut state.action_menu_state);
+        action_menu::data_container(color_palette, config, &state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -476,8 +476,8 @@ pub fn data_container<'a>(
     let tx_row_titles = super::tx_list::titles_row_header(
         color_palette,
         &state.wallet_txs,
-        &mut state.tx_header_state.state,
-        &mut state.tx_header_state.columns,
+        &state.tx_header_state.state,
+        &state.tx_header_state.columns,
         state.tx_header_state.previous_column_key,
         state.tx_header_state.previous_sort_direction,
     );

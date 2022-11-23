@@ -1,5 +1,4 @@
 use crate::fs;
-use grin_core::core::pmmr::Backend;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -10,6 +9,7 @@ pub mod container;
 pub mod picklist;
 pub mod scrollable;
 pub mod text_input;
+pub mod modal;
 
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
@@ -35,8 +35,6 @@ pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Rendere
 pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
 pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
-pub type Header<'a, Message> = grin_gui_widgets::header::Header<'a, Message, Renderer>;
-pub type TableRow<'a, Message> = grin_gui_widgets::table_row::TableRow<'a, Message, Renderer>;
 
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]

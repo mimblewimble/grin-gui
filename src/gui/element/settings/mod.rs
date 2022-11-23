@@ -57,11 +57,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: LocalViewInteraction) {
 }
 
 pub fn data_container<'a>(
-    state: &'a mut StateContainer,
-    config: &'a mut Config,
-    wallet_settings_state: &'a mut wallet::StateContainer,
-    node_settings_state: &'a mut node::StateContainer,
-    general_settings_state: &'a mut general::StateContainer,
+    state: &'a StateContainer,
+    config: &'a Config,
+    wallet_settings_state: &'a wallet::StateContainer,
+    node_settings_state: &'a node::StateContainer,
+    general_settings_state: &'a general::StateContainer,
     color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let title_string = match state.mode {

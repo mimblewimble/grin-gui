@@ -11,24 +11,25 @@ use grin_gui_core::theme::Element;
 use grin_gui_core::{
     config::Config,
     fs::PersistentData,
-    theme::{Theme, Container, Column, ColorPalette, Button, PickList, Row, Scrollable, Text, Modal},
+    theme::{Theme, Container, Column, ColorPalette, Button, PickList, Row, Scrollable, Text},
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings,};
+use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings};
 use iced::widget::{
     button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
 
 //use iced_native::alignment;
 
-use iced_aw::{modal, Card};
+use iced_aw::{modal, Card, Modal};
 
 use iced_futures::futures::channel::mpsc;
 
 use image::ImageFormat;
 
+use std::borrow::BorrowMut;
 //use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -231,9 +232,9 @@ impl Application for GrinGui {
         let menu_state = self.menu_state.clone();
 
         let mut content = Column::new().push(element::menu::data_container(
-            &mut self.menu_state,
+            &self.menu_state,
             color_palette,
-            &mut self.error,
+            &self.error,
         ));
 
         // Spacer between menu and content.
@@ -242,8 +243,8 @@ impl Application for GrinGui {
             element::menu::Mode::Wallet => {
                 let setup_container = element::wallet::data_container(
                    color_palette,
-                    &mut self.wallet_state,
-                    &self.config
+                   &self.wallet_state,
+                   &self.config
                 );
                 content = content.push(setup_container)
             }
@@ -251,23 +252,23 @@ impl Application for GrinGui {
                 let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
                 let node_container = element::node::data_container(
                     color_palette,
-                    &mut self.node_state,
+                    &self.node_state,
                     chain_type,
                 );
                 content = content.push(node_container)
             }
              element::menu::Mode::About => {
                 let about_container =
-                    element::about::data_container(color_palette, &None, &mut self.about_state);
+                    element::about::data_container(color_palette, &None, &self.about_state);
                 content = content.push(about_container)
             }
             element::menu::Mode::Settings => {
                 content = content.push(element::settings::data_container(
-                    &mut self.settings_state,
-                    &mut self.config,
-                    &mut self.wallet_settings_state,
-                    &mut self.node_settings_state,
-                    &mut self.general_settings_state,
+                    &self.settings_state,
+                    &self.config,
+                    &self.wallet_settings_state,
+                    &self.node_settings_state,
+                    &self.general_settings_state,
                     color_palette,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
@@ -291,7 +292,7 @@ impl Application for GrinGui {
             "".into()
         };
 
-        Modal::new(self.show_modal, content, move|state| {
+        Modal::new(self.show_modal, content, move|| {
             if show_exit {
                 element::modal::exit_card(color_palette).into()
             } else {

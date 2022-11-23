@@ -262,7 +262,9 @@ where
     }
 }
 
-pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
+use grin_gui_core::theme::Theme as Custom;
+//pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
+pub trait Renderer: iced_native::Renderer<Theme = Custom> {
     type Style: Default;
 
     #[allow(clippy::too_many_arguments)]
@@ -270,7 +272,7 @@ pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
         &mut self,
         tree: &Tree,
         layout: Layout<'_>,
-        theme: &Theme,
+        theme: &Custom,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,

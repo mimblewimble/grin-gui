@@ -1,6 +1,5 @@
 #![allow(clippy::type_complexity)]
 
-use crate::renderer;
 pub use crate::style::header::{Style, StyleSheet};
 
 use iced::{widget, Theme};
@@ -21,7 +20,7 @@ where
     spacing: u16,
     width: Length,
     height: Length,
-    state: &'a mut State,
+    state: State,
     leeway: u16,
     on_resize: Option<(u16, Box<dyn Fn(ResizeEvent) -> Message + 'a>)>,
     children: Vec<Element<'a, Message, Renderer>>,
@@ -38,7 +37,7 @@ where
     Message: 'a,
 {
     pub fn new(
-        state: &'a mut State,
+        state: State,
         headers: Vec<(String, Container<'a, Message, Renderer>)>,
         left_margin: Option<Length>,
         right_margin: Option<Length>,
@@ -350,7 +349,10 @@ where
     }*/
 }
 
-pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
+
+use grin_gui_core::theme::Theme as Custom;
+// pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
+pub trait Renderer: iced_native::Renderer<Theme = Custom> {
     type Style: Default;
 
     #[allow(clippy::too_many_arguments)]
@@ -358,7 +360,7 @@ pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
         &mut self,
         tree: &Tree,
         layout: Layout<'_>,
-        theme: &Theme,
+        theme: &Custom,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Vec<Element<'_, Message, Self>>,

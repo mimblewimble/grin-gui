@@ -88,7 +88,7 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(
     color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     let button_width = Length::Units(70);
 
