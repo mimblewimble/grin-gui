@@ -16,7 +16,7 @@ pub enum Container {
     HoverableBrightForeground(ColorPalette),
     SuccessBackground(ColorPalette),
     Segmented(ColorPalette),
-    PanelBordered(ColorPalette), 
+    PanelBordered(ColorPalette),
     PanelForeground(ColorPalette),
 }
 
@@ -27,8 +27,8 @@ impl container::StyleSheet for Theme {
         match style {
             Container::Default => container::Appearance::default(),
             Container::BrightBackground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.normal.surface),
+                background: Some(Background::Color(palette.base.background)),
+                text_color: Some(palette.bright.surface),
                 ..container::Appearance::default()
             },
             Container::BrightForeground(palette) => container::Appearance {
@@ -42,23 +42,27 @@ impl container::StyleSheet for Theme {
                 ..container::Appearance::default()
             },
             Container::NormalBackground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
+                background: Some(Background::Color(palette.base.background)),
                 text_color: Some(palette.normal.surface),
                 ..container::Appearance::default()
             },
             Container::Segmented(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.normal.surface),
+                border_radius: 2.0,
+                border_width: 1.0,
+                border_color: Color {
+                    a: 0.5,
+                    ..palette.normal.primary
+                },
                 ..container::Appearance::default()
             },
             Container::HoverableForeground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
+                background: None,
                 text_color: Some(palette.normal.surface),
                 ..container::Appearance::default()
             },
             Container::HoverableBrightForeground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.normal.surface),
+                background: None,
+                text_color: Some(palette.bright.primary),
                 ..container::Appearance::default()
             },
             Container::SuccessBackground(palette) => container::Appearance {
@@ -70,11 +74,8 @@ impl container::StyleSheet for Theme {
                 background: Some(Background::Color(palette.base.foreground)),
                 text_color: Some(palette.bright.primary),
                 border_radius: 2.0,
-                border_width: 1.0,
-                border_color: Color {
-                    a: 0.5,
-                    ..palette.normal.primary
-                },
+                border_width: 0.0,
+                border_color: Color::TRANSPARENT,
             },
             Container::PanelBordered(palette) => container::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),

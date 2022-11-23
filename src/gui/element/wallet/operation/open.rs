@@ -25,7 +25,7 @@ use {
     std::sync::{Arc, RwLock},
 };
 
-static INPUT_WIDTH: u16 = 200;
+static INPUT_WIDTH: u16 = 212;
 static UNIT_SPACE: u16 = 15;
 
 pub struct StateContainer {
@@ -189,7 +189,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let display_name_container =
-        Container::new(display_name).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(display_name).style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let password_column = {
         let password_input = TextInput::new(
@@ -238,7 +238,6 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
-        // &mut state.submit_button_state,
         submit_button_label_container,
     )
     .style(grin_gui_core::theme::button::Button::Primary(color_palette));

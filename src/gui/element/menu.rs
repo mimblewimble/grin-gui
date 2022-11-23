@@ -205,7 +205,7 @@ pub fn data_container<'a>(
     let version_container = Container::new(version_text)
         .center_y()
         .padding(5)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightForeground(color_palette));
 
     let segmented_mode_control_row: Row<Message> = Row::with_children(vec![
         about_mode_button.map(Message::Interaction),

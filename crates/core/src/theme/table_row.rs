@@ -59,7 +59,7 @@ pub struct TableRow(pub ColorPalette);
 impl StyleSheet for TableRow {
     fn style(&self) -> Style {
         Style {
-            text_color: None,
+            text_color: Some(self.0.normal.primary),
             background: Some(Background::Color(self.0.base.foreground)),
             border_radius: 0.0,
             border_width: 0.0,
@@ -84,7 +84,7 @@ pub struct TableRowHighlife(pub ColorPalette);
 impl StyleSheet for TableRowHighlife {
     fn style(&self) -> Style {
         Style {
-            text_color: None,
+            text_color: Some(self.0.normal.primary),
             background: Some(Background::Color(Color {
                 a: 0.30,
                 ..self.0.base.foreground
@@ -112,7 +112,7 @@ pub struct TableRowLowlife(pub ColorPalette);
 impl StyleSheet for TableRowLowlife {
     fn style(&self) -> Style {
         Style {
-            text_color: None,
+            text_color: Some(self.0.normal.primary),
             background: Some(Background::Color(Color::TRANSPARENT)),
             border_radius: 0.0,
             border_width: 0.0,
@@ -136,7 +136,7 @@ pub struct TableRowSelected(pub ColorPalette);
 impl StyleSheet for TableRowSelected {
     fn style(&self) -> Style {
         Style {
-            text_color: None,
+            text_color: Some(self.0.normal.primary),
             background: Some(Background::Color(self.0.normal.primary)),
             border_radius: 0.0,
             border_width: 0.0,
