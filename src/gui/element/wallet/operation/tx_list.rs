@@ -8,10 +8,10 @@ use {
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_widgets::{header, Header, TableRow},
+    grin_gui_widgets::{header},
     iced::{alignment, Alignment, Command, Length},
     grin_gui_core::theme::{
-        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
     },
     iced::widget::{
         button, pick_list, scrollable, text_input, Space,

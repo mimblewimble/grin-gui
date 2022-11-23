@@ -2,21 +2,26 @@
 
 pub use crate::style::header::{Style, StyleSheet};
 
-use iced::{widget, Theme};
-
+use iced::widget;
 use iced_native::{
     event, layout, mouse,
     widget::{container::Container, space::Space, Tree},
     Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
+use std::marker::PhantomData;
+
 
 mod state;
 pub use state::State;
 
-pub struct Header<'a, Message, Renderer>
+
+pub struct Header<'a, Message, Renderer, Theme>
 where
-    Renderer: self::Renderer,
+    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
+    Renderer: self::Renderer<Theme>,
 {
+    // we need to reference the genereic theme here so rust doesn't compain about Theme not being used
+    unused_arg: PhantomData<Theme>,
     spacing: u16,
     width: Length,
     height: Length,
@@ -30,9 +35,9 @@ where
     style_sheet: Box<dyn StyleSheet + 'a>,
 }
 
-impl<'a, Message, Renderer> Header<'a, Message, Renderer>
+impl<'a, Message, Renderer, Theme> Header<'a, Message, Renderer, Theme>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + self::Renderer<Theme>,
     Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
     Message: 'a,
 {
@@ -65,6 +70,7 @@ where
         }
 
         Self {
+            unused_arg: PhantomData,
             spacing: 0,
             width: Length::Fill,
             height: Length::Fill,
@@ -129,9 +135,9 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer> for Header<'a, Message, Renderer>
+impl<'a, Message, Renderer, Theme> Widget<Message, Renderer> for Header<'a, Message, Renderer, Theme>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + self::Renderer<Theme>,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
@@ -350,9 +356,9 @@ where
 }
 
 
-use grin_gui_core::theme::Theme as Custom;
+//use grin_gui_core::theme::Theme as Custom;
 // pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
-pub trait Renderer: iced_native::Renderer<Theme = Custom> {
+pub trait Renderer<T>: iced_native::Renderer<Theme = T> {
     type Style: Default;
 
     #[allow(clippy::too_many_arguments)]
@@ -360,7 +366,7 @@ pub trait Renderer: iced_native::Renderer<Theme = Custom> {
         &mut self,
         tree: &Tree,
         layout: Layout<'_>,
-        theme: &Custom,
+        theme: &T,
         cursor_position: Point,
         style_sheet: &dyn StyleSheet,
         content: &Vec<Element<'_, Message, Self>>,
@@ -377,13 +383,13 @@ pub trait Renderer: iced_native::Renderer<Theme = Custom> {
     ) -> mouse::Interaction;
 }
 
-impl<'a, Message, Renderer> From<Header<'a, Message, Renderer>> for Element<'a, Message, Renderer>
+impl<'a, Message, Renderer, Theme: 'a> From<Header<'a, Message, Renderer, Theme>> for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + self::Renderer<Theme>,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
-    fn from(header: Header<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
+    fn from(header: Header<'a, Message, Renderer, Theme>) -> Element<'a, Message, Renderer> {
         Element::new(header)
     }
 }

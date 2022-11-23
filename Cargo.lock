@@ -2503,6 +2503,7 @@ dependencies = [
  "flate2",
  "futures 0.3.25",
  "glob",
+ "grin-gui-widgets",
  "grin_chain",
  "grin_config",
  "grin_core",
@@ -2548,7 +2549,6 @@ dependencies = [
 name = "grin-gui-widgets"
 version = "0.1.0"
 dependencies = [
- "grin-gui-core",
  "iced",
  "iced_core",
  "iced_glow",

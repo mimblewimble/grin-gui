@@ -4,7 +4,7 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
+use grin_gui_widgets::{header};
 //use iced::button::StyleSheet;
 use iced_aw::Card;
 use iced_native::Widget;
@@ -24,7 +24,7 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::{
-        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
     },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},

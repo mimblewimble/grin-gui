@@ -5,7 +5,7 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
+use grin_gui_widgets::{header};
 use iced::alignment;
 use iced_aw::Card;
 use iced_native::Widget;
@@ -21,7 +21,7 @@ use {
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput},
+    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
     iced::{Alignment, Command, Length},
     iced::widget::{
         button, pick_list, scrollable, text_input, Checkbox, Space,

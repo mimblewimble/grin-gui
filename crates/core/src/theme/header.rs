@@ -1,14 +1,13 @@
-use crate::style::header::StyleSheet;
-
-use crate::widget::header;
-//use iced::theme::Theme;
-use grin_gui_core::theme::Theme;
+use grin_gui_widgets::style::header::{StyleSheet, Style};
+use grin_gui_widgets::header;
 use iced_graphics::{Backend, Renderer};
 use iced_native::mouse;
 use iced_native::widget::Tree;
 use iced_native::{Element, Layout, Point, Rectangle};
+use iced::{Color};
+use super::Theme;
 
-impl<B> header::Renderer for Renderer<B, Theme>
+impl<B> header::Renderer<Theme> for Renderer<B, Theme>
 where
     B: Backend,
 {
@@ -44,6 +43,28 @@ where
     ) {
         for (child, layout) in content.iter().zip(layout.children()) {
             child.as_widget().draw(tree, self, theme, &iced_native::renderer::Style::default(), layout, cursor_position, viewport);
+        }
+    }
+}
+
+
+impl header::StyleSheet for Theme {
+    fn style(&self) -> Style {
+        Style {
+            text_color: None,
+            background: None,
+            border_radius: 0.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            offset_right: 0.0,
+            offset_left: 0.0,
+        }
+    }
+
+    fn hovered(&self) -> Style {
+        Style {
+            background: None,
+            ..self.style()
         }
     }
 }

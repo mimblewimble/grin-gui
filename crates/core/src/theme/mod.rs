@@ -10,6 +10,8 @@ pub mod modal;
 pub mod picklist;
 pub mod scrollable;
 pub mod text_input;
+pub mod header;
+pub mod table_row;
 
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
@@ -35,6 +37,9 @@ pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Rendere
 pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
 pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
+pub type Header<'a, Message> = grin_gui_widgets::widget::header::Header<'a, Message, Renderer, Theme>;
+pub type TableRow<'a, Message> = grin_gui_widgets::widget::table_row::TableRow<'a, Message, Renderer, Theme>;
+
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {

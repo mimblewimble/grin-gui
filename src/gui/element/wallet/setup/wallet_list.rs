@@ -9,7 +9,7 @@ use {
         wallet::{create_grin_wallet_path, ChainTypes},
     },
     iced::{alignment, Alignment, Command, Length},
-    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput},
+    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
     iced::widget::{
         button, pick_list, scrollable, text_input, Checkbox, Space,
     },
@@ -17,7 +17,7 @@ use {
     std::path::PathBuf,
 };
 
-use grin_gui_widgets::{table_row::StyleSheet, Header, TableRow};
+use grin_gui_widgets::{table_row::StyleSheet};
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
