@@ -258,7 +258,7 @@ where
         renderer: &Renderer,
     ) -> Option<overlay::Element<'b, Message, Renderer>> {
          self.content.as_widget()
-             .overlay(&mut tree.children[0], layout.children().next().unwrap(), renderer)
+             .overlay(tree, layout.children().next().unwrap(), renderer)
     }
 }
 
