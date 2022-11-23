@@ -1,7 +1,7 @@
 pub mod embedded;
 
 use {
-    crate::gui::{style, Message},
+    crate::gui::{Message},
     grin_gui_core::{theme::ColorPalette, node::ChainTypes},
     iced::Length,
     grin_gui_core::theme::{Container, Column},

@@ -6,7 +6,7 @@ const NANO_TO_MILLIS: f64 = 1.0 / 1_000_000.0;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_SUB_HEADER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},

@@ -4,7 +4,7 @@ use super::{BUTTON_HEIGHT, BUTTON_WIDTH};
 
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::theme::{Card, Container, Column, Button, Element, Scrollable, Text, PickList, Row},

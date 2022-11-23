@@ -3,7 +3,7 @@ use crate::gui::element::DEFAULT_PADDING;
 pub mod summary;
 
 use {
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::Result,
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,

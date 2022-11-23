@@ -4,7 +4,7 @@ pub mod wallet_success;
 pub mod wallet_list;
 
 use {
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,

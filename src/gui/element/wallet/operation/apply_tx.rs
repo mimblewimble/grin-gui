@@ -15,7 +15,7 @@ use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,

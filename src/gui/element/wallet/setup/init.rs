@@ -1,6 +1,6 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message, element::settings::wallet},
+    crate::gui::{GrinGui, Interaction, Message, element::settings::wallet},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{

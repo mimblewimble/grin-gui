@@ -29,6 +29,32 @@ impl StyleSheet for Theme {
     }
 }
 
+
+pub struct TableRowAlternate(pub ColorPalette);
+impl StyleSheet for TableRowAlternate {
+    fn style(&self) -> Style {
+        let default = TableRow(self.0).style();
+
+        Style {
+            background: Some(Background::Color(Color {
+                a: 0.50,
+                ..self.0.base.foreground
+            })),
+            ..default
+        }
+    }
+    fn hovered(&self) -> Style {
+        let style = self.style();
+        Style {
+            background: Some(Background::Color(Color {
+                a: 0.25,
+                ..self.0.normal.primary
+            })),
+            ..style
+        }
+    }
+}
+
 pub struct TableRow(pub ColorPalette);
 impl StyleSheet for TableRow {
     fn style(&self) -> Style {

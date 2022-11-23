@@ -18,7 +18,7 @@ use {
         DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, DEFAULT_SUB_HEADER_FONT_SIZE,
         SMALLER_FONT_SIZE,
     },
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::log_error,
     crate::Result,

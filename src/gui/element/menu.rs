@@ -1,6 +1,6 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::VERSION,
     grin_gui_core::theme::ColorPalette,

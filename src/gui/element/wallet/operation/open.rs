@@ -6,7 +6,7 @@ use crate::log_error;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,

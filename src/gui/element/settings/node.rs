@@ -1,6 +1,6 @@
 use {
     super::DEFAULT_FONT_SIZE,
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::theme::{Button, Column, Container, PickList, Row, Scrollable, Text, TextInput},

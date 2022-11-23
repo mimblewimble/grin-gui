@@ -1,6 +1,6 @@
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::{localized_string, LANG},
     crate::{log_error, Result},
     anyhow::Context,

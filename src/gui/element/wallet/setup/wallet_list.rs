@@ -1,6 +1,6 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, BUTTON_HEIGHT, BUTTON_WIDTH},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::config::Config,
@@ -280,13 +280,13 @@ pub fn data_container<'a>(
 
         if selected_wallet {
             // selected wallet should be highlighted
-            table_row = table_row.style(style::TableRowSelected(color_palette));
+            table_row = table_row.style(grin_gui_core::theme::table_row::TableRowSelected(color_palette));
         } else {
             // contrast row styles to spice things up
             if pos % 2 == 0 {
-                table_row = table_row.style(style::TableRowLowlife(color_palette));
+                table_row = table_row.style(grin_gui_core::theme::table_row::TableRowLowlife(color_palette));
             } else {
-                table_row = table_row.style(style::TableRowHighlife(color_palette));
+                table_row = table_row.style(grin_gui_core::theme::table_row::TableRowHighlife(color_palette));
             }
         }
 

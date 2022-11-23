@@ -6,7 +6,7 @@ pub mod create_tx;
 pub mod apply_tx;
 
 use {
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,

@@ -4,7 +4,7 @@ pub mod wallet;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,

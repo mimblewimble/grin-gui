@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
@@ -1754,9 +1754,9 @@ pub fn data_row_container<'a, 'b>(
         });
 
     if is_odd == Some(true) {
-        table_row = table_row.style(style::TableRowAlternate(color_palette))
+        table_row = table_row.style(grin_gui_core::theme::table_row::TableRowAlternate(color_palette))
     } else {
-        table_row = table_row.style(style::TableRow(color_palette))
+        table_row = table_row.style(grin_gui_core::theme::table_row::TableRow(color_palette))
     }
 
     table_row

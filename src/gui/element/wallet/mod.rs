@@ -2,7 +2,7 @@ pub mod operation;
 pub mod setup;
 
 use {
-    crate::gui::{style, Message},
+    crate::gui::{Message},
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::theme::{Container, Column},
