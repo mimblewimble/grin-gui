@@ -165,7 +165,7 @@ where
 
     fn draw(
         &self,
-        tree: &Tree,
+        _tree: &Tree,
         renderer: &mut Renderer,
         theme: &Renderer::Theme,
         _style: &renderer::Style,
@@ -174,6 +174,7 @@ where
         viewport: &Rectangle,
     ) {
         let mut bounds = layout.bounds();
+        let tree = Tree::new(&self.content); 
 
         // inner_row_height set?
         if self.inner_row_height != u32::MAX {
@@ -182,7 +183,7 @@ where
 
         self::Renderer::draw(
             renderer,
-            tree,
+            &tree,
             layout,
             theme,
             cursor_position,
@@ -195,7 +196,7 @@ where
 
     fn mouse_interaction(
         &self,
-        tree: &Tree,
+        _tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
@@ -220,7 +221,7 @@ where
 
     fn on_event(
         &mut self,
-        tree: &mut Tree,
+        _tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -228,8 +229,10 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
+        let mut tree = Tree::new(&self.content); 
+
         let status_from_content = self.content.as_widget_mut().on_event(
-            tree,
+            &mut tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
