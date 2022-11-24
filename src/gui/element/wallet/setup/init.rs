@@ -78,7 +78,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let title_row = Row::new()
         .push(title_container)
@@ -90,14 +90,14 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
     let description_container =
-        Container::new(description).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let or_text = Text::new(localized_string("or-caps"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let or_text_container =
-        Container::new(or_text).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(or_text).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let create_default_wallet_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-autogenerate-wallet")).size(DEFAULT_FONT_SIZE),
@@ -108,7 +108,7 @@ pub fn data_container<'a>(
     let create_default_wallet_button: Element<Interaction> = Button::new(
         create_default_wallet_button_label_container,
     )
-    .style(grin_gui_core::theme::button::Button::Bordered)
+    .style(grin_gui_core::theme::ButtonStyle::Bordered)
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletSetup,
     ))
@@ -122,7 +122,7 @@ pub fn data_container<'a>(
     let select_wallet_button: Element<Interaction> = Button::new(
         select_wallet_button_label_container,
     )
-    .style(grin_gui_core::theme::button::Button::Bordered)
+    .style(grin_gui_core::theme::ButtonStyle::Bordered)
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletList,
     ))
@@ -138,7 +138,7 @@ pub fn data_container<'a>(
             localized_string("setup-grin-autogenerate-wallet"),
             Interaction::ToggleCloseToTray,
         )
-        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal)
+        .style(grin_gui_core::theme::CheckboxStyles::Normal)
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 

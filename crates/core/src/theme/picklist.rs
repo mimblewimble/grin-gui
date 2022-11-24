@@ -2,22 +2,21 @@
 
 use iced_style::{pick_list, menu};
 use iced::{Background, Color};
-use super::{ColorPalette, Theme};
-
+use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub enum PickListStyles {
+pub enum PickListStyle {
     #[default]
     Default,
     Primary,
 }
 
 impl pick_list::StyleSheet for Theme {
-    type Style = PickListStyles;
+    type Style = PickListStyle;
 
     fn active(&self, style: &Self::Style) -> pick_list::Appearance {
         match style {
-            PickListStyles::Primary => pick_list::Appearance {
+            PickListStyle::Primary => pick_list::Appearance {
                 text_color: self.palette.bright.surface,
                 background: self.palette.base.background.into(),
                 border_width: 1.0,
@@ -38,7 +37,7 @@ impl pick_list::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style) -> pick_list::Appearance {
         match style {
-            PickListStyles::Primary => {
+            PickListStyle::Primary => {
                 let active = self.active(style);
 
                 pick_list::Appearance {
@@ -53,11 +52,11 @@ impl pick_list::StyleSheet for Theme {
 
 
 impl menu::StyleSheet for Theme {
-    type Style = PickListStyles;
+    type Style = PickListStyle;
 
     fn appearance(&self, style: &Self::Style) -> menu::Appearance {
         match style {
-            PickListStyles::Primary => menu::Appearance {  
+            PickListStyle::Primary => menu::Appearance {  
                 text_color: self.palette.bright.surface,
                 background: Background::Color(self.palette.base.foreground),
                 border_width: 1.0,

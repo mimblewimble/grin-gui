@@ -3,18 +3,18 @@ use iced::{Background, Color};
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub enum ScrollableStyles {
+pub enum ScrollableStyle {
     #[default]
     Default,
     Primary,
 }
 
 impl scrollable::StyleSheet for Theme {
-    type Style = ScrollableStyles;
+    type Style = ScrollableStyle;
 
     fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         match style {
-            ScrollableStyles::Default => scrollable::Scrollbar {
+            ScrollableStyle::Default => scrollable::Scrollbar {
                 background: Some(Background::Color(Color::TRANSPARENT)),
                 border_radius: 0.0,
                 border_width: 0.0,
@@ -27,7 +27,7 @@ impl scrollable::StyleSheet for Theme {
                 },
             },
 
-            ScrollableStyles::Primary =>  scrollable::Scrollbar {
+            ScrollableStyle::Primary =>  scrollable::Scrollbar {
                 background: Some(Background::Color(self.palette.base.background)),
                 border_radius: 0.0,
                 border_width: 0.0,

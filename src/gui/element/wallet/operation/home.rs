@@ -260,11 +260,11 @@ pub fn data_container<'a>(
     // Title row
     let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
     let subtitle_container = Container::new(subtitle)
-        .style(grin_gui_core::theme::container::Container::NormalBackground)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
             3, // top
             0, // right
@@ -280,7 +280,7 @@ pub fn data_container<'a>(
             .center_x();
 
     let close_wallet_button: Element<Interaction> = Button::new(close_wallet_label_container)
-        .style(grin_gui_core::theme::button::Button::Bordered)
+        .style(grin_gui_core::theme::ButtonStyle::Bordered)
         .on_press(Interaction::WalletOperationHomeViewInteraction(
             LocalViewInteraction::Back,
         ))
@@ -314,11 +314,11 @@ pub fn data_container<'a>(
     let total_value_label =
         Text::new(format!("{}:", localized_string("info-confirmed-total"))).size(DEFAULT_FONT_SIZE);
     let total_value_label_container = Container::new(total_value_label)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let total_value = Text::new(total_string).size(DEFAULT_FONT_SIZE);
     let total_value_container = Container::new(total_value)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -333,12 +333,12 @@ pub fn data_container<'a>(
     ))
     .size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let awaiting_confirmation_value =
         Text::new(awaiting_confirmation_string).size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -353,12 +353,12 @@ pub fn data_container<'a>(
     ))
     .size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let awaiting_finalization_value =
         Text::new(awaiting_finalization_string).size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -370,11 +370,11 @@ pub fn data_container<'a>(
     let locked_label =
         Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
     let locked_label_container = Container::new(locked_label)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -387,11 +387,11 @@ pub fn data_container<'a>(
         Text::new(format!("{}:", localized_string("info-amount-spendable")))
             .size(DEFAULT_FONT_SIZE);
     let amount_spendable_label_container = Container::new(amount_spendable_label)
-        .style(grin_gui_core::theme::container::Container::BrightBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let amount_spendable_value = Text::new(amount_spendable_string).size(DEFAULT_FONT_SIZE);
     let amount_spendable_value_container = Container::new(amount_spendable_value)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -446,10 +446,10 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
 
     let status_container = Container::new(status_container_contents)
-        .style(grin_gui_core::theme::container::Container::BrightForeground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
         .height(Length::Fill)
         .width(Length::Fill)
-        .style(grin_gui_core::theme::container::Container::NormalBackground);
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let status_row = Row::new()
         .push(status_container)
@@ -489,7 +489,7 @@ pub fn data_container<'a>(
     // Each row holds data about a single tx.
     let mut content = Column::new().spacing(1);
     //.height(Length::Fill)
-    //.style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary);
+    //.style(grin_gui_core::theme::ScrollableStyles::Primary);
 
     let mut has_txs = false;
     // Loops though the txs.
@@ -535,7 +535,7 @@ pub fn data_container<'a>(
     }
 
     let mut tx_list_scrollable = Scrollable::new(content).style(
-        grin_gui_core::theme::scrollable::ScrollableStyles::Primary,
+        grin_gui_core::theme::ScrollableStyle::Primary,
     );
 
     // Bottom space below the scrollable.

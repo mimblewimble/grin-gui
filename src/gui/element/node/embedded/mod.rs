@@ -68,7 +68,7 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Fill)
-        .style(grin_gui_core::theme::container::Container::NormalBackground)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

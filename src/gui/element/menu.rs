@@ -92,30 +92,30 @@ pub fn data_container<'a>(
     match state.mode {
         Mode::Wallet => {
             wallet_mode_button =
-                wallet_mode_button.style(grin_gui_core::theme::button::Button::Selected);
-            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary);
+                wallet_mode_button.style(grin_gui_core::theme::ButtonStyle::Selected);
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::Node => {
-            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Selected);
-            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary);
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::ButtonStyle::Selected);
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::Settings => {
-            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            about_mode_button = about_mode_button.style(grin_gui_core::theme::button::Button::Primary);
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            about_mode_button = about_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
             settings_mode_button =
-                settings_mode_button.style(grin_gui_core::theme::button::Button::Selected);
+                settings_mode_button.style(grin_gui_core::theme::ButtonStyle::Selected);
         }
         Mode::About => {
-            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::button::Button::Primary);
-            node_mode_button = node_mode_button.style(grin_gui_core::theme::button::Button::Primary);
+            wallet_mode_button = wallet_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_mode_button = node_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
             about_mode_button =
-                about_mode_button.style(grin_gui_core::theme::button::Button::Selected);
-            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::button::Button::Primary);
+                about_mode_button.style(grin_gui_core::theme::ButtonStyle::Selected);
+            settings_mode_button = settings_mode_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         } /*Mode::Setup => {
               wallet_mode_button =
                   wallet_mode_button.style(style::DisabledDefaultButton);
@@ -145,7 +145,7 @@ pub fn data_container<'a>(
 
     let segmented_addon_container = Container::new(segmented_addons_row)
         .padding(2)
-        .style(grin_gui_core::theme::container::Container::Segmented);
+        .style(grin_gui_core::theme::ContainerStyle::Segmented);
 
     // Empty container shown if no error message
     let mut error_column = Column::new();
@@ -160,7 +160,7 @@ pub fn data_container<'a>(
                 .vertical_alignment(alignment::Vertical::Center)
                 .size(SMALLER_FONT_SIZE),
         )
-        .style(grin_gui_core::theme::button::Button::NormalText)
+        .style(grin_gui_core::theme::ButtonStyle::NormalText)
         .on_press(Interaction::OpenErrorModal);
 
         let error_detail_button: Element<Interaction> = error_detail_button.into();
@@ -177,7 +177,7 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(grin_gui_core::theme::container::Container::ErrorForeground);
+        .style(grin_gui_core::theme::ContainerStyle::ErrorForeground);
 
     /*let version_text = Text::new(if let Some(release) = &self_update_state.latest_release {
         if VersionCompare::compare_to(&release.tag_name, VERSION, &CompOp::Gt).unwrap_or(false) {
@@ -205,7 +205,7 @@ pub fn data_container<'a>(
     let version_container = Container::new(version_text)
         .center_y()
         .padding(5)
-        .style(grin_gui_core::theme::container::Container::BrightForeground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
     let segmented_mode_control_row: Row<Message> = Row::with_children(vec![
         about_mode_button.map(Message::Interaction),
@@ -215,7 +215,7 @@ pub fn data_container<'a>(
 
     let segmented_mode_control_container = Container::new(segmented_mode_control_row)
         .padding(2)
-        .style(grin_gui_core::theme::container::Container::Segmented);
+        .style(grin_gui_core::theme::ContainerStyle::Segmented);
 
     let settings_row = Row::with_children(vec![
         segmented_addon_container.into(),
@@ -228,7 +228,7 @@ pub fn data_container<'a>(
 
     // Wraps it in a container with even padding on all sides
     Container::new(settings_row)
-        .style(grin_gui_core::theme::container::Container::BrightForeground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

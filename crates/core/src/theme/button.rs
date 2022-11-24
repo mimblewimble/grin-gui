@@ -4,7 +4,7 @@ use iced::{Background, Color};
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub enum Button {
+pub enum ButtonStyle {
     #[default]
     Default,
     Bordered,
@@ -16,12 +16,12 @@ pub enum Button {
 }
 
 impl button::StyleSheet for Theme {
-    type Style = Button;
+    type Style = ButtonStyle;
 
     fn active(&self, style: &Self::Style) -> button::Appearance {
         match style {
-            Button::Default => button::Appearance::default(),
-            Button::Bordered => button::Appearance {
+            ButtonStyle::Default => button::Appearance::default(),
+            ButtonStyle::Bordered => button::Appearance {
                 border_color: Color {
                     a: 0.5,
                     ..self.palette.normal.primary
@@ -31,23 +31,23 @@ impl button::StyleSheet for Theme {
                 text_color: self.palette.bright.primary,
                 ..button::Appearance::default()
             },
-            Button::Primary => button::Appearance {
+            ButtonStyle::Primary => button::Appearance {
                 text_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 ..Default::default()
             },
-            Button::Selected => button::Appearance {
+            ButtonStyle::Selected => button::Appearance {
                 background: Some(Background::Color(self.palette.normal.primary)),
                 text_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::NormalText =>  button::Appearance {
+            ButtonStyle::NormalText =>  button::Appearance {
                 text_color: self.palette.normal.surface,
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::SelectedColumn => button::Appearance {
+            ButtonStyle::SelectedColumn => button::Appearance {
                 background: Some(Background::Color(self.palette.base.background)),
                 text_color: Color {
                     ..self.palette.bright.primary
@@ -55,7 +55,7 @@ impl button::StyleSheet for Theme {
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::ColumnHeader => button::Appearance {
+            ButtonStyle::ColumnHeader => button::Appearance {
                 background: Some(Background::Color(self.palette.base.background)),
                 text_color: Color {
                     ..self.palette.bright.surface
@@ -68,8 +68,8 @@ impl button::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
         match style {
-            Button::Default => button::Appearance::default(),
-            Button::Bordered => button::Appearance {
+            ButtonStyle::Default => button::Appearance::default(),
+            ButtonStyle::Bordered => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
                     ..self.palette.normal.primary
@@ -77,7 +77,7 @@ impl button::StyleSheet for Theme {
                 text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::Primary => button::Appearance {
+            ButtonStyle::Primary => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
                     ..self.palette.normal.primary
@@ -85,17 +85,17 @@ impl button::StyleSheet for Theme {
                 text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::Selected => button::Appearance {
+            ButtonStyle::Selected => button::Appearance {
                 background: Some(Background::Color(self.palette.normal.primary)),
                 text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::NormalText => button::Appearance {
+            ButtonStyle::NormalText => button::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),
                 text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::SelectedColumn => button::Appearance {
+            ButtonStyle::SelectedColumn => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
                     ..self.palette.normal.primary
@@ -103,7 +103,7 @@ impl button::StyleSheet for Theme {
                 text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::ColumnHeader => button::Appearance {
+            ButtonStyle::ColumnHeader => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.15,
                     ..self.palette.normal.primary
@@ -116,8 +116,8 @@ impl button::StyleSheet for Theme {
 
     fn disabled(&self, style: &Self::Style) -> button::Appearance {
         match style {
-            Button::Default => button::Appearance::default(),
-            Button::Bordered => button::Appearance {
+            ButtonStyle::Default => button::Appearance::default(),
+            ButtonStyle::Bordered => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.05,
                     ..self.palette.normal.primary
@@ -128,14 +128,14 @@ impl button::StyleSheet for Theme {
                 },
                 ..self.active(style)
             },
-            Button::Primary => button::Appearance {
+            ButtonStyle::Primary => button::Appearance {
                 text_color: Color {
                     a: 0.25,
                     ..self.palette.normal.surface
                 },
                 ..self.active(style)
             },
-            Button::Selected => button::Appearance {
+            ButtonStyle::Selected => button::Appearance {
                 ..self.active(style)
             },
             _ => self.disabled(style),

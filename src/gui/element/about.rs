@@ -25,7 +25,7 @@ pub fn data_container<'a>(
 ) -> Container<'a, Message> {
     let grin_gui_title = Text::new(localized_string("grin")).size(DEFAULT_HEADER_FONT_SIZE);
     let grin_gui_title_container = Container::new(grin_gui_title)
-        .style(grin_gui_core::theme::container::Container::NormalBackground);
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let changelog_title_text = Text::new(if let Some(release) = release {
         let mut vars = HashMap::new();
@@ -47,13 +47,13 @@ pub fn data_container<'a>(
 
     let website_button: Element<Interaction> =
         Button::new(Text::new(localized_string("website")).size(DEFAULT_FONT_SIZE))
-            .style(grin_gui_core::theme::button::Button::Bordered)
+            .style(grin_gui_core::theme::ButtonStyle::Bordered)
             .on_press(Interaction::OpenLink(localized_string("website-http")))
             .into();
 
     let donation_button: Element<Interaction> =
         Button::new(Text::new(localized_string("donate")).size(DEFAULT_FONT_SIZE))
-            .style(grin_gui_core::theme::button::Button::Bordered)
+            .style(grin_gui_core::theme::ButtonStyle::Bordered)
             .on_press(Interaction::OpenLink(localized_string("donate-http")))
             .into();
 
@@ -63,9 +63,9 @@ pub fn data_container<'a>(
         .push(donation_button.map(Message::Interaction));
 
     let changelog_text_container = Container::new(changelog_text)
-        .style(grin_gui_core::theme::container::Container::NormalBackground);
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
     let changelog_title_container = Container::new(changelog_title_text)
-        .style(grin_gui_core::theme::container::Container::NormalBackground);
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let column = Column::new()
         .spacing(1)
@@ -79,7 +79,7 @@ pub fn data_container<'a>(
 
     let mut scrollable = Scrollable::new(column)
         .height(Length::FillPortion(1))
-        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary);
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     let col = Column::new().push(scrollable);
     let row = Row::new()
@@ -91,6 +91,6 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(grin_gui_core::theme::container::Container::NormalBackground)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(20)
 }

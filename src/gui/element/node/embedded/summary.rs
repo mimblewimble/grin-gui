@@ -190,12 +190,12 @@ pub fn data_container<'a>(
         let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
 
         let line_label_container =
-            Container::new(line_label).style(grin_gui_core::theme::container::Container::NormalBackground);
+            Container::new(line_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         let line_value = Text::new(value_text).size(DEFAULT_FONT_SIZE);
 
         let line_value_container =
-            Container::new(line_value).style(grin_gui_core::theme::container::Container::NormalBackground);
+            Container::new(line_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
             .push(line_label_container)
@@ -212,7 +212,7 @@ pub fn data_container<'a>(
                 .horizontal_alignment(alignment::Horizontal::Center);
 
             let status_line_value_container = Container::new(status_line_value)
-                .style(grin_gui_core::theme::container::Container::NormalBackground);
+                .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
             let status_line_column = Column::new()
                 .push(status_line_value_container)
@@ -234,7 +234,7 @@ pub fn data_container<'a>(
                     .center_x();
 
             let status_line_card = Card::new(status_line_container, status_line_row)
-                .style(grin_gui_core::theme::card::CardStyles::Normal);
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Basic status
             let connected_peers_row = stat_row(
@@ -257,7 +257,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let basic_status_card = Card::new(basic_status_container, basic_status_column)
-                .style(grin_gui_core::theme::card::CardStyles::Normal);
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Tip Status
             let header_tip_hash_row = stat_row(
@@ -294,7 +294,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let header_status_card = Card::new(header_status_container, header_status_column)
-                .style(grin_gui_core::theme::card::CardStyles::Normal);
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Chain status
             let chain_tip_hash_row = stat_row(
@@ -331,7 +331,7 @@ pub fn data_container<'a>(
             .center_x();
 
             let chain_status_card = Card::new(chain_status_container, chain_status_column)
-                .style(grin_gui_core::theme::card::CardStyles::Normal);
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // TX Pool
             let tx_status_card = match &s.tx_stats {
@@ -364,7 +364,7 @@ pub fn data_container<'a>(
                     Column::new(),
                 ),
             }
-            .style(grin_gui_core::theme::card::CardStyles::Normal);
+            .style(grin_gui_core::theme::CardStyle::Normal);
 
             let display_row_1 = Row::new()
                 .push(status_line_card)
@@ -412,7 +412,7 @@ pub fn data_container<'a>(
         //.align_items(Alignment::Center)
         .height(Length::Fill)
         //.width(Length::Fill)
-        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary);
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     Container::new(scrollable)
         .center_y()

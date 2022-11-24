@@ -99,7 +99,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -109,7 +109,7 @@ pub fn data_container<'a>(
 
     let back_button: Element<Interaction> =
         Button::new( back_button_label_container)
-            .style(grin_gui_core::theme::button::Button::NormalText)
+            .style(grin_gui_core::theme::ButtonStyle::NormalText)
             .on_press(Interaction::WalletOperationCreateTxViewInteraction(
                 LocalViewInteraction::Back,
             ))
@@ -128,7 +128,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let recipient_address_container =
-        Container::new(recipient_address).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(recipient_address).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let recipient_address_input = TextInput::new(
         "",
@@ -138,7 +138,7 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(400))
-    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery);
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
     
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
 
@@ -147,7 +147,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let amount_container =
-        Container::new(amount).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(amount).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let amount_input = TextInput::new(
         // &mut state.amount_input_state,
@@ -158,7 +158,7 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(100))
-    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery);
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
     
     let amount_input: Element<Interaction> = amount_input.into();
 
@@ -167,7 +167,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_instruction_container =
-        Container::new(address_instruction_container).style(grin_gui_core::theme::container::Container::NormalBackground);
+        Container::new(address_instruction_container).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let column = Column::new()
         .push(title_row)

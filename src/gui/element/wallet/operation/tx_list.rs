@@ -931,20 +931,20 @@ pub fn titles_row_header<'a>(
         //}
 
         if previous_column_key == Some(column_key) {
-            row_header = row_header.style(grin_gui_core::theme::button::Button::SelectedColumn);
+            row_header = row_header.style(grin_gui_core::theme::ButtonStyle::SelectedColumn);
         }
         /*else if column_key == ColumnKey::Install {
             row_header = row_header.style(style::UnclickableColumnHeaderButton);
         } */
         else {
-            row_header = row_header.style(grin_gui_core::theme::button::Button::ColumnHeader);
+            row_header = row_header.style(grin_gui_core::theme::ButtonStyle::ColumnHeader);
         }
 
         let row_header: Element<Interaction> = row_header.into();
 
         let row_container = Container::new(row_header.map(Message::Interaction))
             .width(column.width)
-            .style(grin_gui_core::theme::container::Container::NormalBackground);
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         // Only shows row titles if we have any catalog results.
         if !tx_list.txs.is_empty() {
@@ -1076,7 +1076,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, id_container));
     }
@@ -1100,7 +1100,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_creation_time_container));
     }
@@ -1124,7 +1124,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_confirmation_time_container));
     }
@@ -1148,7 +1148,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_net_difference_container));
     }
@@ -1172,7 +1172,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_status_container));
     }
@@ -1238,7 +1238,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(grin_gui_core::theme::container::Container::HoverableForeground);
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_tx_type_container));
     }
@@ -1506,11 +1506,11 @@ pub fn data_row_container<'a, 'b>(
                 let id_title_text =
                     Text::new(format!("{}: ", localized_string("tx-id"))).size(DEFAULT_FONT_SIZE);
                 let id_title_container = Container::new(id_title_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let id_text = Text::new(id).size(DEFAULT_FONT_SIZE);
                 let id_text_container = Container::new(id_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let id_row = Row::new()
                     .push(id_title_container)
@@ -1521,11 +1521,11 @@ pub fn data_row_container<'a, 'b>(
                 let uuid_title_text =
                     Text::new(format!("{}: ", localized_string("tx-shared-id"))).size(DEFAULT_FONT_SIZE);
                 let uuid_title_container = Container::new(uuid_title_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let uuid_text = Text::new(shared_tx_id).size(DEFAULT_FONT_SIZE);
                 let uuid_text_container = Container::new(uuid_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let uuid_row = Row::new()
                     .push(uuid_title_container)
@@ -1536,11 +1536,11 @@ pub fn data_row_container<'a, 'b>(
                 let type_title_text =
                     Text::new(format!("{}: ", localized_string("tx-type"))).size(DEFAULT_FONT_SIZE);
                 let type_title_container = Container::new(type_title_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let type_text = Text::new(tx_type).size(DEFAULT_FONT_SIZE);
                 let type_text_container = Container::new(type_text)
-                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let type_row = Row::new()
                     .push(type_title_container)
@@ -1725,7 +1725,7 @@ pub fn data_row_container<'a, 'b>(
                 let details_container = Container::new(column)
                     .width(Length::Fill)
                     .padding(20)
-                    .style(grin_gui_core::theme::container::Container::NormalBackground);
+                    .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
                 let row = Row::new()
                     .push(left_spacer)

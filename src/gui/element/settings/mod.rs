@@ -75,7 +75,7 @@ pub fn data_container<'a>(
     // Submenu title to appear of left side of panel
     let general_settings_title = Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
     let general_settings_title_container = Container::new(general_settings_title)
-        .style(grin_gui_core::theme::container::Container::BrightBackground)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .padding(iced::Padding::from([
             0, // top
             0, // right
@@ -109,25 +109,25 @@ pub fn data_container<'a>(
 
     match state.mode {
         Mode::Wallet => {
-            wallet_button = wallet_button.style(grin_gui_core::theme::button::Button::Selected);
+            wallet_button = wallet_button.style(grin_gui_core::theme::ButtonStyle::Selected);
             node_button =
-                node_button.style(grin_gui_core::theme::button::Button::Primary);
+                node_button.style(grin_gui_core::theme::ButtonStyle::Primary);
             general_button =
-                general_button.style(grin_gui_core::theme::button::Button::Primary);
+                general_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::Node => {
             wallet_button =
-                wallet_button.style(grin_gui_core::theme::button::Button::Primary);
-            node_button = node_button.style(grin_gui_core::theme::button::Button::Selected);
+                wallet_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_button = node_button.style(grin_gui_core::theme::ButtonStyle::Selected);
             general_button =
-                general_button.style(grin_gui_core::theme::button::Button::Primary);
+                general_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::General => {
             wallet_button =
-                wallet_button.style(grin_gui_core::theme::button::Button::Primary);
+                wallet_button.style(grin_gui_core::theme::ButtonStyle::Primary);
             node_button =
-                node_button.style(grin_gui_core::theme::button::Button::Primary);
-            general_button = general_button.style(grin_gui_core::theme::button::Button::Selected);
+                node_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            general_button = general_button.style(grin_gui_core::theme::ButtonStyle::Selected);
         }
     }
 
@@ -145,7 +145,7 @@ pub fn data_container<'a>(
 
     let segmented_mode_control_container =
         Container::new(segmented_mode_container).padding(1).style(
-            grin_gui_core::theme::container::Container::Segmented,
+            grin_gui_core::theme::ContainerStyle::Segmented,
         );
 
     let header_row = Row::new()
@@ -179,7 +179,7 @@ pub fn data_container<'a>(
     }
 
     Container::new(wrapper_column)
-        .style(grin_gui_core::theme::container::Container::NormalBackground)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

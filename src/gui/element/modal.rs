@@ -46,13 +46,13 @@ pub fn exit_card() -> Card<'static, Message> {
             .align_x(alignment::Horizontal::Center);
 
     let yes_button: Element<Interaction> = Button::new( yes_button_label)
-        .style(grin_gui_core::theme::button::Button::Primary)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
         .on_press(Interaction::Exit)
         .into();
 
     let cancel_button: Element<Interaction> =
         Button::new( cancel_button_label)
-            .style(grin_gui_core::theme::button::Button::Primary)
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
             .on_press(Interaction::ExitCancel)
             .into();
 
@@ -61,11 +61,11 @@ pub fn exit_card() -> Card<'static, Message> {
     // button lipstick
     let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
     let yes_container = Container::new(yes_container)
-        .style(grin_gui_core::theme::container::Container::Segmented)
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(grin_gui_core::theme::container::Container::Segmented)
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let button_row = Row::new()
@@ -89,7 +89,7 @@ pub fn exit_card() -> Card<'static, Message> {
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(grin_gui_core::theme::card::CardStyles::Normal)
+    .style(grin_gui_core::theme::CardStyle::Normal)
 }
 
 pub fn error_card(
@@ -111,7 +111,7 @@ pub fn error_card(
                         .size(DEFAULT_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(grin_gui_core::theme::button::Button::Primary)
+                .style(grin_gui_core::theme::ButtonStyle::Primary)
                 .on_press(Message::Interaction(Interaction::CloseErrorModal)),
             )
             .push(
@@ -120,7 +120,7 @@ pub fn error_card(
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(grin_gui_core::theme::button::Button::NormalText)
+                .style(grin_gui_core::theme::ButtonStyle::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
                     error_cause,
                 ))),
@@ -128,5 +128,5 @@ pub fn error_card(
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(grin_gui_core::theme::card::CardStyles::Normal)
+    .style(grin_gui_core::theme::CardStyle::Normal)
 }

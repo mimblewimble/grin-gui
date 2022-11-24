@@ -290,7 +290,7 @@ impl Application for GrinGui {
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .style(grin_gui_core::theme::container::Container::NormalBackground)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
         let show_exit = self.show_exit;
@@ -309,7 +309,7 @@ impl Application for GrinGui {
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
-        .style(grin_gui_core::theme::modal::ModalStyles::Normal)
+        .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
 
     }

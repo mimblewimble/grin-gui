@@ -4,18 +4,18 @@ use iced::widget::checkbox;
 use iced::Background;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub enum CheckboxStyles {
+pub enum CheckboxStyle {
     #[default]
     Default,
     Normal,
 }
 
 impl checkbox::StyleSheet for Theme {
-    type Style = CheckboxStyles;
+    type Style = CheckboxStyle;
 
     fn active(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
         match style {
-            CheckboxStyles::Normal =>  checkbox::Appearance {
+            CheckboxStyle::Normal =>  checkbox::Appearance {
                 background: Background::Color(self.palette.base.background),
                 checkmark_color: self.palette.bright.primary,
                 border_radius: 2.0,
@@ -29,7 +29,7 @@ impl checkbox::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
         match style {
-            CheckboxStyles::Normal => checkbox::Appearance {
+            CheckboxStyle::Normal => checkbox::Appearance {
                 background: Background::Color(self.palette.base.foreground),
                 checkmark_color: self.palette.bright.primary,
                 border_radius: 2.0,

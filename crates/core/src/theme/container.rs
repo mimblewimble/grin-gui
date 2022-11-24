@@ -1,11 +1,9 @@
 use iced::widget::container;
 use iced::{Background, Color};
-
-use super::ColorPalette;
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub enum Container {
+pub enum ContainerStyle {
     #[default]
     Default,
     BrightForeground,
@@ -21,32 +19,32 @@ pub enum Container {
 }
 
 impl container::StyleSheet for Theme {
-    type Style = Container;
+    type Style = ContainerStyle;
 
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
         match style {
-            Container::Default => container::Appearance::default(),
-            Container::BrightBackground => container::Appearance {
+            ContainerStyle::Default => container::Appearance::default(),
+            ContainerStyle::BrightBackground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.background)),
                 text_color: Some(self.palette.bright.surface),
                 ..container::Appearance::default()
             },
-            Container::BrightForeground => container::Appearance {
+            ContainerStyle::BrightForeground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.foreground)),
                 text_color: Some(self.palette.bright.surface),
                 ..container::Appearance::default()
             },
-            Container::ErrorForeground => container::Appearance {
+            ContainerStyle::ErrorForeground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.foreground)),
                 text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::NormalBackground => container::Appearance {
+            ContainerStyle::NormalBackground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.background)),
                 text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::Segmented => container::Appearance {
+            ContainerStyle::Segmented => container::Appearance {
                 border_radius: 2.0,
                 border_width: 1.0,
                 border_color: Color {
@@ -55,29 +53,29 @@ impl container::StyleSheet for Theme {
                 },
                 ..container::Appearance::default()
             },
-            Container::HoverableForeground => container::Appearance {
+            ContainerStyle::HoverableForeground => container::Appearance {
                 background: None,
                 text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::HoverableBrightForeground => container::Appearance {
+            ContainerStyle::HoverableBrightForeground => container::Appearance {
                 background: None,
                 text_color: Some(self.palette.bright.primary),
                 ..container::Appearance::default()
             },
-            Container::SuccessBackground => container::Appearance {
+            ContainerStyle::SuccessBackground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.foreground)),
                 text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::PanelForeground => container::Appearance {
+            ContainerStyle::PanelForeground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.foreground)),
                 text_color: Some(self.palette.bright.primary),
                 border_radius: 2.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
             },
-            Container::PanelBordered => container::Appearance {
+            ContainerStyle::PanelBordered => container::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),
                 text_color: Some(self.palette.bright.primary),
                 border_radius: 2.0,
