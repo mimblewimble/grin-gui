@@ -19,7 +19,7 @@ impl text_input::StyleSheet for Theme {
         match style {
             TextInputStyles::AddonsQuery(palette) => text_input::Appearance {
                 background: Background::Color(palette.base.foreground),
-                border_radius: 4.0,
+                border_radius: 2.0,
                 border_width: 1.0,
                 border_color: palette.base.foreground,
             },
@@ -32,7 +32,7 @@ impl text_input::StyleSheet for Theme {
         match style {
             TextInputStyles::AddonsQuery(palette) => text_input::Appearance {
                 background: Background::Color(palette.base.foreground),
-                border_radius: 4.0,
+                border_radius: 2.0,
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,

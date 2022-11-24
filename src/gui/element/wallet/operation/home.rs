@@ -260,7 +260,7 @@ pub fn data_container<'a>(
     // Title row
     let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
     let subtitle_container = Container::new(subtitle)
@@ -294,10 +294,15 @@ pub fn data_container<'a>(
         .push(Space::with_width(Length::Units(2)))
         .push(close_wallet_button.map(Message::Interaction));
 
-    let title_column = Column::new().push(title_container).push(subtitle_row);
+    let title_container = Container::new(Column::new().push(title_container).push(subtitle_row)).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        0,               // bottom
+        5,               // left
+    ]));
 
     let header_row = Row::new()
-        .push(title_column)
+        .push(title_container)
         .push(Space::with_width(Length::Fill))
         .push(operations_menu);
 
@@ -305,17 +310,17 @@ pub fn data_container<'a>(
         0,               // top
         0,               // right
         DEFAULT_PADDING, // bottom
-        5,               // left
+        0,               // left
     ]));
 
     let total_value_label =
         Text::new(format!("{}:", localized_string("info-confirmed-total"))).size(DEFAULT_FONT_SIZE);
     let total_value_label_container = Container::new(total_value_label)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let total_value = Text::new(total_string).size(DEFAULT_FONT_SIZE);
     let total_value_container = Container::new(total_value)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -330,12 +335,12 @@ pub fn data_container<'a>(
     ))
     .size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let awaiting_confirmation_value =
         Text::new(awaiting_confirmation_string).size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -350,12 +355,12 @@ pub fn data_container<'a>(
     ))
     .size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let awaiting_finalization_value =
         Text::new(awaiting_finalization_string).size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -367,11 +372,11 @@ pub fn data_container<'a>(
     let locked_label =
         Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
     let locked_label_container = Container::new(locked_label)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
@@ -384,11 +389,11 @@ pub fn data_container<'a>(
         Text::new(format!("{}:", localized_string("info-amount-spendable")))
             .size(DEFAULT_FONT_SIZE);
     let amount_spendable_label_container = Container::new(amount_spendable_label)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let amount_spendable_value = Text::new(amount_spendable_string).size(DEFAULT_FONT_SIZE);
     let amount_spendable_value_container = Container::new(amount_spendable_value)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
