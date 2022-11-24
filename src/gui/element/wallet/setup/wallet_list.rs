@@ -134,11 +134,15 @@ pub fn data_container<'a>(
 
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container =
-        Container::new(title).style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
+        Container::new(title).style(grin_gui_core::theme::container::Container::BrightBackground(color_palette)).padding(iced::Padding::from([
+            0,               // top
+            0,               // right
+            0,               // bottom
+            5,               // left
+        ]));
 
     let new_wallet_container =
         Container::new(Text::new(localized_string("create-wallet")).size(DEFAULT_FONT_SIZE))
-            //.height(button_height)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
@@ -168,7 +172,7 @@ pub fn data_container<'a>(
         0,               // top
         0,               // right
         DEFAULT_PADDING, // bottom
-        5,               // left
+        0,               // left
     ]));
 
     let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);

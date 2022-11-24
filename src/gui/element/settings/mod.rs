@@ -73,7 +73,13 @@ pub fn data_container<'a>(
     // Submenu title to appear of left side of panel
     let general_settings_title = Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
     let general_settings_title_container = Container::new(general_settings_title)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
+        .padding(iced::Padding::from([
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
+        ]));
 
     let mut wallet_button: Button<Interaction> = Button::new(
         // &mut state.wallet_btn,
@@ -156,7 +162,7 @@ pub fn data_container<'a>(
         0, // top
         0, // right
         0, // bottom
-        5, // left
+        0, // left
     ]));
 
     // Wrapper for submenu + actual content
