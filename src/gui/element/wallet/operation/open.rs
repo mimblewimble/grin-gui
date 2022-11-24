@@ -12,16 +12,14 @@ use {
     anyhow::Context,
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::{
-        node::ChainTypes::Mainnet, node::ChainTypes::Testnet, wallet::WalletInterface,
-    },
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
     },
-    iced::{alignment, Alignment, Command, Length},
-    iced::widget::{
-        button, pick_list, scrollable, text_input, Space,
+    grin_gui_core::{
+        node::ChainTypes::Mainnet, node::ChainTypes::Testnet, wallet::WalletInterface,
     },
+    iced::widget::{button, pick_list, scrollable, text_input, Space},
+    iced::{alignment, Alignment, Command, Length},
     std::sync::{Arc, RwLock},
 };
 
@@ -188,8 +186,8 @@ pub fn data_container<'a>(
     let display_name = Text::new(display_name_string)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
-    let display_name_container =
-        Container::new(display_name).style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
+    let display_name_container = Container::new(display_name)
+        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
 
     let password_column = {
         let password_input = TextInput::new(
@@ -207,7 +205,6 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(INPUT_WIDTH))
         .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette))
         .password();
 
@@ -227,7 +224,7 @@ pub fn data_container<'a>(
 
     let description_container = Container::new(description)
         .width(Length::Units(INPUT_WIDTH))
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette)).padding(6);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
@@ -237,10 +234,8 @@ pub fn data_container<'a>(
             .height(Length::Units(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
-    let mut submit_button = Button::new(
-        submit_button_label_container,
-    )
-    .style(grin_gui_core::theme::button::Button::Primary(color_palette));
+    let mut submit_button = Button::new(submit_button_label_container)
+        .style(grin_gui_core::theme::button::Button::Primary(color_palette));
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::OpenWallet,
@@ -270,13 +265,17 @@ pub fn data_container<'a>(
     let submit_button: Element<Interaction> = submit_button.into();
     let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
     let submit_container = Container::new(submit_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(
+            color_palette,
+        ))
         .padding(1);
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented(
+            color_palette,
+        ))
         .padding(1);
 
     let button_row = Row::new()
@@ -284,14 +283,20 @@ pub fn data_container<'a>(
         .push(Space::with_width(Length::Units(UNIT_SPACE)))
         .push(cancel_container);
 
+    let input_container = Container::new(
+        Column::new()
+            .push(description_container)
+            .push(Space::with_height(Length::Units(UNIT_SPACE/2)))
+            .push(password_column),
+    )
+    .width(Length::Units(INPUT_WIDTH));
+
     let column = Column::new()
         .push(display_name_container)
         .push(Space::with_height(Length::Units(
-            UNIT_SPACE + DEFAULT_PADDING,
+            UNIT_SPACE,
         )))
-        .push(description_container)
-        .push(Space::with_height(Length::Units(UNIT_SPACE)))
-        .push(password_column)
+        .push(input_container)
         .push(Space::with_height(Length::Units(
             UNIT_SPACE + DEFAULT_PADDING,
         )))
