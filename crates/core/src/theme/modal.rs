@@ -1,4 +1,4 @@
-use super::{ColorPalette, Theme};
+use super::Theme;
 use iced::{Background, Color};
 use iced_aw::style::modal::Appearance;
 
@@ -6,8 +6,7 @@ use iced_aw::style::modal::Appearance;
 pub enum ModalStyles {
     #[default]
     Default,
-
-    Normal(ColorPalette),
+    Normal,
 }
 
 impl iced_aw::modal::StyleSheet for Theme {
@@ -15,10 +14,10 @@ impl iced_aw::modal::StyleSheet for Theme {
 
     fn active(&self, style: Self::Style) -> Appearance {
         match style {
-            ModalStyles::Normal(palette) => Appearance {
+            ModalStyles::Normal => Appearance {
                 background: Background::Color(Color {
                     a: 0.9,
-                    ..palette.base.foreground
+                    ..self.palette.base.foreground
                 }),
             },
             _ => Appearance::default()

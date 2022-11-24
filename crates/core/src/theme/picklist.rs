@@ -9,8 +9,7 @@ use super::{ColorPalette, Theme};
 pub enum PickListStyles {
     #[default]
     Default,
-
-    Primary(ColorPalette),
+    Primary,
 }
 
 impl pick_list::StyleSheet for Theme {
@@ -18,19 +17,19 @@ impl pick_list::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style) -> pick_list::Appearance {
         match style {
-            PickListStyles::Primary(palette) => pick_list::Appearance {
-                text_color: palette.bright.surface,
-                background: palette.base.background.into(),
+            PickListStyles::Primary => pick_list::Appearance {
+                text_color: self.palette.bright.surface,
+                background: self.palette.base.background.into(),
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
                 border_radius: 2.0,
                 icon_size: 0.5,
                 placeholder_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
             },
             _ => todo!("default")
@@ -39,11 +38,11 @@ impl pick_list::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style) -> pick_list::Appearance {
         match style {
-            PickListStyles::Primary(palette) => {
+            PickListStyles::Primary => {
                 let active = self.active(style);
 
                 pick_list::Appearance {
-                    text_color: palette.bright.primary,
+                    text_color: self.palette.bright.primary,
                     ..active
                 }
             },
@@ -58,17 +57,17 @@ impl menu::StyleSheet for Theme {
 
     fn appearance(&self, style: &Self::Style) -> menu::Appearance {
         match style {
-            PickListStyles::Primary(palette) => menu::Appearance {  
-                text_color: palette.bright.surface,
-                background: Background::Color(palette.base.foreground),
+            PickListStyles::Primary => menu::Appearance {  
+                text_color: self.palette.bright.surface,
+                background: Background::Color(self.palette.base.foreground),
                 border_width: 1.0,
                 border_radius: 2.0,
-                border_color: palette.base.background,
+                border_color: self.palette.base.background,
                 selected_background: Background::Color(Color {
                     a: 0.15,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 }),
-                selected_text_color: palette.bright.primary,
+                selected_text_color: self.palette.bright.primary,
             },
             _ => todo!("default")
 

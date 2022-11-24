@@ -8,16 +8,16 @@ use super::Theme;
 pub enum Container {
     #[default]
     Default,
-    BrightForeground(ColorPalette),
-    BrightBackground(ColorPalette),
-    ErrorForeground(ColorPalette),
-    NormalBackground(ColorPalette),
-    HoverableForeground(ColorPalette),
-    HoverableBrightForeground(ColorPalette),
-    SuccessBackground(ColorPalette),
-    Segmented(ColorPalette),
-    PanelBordered(ColorPalette),
-    PanelForeground(ColorPalette),
+    BrightForeground,
+    BrightBackground,
+    ErrorForeground,
+    NormalBackground,
+    HoverableForeground,
+    HoverableBrightForeground,
+    SuccessBackground,
+    Segmented,
+    PanelBordered,
+    PanelForeground,
 }
 
 impl container::StyleSheet for Theme {
@@ -26,65 +26,65 @@ impl container::StyleSheet for Theme {
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
         match style {
             Container::Default => container::Appearance::default(),
-            Container::BrightBackground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.background)),
-                text_color: Some(palette.bright.surface),
+            Container::BrightBackground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.background)),
+                text_color: Some(self.palette.bright.surface),
                 ..container::Appearance::default()
             },
-            Container::BrightForeground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.bright.surface),
+            Container::BrightForeground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.foreground)),
+                text_color: Some(self.palette.bright.surface),
                 ..container::Appearance::default()
             },
-            Container::ErrorForeground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.normal.surface),
+            Container::ErrorForeground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.foreground)),
+                text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::NormalBackground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.background)),
-                text_color: Some(palette.normal.surface),
+            Container::NormalBackground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.background)),
+                text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::Segmented(palette) => container::Appearance {
+            Container::Segmented => container::Appearance {
                 border_radius: 2.0,
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
                 ..container::Appearance::default()
             },
-            Container::HoverableForeground(palette) => container::Appearance {
+            Container::HoverableForeground => container::Appearance {
                 background: None,
-                text_color: Some(palette.normal.surface),
+                text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::HoverableBrightForeground(palette) => container::Appearance {
+            Container::HoverableBrightForeground => container::Appearance {
                 background: None,
-                text_color: Some(palette.bright.primary),
+                text_color: Some(self.palette.bright.primary),
                 ..container::Appearance::default()
             },
-            Container::SuccessBackground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.normal.surface),
+            Container::SuccessBackground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.foreground)),
+                text_color: Some(self.palette.normal.surface),
                 ..container::Appearance::default()
             },
-            Container::PanelForeground(palette) => container::Appearance {
-                background: Some(Background::Color(palette.base.foreground)),
-                text_color: Some(palette.bright.primary),
+            Container::PanelForeground => container::Appearance {
+                background: Some(Background::Color(self.palette.base.foreground)),
+                text_color: Some(self.palette.bright.primary),
                 border_radius: 2.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
             },
-            Container::PanelBordered(palette) => container::Appearance {
+            Container::PanelBordered => container::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),
-                text_color: Some(palette.bright.primary),
+                text_color: Some(self.palette.bright.primary),
                 border_radius: 2.0,
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
             },
         }

@@ -90,7 +90,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -100,7 +100,7 @@ pub fn data_container<'a>(
 
     let back_button: Element<Interaction> =
         Button::new( back_button_label_container)
-            .style(grin_gui_core::theme::button::Button::NormalText(color_palette))
+            .style(grin_gui_core::theme::button::Button::NormalText)
             .on_press(Interaction::WalletOperationApplyTxViewInteraction(
                 LocalViewInteraction::Back,
             ))
@@ -119,7 +119,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_name_container =
-        Container::new(address_name).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(address_name).style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let address_input = TextInput::new( "", &state.address_value, |s| {
         Interaction::WalletOperationApplyTxViewInteraction(LocalViewInteraction::Address(s))
@@ -127,7 +127,7 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(400))
-    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette));
+    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery);
 
     let address_input: Element<Interaction> = address_input.into();
 
@@ -137,7 +137,7 @@ pub fn data_container<'a>(
             .size(SMALLER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Center),
     )
-    .style(grin_gui_core::theme::button::Button::NormalText(color_palette))
+    .style(grin_gui_core::theme::button::Button::NormalText)
     .on_press(Interaction::WriteToClipboard(
         state.address_value.clone(),
     ));
@@ -156,7 +156,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_instruction_container =
-        Container::new(address_instruction_container).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(address_instruction_container).style(grin_gui_core::theme::container::Container::NormalBackground);
 
 
     let column = Column::new()

@@ -52,7 +52,7 @@ pub fn data_container<'a>(
 ) -> Container<'a, Message> {
     let language_container = {
         let title = Container::new(Text::new(localized_string("todo")).size(DEFAULT_FONT_SIZE))
-            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground);
 
         Column::new()
             .push(title)
@@ -62,9 +62,7 @@ pub fn data_container<'a>(
     // Colum wrapping all the settings content.
     let scrollable = Scrollable::new(language_container)
         .height(Length::Fill)
-        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary(
-            color_palette,
-        ));
+        .style(grin_gui_core::theme::scrollable::ScrollableStyles::Primary);
 
     let col = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(10)))
@@ -78,5 +76,5 @@ pub fn data_container<'a>(
     Container::new(row)
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::NormalBackground)
 }

@@ -72,6 +72,7 @@ pub struct GrinGui {
     show_modal: bool,
     show_exit: bool,
     exit: bool,
+    theme: Theme,
 }
 
 impl GrinGui {
@@ -96,6 +97,7 @@ impl<'a> Default for GrinGui {
         let node_url = "http://localhost:8080";
     	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
 
+        // TODO restore theme from config
         Self {
             wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client))),
             node_interface: Arc::new(RwLock::new(NodeInterface::new())),
@@ -114,6 +116,7 @@ impl<'a> Default for GrinGui {
             show_modal: false,
             show_exit: false,
             exit: false,
+            theme: Theme::alliance(),
         }
     }
 }
@@ -134,6 +137,10 @@ impl Application for GrinGui {
     type Message = Message;
     type Flags = Config;
     type Theme = Theme;
+
+    fn theme(&self) -> Theme {
+        self.theme.clone()
+    }
 
     fn new(config: Config) -> (Self, Command<Message>) {
         let mut grin_gui = GrinGui::default();
@@ -273,7 +280,7 @@ impl Application for GrinGui {
                     color_palette,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
-                    content = content.push(settings_container.view.data_container(color_palette))
+                    content = content.push(settings_container.view.data_container)
                 }*/
             }
         }
@@ -283,7 +290,7 @@ impl Application for GrinGui {
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+            .style(grin_gui_core::theme::container::Container::NormalBackground)
             .into();
 
         let show_exit = self.show_exit;
@@ -295,14 +302,14 @@ impl Application for GrinGui {
 
         Modal::new(self.show_modal, content, move|| {
             if show_exit {
-                element::modal::exit_card(color_palette).into()
+                element::modal::exit_card().into()
             } else {
-                element::modal::error_card(color_palette, error_cause.clone()).into()
+                element::modal::error_card(error_cause.clone()).into()
             }
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
-        .style(grin_gui_core::theme::modal::ModalStyles::Normal(color_palette))
+        .style(grin_gui_core::theme::modal::ModalStyles::Normal)
         .into()
 
     }

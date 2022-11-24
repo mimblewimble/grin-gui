@@ -272,7 +272,7 @@ pub fn data_container<'a>(
     // otherwise this title container will look like it shifts up slightly when the user toggles
     // between views with buttons on the header row.
     let title_container = Container::new(title)
-        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette))
+        .style(grin_gui_core::theme::container::Container::BrightBackground)
         .padding(iced::Padding::from([
             2, // top
             0, // right
@@ -306,7 +306,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(200))
-        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette))
+        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery)
         .password();
 
         let password_input: Element<Interaction> = password_input.into();
@@ -326,7 +326,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .width(Length::Units(200))
-        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette))
+        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery)
         .password();
 
         let repeat_password_input: Element<Interaction> = repeat_password_input.into();
@@ -340,9 +340,7 @@ pub fn data_container<'a>(
             .horizontal_alignment(alignment::Horizontal::Left);
         let mut password_entry_status_container = Container::new(password_entry_status)
             //.width(Length::Fill)
-            .style(grin_gui_core::theme::container::Container::ErrorForeground(
-                color_palette,
-            ));
+            .style(grin_gui_core::theme::container::Container::ErrorForeground);
 
         let mut password_input_col = Column::new()
             .push(password_input.map(Message::Interaction))
@@ -354,7 +352,7 @@ pub fn data_container<'a>(
             password_input_col = password_input_col.push(password_entry_status_container)
         } else if check_password() {
             password_entry_status_container = password_entry_status_container.style(
-                grin_gui_core::theme::container::Container::SuccessBackground(color_palette),
+                grin_gui_core::theme::container::Container::SuccessBackground,
             );
             password_input_col = password_input_col.push(password_entry_status_container)
         }
@@ -367,7 +365,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container = Container::new(description)
         //.width(Length::Fill)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let restore_from_seed_column = {
         let checkbox = Checkbox::new(
@@ -379,16 +377,14 @@ pub fn data_container<'a>(
                 )
             },
         )
-        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal)
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(10);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground);
         Column::new().push(checkbox_container)
     };
 
@@ -402,16 +398,14 @@ pub fn data_container<'a>(
                 )
             },
         )
-        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal)
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(10);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground);
         Column::new().push(checkbox_container)
     };
 
@@ -422,7 +416,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let display_name_container = Container::new(display_name)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let display_name_input = TextInput::new(
         default_display_name,
@@ -432,21 +426,19 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(200))
-    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette));
+    .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery);
 
     let tld = Text::new(localized_string("top-level-domain"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let tld_container = Container::new(tld)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let folder_select_button_container =
         Container::new(Text::new(localized_string("select-directory")).size(DEFAULT_FONT_SIZE));
     let folder_select_button = Button::new(folder_select_button_container)
-        .style(grin_gui_core::theme::button::Button::Bordered(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::button::Button::Bordered)
         .on_press(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::ShowFolderPicker,
         ));
@@ -460,7 +452,7 @@ pub fn data_container<'a>(
     let current_tld = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
     let current_tld_container = Container::new(current_tld)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let current_tld_column = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(5)))
@@ -477,9 +469,7 @@ pub fn data_container<'a>(
         Checkbox::new(state.is_testnet, localized_string("use-testnet"), |b| {
             Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::ToggleIsTestnet(b))
         })
-        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::checkbox::CheckboxStyles::Normal)
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(10);
 
@@ -514,7 +504,7 @@ pub fn data_container<'a>(
     .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(submit_button_label_container)
-        .style(grin_gui_core::theme::button::Button::Primary(color_palette));
+        .style(grin_gui_core::theme::button::Button::Primary);
     if check_password() {
         let top_level_directory = state.advanced_options_state.top_level_directory.clone();
         let display_name = if state.advanced_options_state.display_name_value.is_empty() {
@@ -539,7 +529,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
-        .style(grin_gui_core::theme::button::Button::Primary(color_palette))
+        .style(grin_gui_core::theme::button::Button::Primary)
         .on_press(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::Back,
         ))
@@ -547,16 +537,12 @@ pub fn data_container<'a>(
 
     let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
     let submit_container = Container::new(submit_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let unit_spacing = 15;
@@ -601,13 +587,13 @@ pub fn data_container<'a>(
 
     // form container should be scrollable in tiny windows
     let scrollable = Scrollable::new(form_container).height(Length::Fill).style(
-        grin_gui_core::theme::scrollable::ScrollableStyles::Primary(color_palette),
+        grin_gui_core::theme::scrollable::ScrollableStyles::Primary,
     );
 
     let content = Container::new(scrollable)
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let wrapper_column = Column::new()
         .height(Length::Fill)

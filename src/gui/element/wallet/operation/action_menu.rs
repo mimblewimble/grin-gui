@@ -102,7 +102,7 @@ pub fn data_container<'a>(
     let create_tx_button: Element<Interaction> =
         Button::new(create_tx_container)
             .width(button_width)
-            .style(grin_gui_core::theme::button::Button::Primary(color_palette))
+            .style(grin_gui_core::theme::button::Button::Primary)
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::CreateTx),
             ))
@@ -117,7 +117,7 @@ pub fn data_container<'a>(
     let apply_tx_button: Element<Interaction> =
         Button::new( apply_tx_container)
             .width(button_width)
-            .style(grin_gui_core::theme::button::Button::Primary(color_palette))
+            .style(grin_gui_core::theme::button::Button::Primary)
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::ApplyTx),
             ))
@@ -127,12 +127,12 @@ pub fn data_container<'a>(
     // TODO refactor since many of the buttons around the UI repeat this theme
     let create_container = Container::new(create_tx_button.map(Message::Interaction)).padding(1);
     let create_container = Container::new(create_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let apply_container = Container::new(apply_tx_button.map(Message::Interaction)).padding(1);
     let apply_container = Container::new(apply_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(color_palette))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let menu_column = Row::new()

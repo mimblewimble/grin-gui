@@ -54,7 +54,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let title_container =
-        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(title).style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let title_row = Row::new()
         .push(title_container)
@@ -65,7 +65,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container =
-        Container::new(description).style(grin_gui_core::theme::container::Container::NormalBackground(color_palette));
+        Container::new(description).style(grin_gui_core::theme::container::Container::NormalBackground);
 
     let recovery_phrase_card = Card::new(
         Text::new(localized_string("setup-grin-wallet-recovery-phrase-title")).size(DEFAULT_HEADER_FONT_SIZE),
@@ -83,14 +83,14 @@ pub fn data_container<'a>(
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(grin_gui_core::theme::button::Button::NormalText(color_palette))
+                .style(grin_gui_core::theme::button::Button::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
                     state.recovery_phrase.clone(),
                 ))),
             ),
     )
     .max_width(400)
-    .style(grin_gui_core::theme::card::CardStyles::Normal(color_palette));
+    .style(grin_gui_core::theme::card::CardStyles::Normal);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("setup-grin-wallet-done")).size(DEFAULT_FONT_SIZE))
@@ -98,7 +98,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let next_button = Button::new(submit_button_label_container)
-        .style(grin_gui_core::theme::button::Button::Bordered(color_palette))
+        .style(grin_gui_core::theme::button::Button::Bordered)
         .on_press(Interaction::WalletSetupWalletSuccessViewInteraction(
             LocalViewInteraction::Submit,
         ));

@@ -1,19 +1,18 @@
 use iced::widget::button;
 use iced::{Background, Color};
 
-use super::ColorPalette;
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum Button {
     #[default]
     Default,
-    Bordered(ColorPalette),
-    ColumnHeader(ColorPalette),
-    Primary(ColorPalette),
-    Selected(ColorPalette),
-    SelectedColumn(ColorPalette),
-    NormalText(ColorPalette),
+    Bordered,
+    ColumnHeader,
+    Primary,
+    Selected,
+    SelectedColumn,
+    NormalText,
 }
 
 impl button::StyleSheet for Theme {
@@ -22,44 +21,44 @@ impl button::StyleSheet for Theme {
     fn active(&self, style: &Self::Style) -> button::Appearance {
         match style {
             Button::Default => button::Appearance::default(),
-            Button::Bordered(palette) => button::Appearance {
+            Button::Bordered => button::Appearance {
                 border_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
                 border_width: 1.0,
                 border_radius: 2.0,
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..button::Appearance::default()
             },
-            Button::Primary(palette) => button::Appearance {
-                text_color: palette.bright.primary,
+            Button::Primary => button::Appearance {
+                text_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 ..Default::default()
             },
-            Button::Selected(palette) => button::Appearance {
-                background: Some(Background::Color(palette.normal.primary)),
-                text_color: palette.bright.primary,
+            Button::Selected => button::Appearance {
+                background: Some(Background::Color(self.palette.normal.primary)),
+                text_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::NormalText(palette) => button::Appearance {
-                text_color: palette.normal.surface,
+            Button::NormalText =>  button::Appearance {
+                text_color: self.palette.normal.surface,
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::SelectedColumn(palette) => button::Appearance {
-                background: Some(Background::Color(palette.base.background)),
+            Button::SelectedColumn => button::Appearance {
+                background: Some(Background::Color(self.palette.base.background)),
                 text_color: Color {
-                    ..palette.bright.primary
+                    ..self.palette.bright.primary
                 },
                 border_radius: 2.0,
                 ..button::Appearance::default()
             },
-            Button::ColumnHeader(palette) => button::Appearance {
-                background: Some(Background::Color(palette.base.background)),
+            Button::ColumnHeader => button::Appearance {
+                background: Some(Background::Color(self.palette.base.background)),
                 text_color: Color {
-                    ..palette.bright.surface
+                    ..self.palette.bright.surface
                 },
                 border_radius: 2.0,
                 ..button::Appearance::default()
@@ -70,46 +69,46 @@ impl button::StyleSheet for Theme {
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
         match style {
             Button::Default => button::Appearance::default(),
-            Button::Bordered(palette) => button::Appearance {
+            Button::Bordered => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 })),
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::Primary(palette) => button::Appearance {
+            Button::Primary => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 })),
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::Selected(palette) => button::Appearance {
-                background: Some(Background::Color(palette.normal.primary)),
-                text_color: palette.bright.primary,
+            Button::Selected => button::Appearance {
+                background: Some(Background::Color(self.palette.normal.primary)),
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::NormalText(palette) => button::Appearance {
+            Button::NormalText => button::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::SelectedColumn(palette) => button::Appearance {
+            Button::SelectedColumn => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.25,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 })),
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
-            Button::ColumnHeader(palette) => button::Appearance {
+            Button::ColumnHeader => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.15,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 })),
-                text_color: palette.bright.primary,
+                text_color: self.palette.bright.primary,
                 ..self.active(style)
             },
         }
@@ -118,25 +117,25 @@ impl button::StyleSheet for Theme {
     fn disabled(&self, style: &Self::Style) -> button::Appearance {
         match style {
             Button::Default => button::Appearance::default(),
-            Button::Bordered(palette) => button::Appearance {
+            Button::Bordered => button::Appearance {
                 background: Some(Background::Color(Color {
                     a: 0.05,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 })),
                 text_color: Color {
                     a: 0.50,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
                 ..self.active(style)
             },
-            Button::Primary(palette) => button::Appearance {
+            Button::Primary => button::Appearance {
                 text_color: Color {
                     a: 0.25,
-                    ..palette.normal.surface
+                    ..self.palette.normal.surface
                 },
                 ..self.active(style)
             },
-            Button::Selected(palette) => button::Appearance {
+            Button::Selected => button::Appearance {
                 ..self.active(style)
             },
             _ => self.disabled(style),

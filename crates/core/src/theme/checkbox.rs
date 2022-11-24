@@ -7,7 +7,7 @@ use iced::Background;
 pub enum CheckboxStyles {
     #[default]
     Default,
-    Normal(ColorPalette),
+    Normal,
 }
 
 impl checkbox::StyleSheet for Theme {
@@ -15,13 +15,13 @@ impl checkbox::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
         match style {
-            CheckboxStyles::Normal(palette) => checkbox::Appearance {
-                background: Background::Color(palette.base.background),
-                checkmark_color: palette.bright.primary,
+            CheckboxStyles::Normal =>  checkbox::Appearance {
+                background: Background::Color(self.palette.base.background),
+                checkmark_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 border_width: 1.0,
-                border_color: palette.normal.primary,
-                text_color: Some(palette.normal.surface),
+                border_color: self.palette.normal.primary,
+                text_color: Some(self.palette.normal.surface),
             },
             _ => todo!("default"),
         }
@@ -29,13 +29,13 @@ impl checkbox::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
         match style {
-            CheckboxStyles::Normal(palette) => checkbox::Appearance {
-                background: Background::Color(palette.base.foreground),
-                checkmark_color: palette.bright.primary,
+            CheckboxStyles::Normal => checkbox::Appearance {
+                background: Background::Color(self.palette.base.foreground),
+                checkmark_color: self.palette.bright.primary,
                 border_radius: 2.0,
                 border_width: 2.0,
-                border_color: palette.bright.primary,
-                text_color: Some(palette.normal.surface),
+                border_color: self.palette.bright.primary,
+                text_color: Some(self.palette.normal.surface),
             },
             _ => todo!("default"),
         }

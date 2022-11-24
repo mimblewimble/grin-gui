@@ -7,8 +7,7 @@ use iced::{Background, Color};
 pub enum TextInputStyles {
     #[default]
     Default,
-
-    AddonsQuery(ColorPalette),
+    AddonsQuery,
 }
 
 impl text_input::StyleSheet for Theme {
@@ -17,11 +16,11 @@ impl text_input::StyleSheet for Theme {
     /// Produces the style of an active text input.
     fn active(&self, style: &Self::Style) -> text_input::Appearance {
         match style {
-            TextInputStyles::AddonsQuery(palette) => text_input::Appearance {
-                background: Background::Color(palette.base.foreground),
+            TextInputStyles::AddonsQuery => text_input::Appearance {
+                background: Background::Color(self.palette.base.foreground),
                 border_radius: 2.0,
                 border_width: 1.0,
-                border_color: palette.base.foreground,
+                border_color: self.palette.base.foreground,
             },
             _ => todo!("default"),
         }
@@ -30,13 +29,13 @@ impl text_input::StyleSheet for Theme {
     /// Produces the style of a focused text input.
     fn focused(&self, style: &Self::Style) -> text_input::Appearance {
         match style {
-            TextInputStyles::AddonsQuery(palette) => text_input::Appearance {
-                background: Background::Color(palette.base.foreground),
+            TextInputStyles::AddonsQuery => text_input::Appearance {
+                background: Background::Color(self.palette.base.foreground),
                 border_radius: 2.0,
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
-                    ..palette.normal.primary
+                    ..self.palette.normal.primary
                 },
             },
             _ => todo!("default"),
@@ -45,21 +44,21 @@ impl text_input::StyleSheet for Theme {
 
     fn placeholder_color(&self, style: &Self::Style) -> Color {
         match style {
-            TextInputStyles::AddonsQuery(palette) => palette.normal.surface, 
+            TextInputStyles::AddonsQuery => self.palette.normal.surface, 
             _ => todo!("default"),
         }
     }
 
     fn value_color(&self, style: &Self::Style) -> Color {
         match style {
-            TextInputStyles::AddonsQuery(palette) => palette.bright.primary, 
+            TextInputStyles::AddonsQuery => self.palette.bright.primary, 
             _ => todo!("default"),
         }
     }
 
     fn selection_color(&self, style: &Self::Style) -> Color {
         match style {
-            TextInputStyles::AddonsQuery(palette) => palette.bright.secondary, 
+            TextInputStyles::AddonsQuery => self.palette.bright.secondary, 
             _ => todo!("default"),
         }
     }

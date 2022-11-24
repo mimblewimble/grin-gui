@@ -1,15 +1,12 @@
 use iced::widget::scrollable;
 use iced::{Background, Color};
-
-use super::ColorPalette;
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ScrollableStyles {
     #[default]
     Default,
-
-    Primary(ColorPalette),
+    Primary,
 }
 
 impl scrollable::StyleSheet for Theme {
@@ -30,13 +27,13 @@ impl scrollable::StyleSheet for Theme {
                 },
             },
 
-            ScrollableStyles::Primary(palette) => scrollable::Scrollbar {
-                background: Some(Background::Color(palette.base.background)),
+            ScrollableStyles::Primary =>  scrollable::Scrollbar {
+                background: Some(Background::Color(self.palette.base.background)),
                 border_radius: 0.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
                 scroller: scrollable::Scroller {
-                    color: palette.base.foreground,
+                    color: self.palette.base.foreground,
                     border_radius: 2.0,
                     border_width: 0.0,
                     border_color: Color::TRANSPARENT,

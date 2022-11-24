@@ -90,7 +90,7 @@ iced_futures = { version = "0.5.1", features = ["async-std"] }
 iced_style = "0.5.0"
 iced_graphics = { version = "0.4.0" }
 iced_native = { version = "0.6.1", optional = true }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw", commit = "c6a3bfdc4d01d28aeb433d42628e80a620f78bb3"}
+iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
 
 [dev-dependencies]
 tempfile = "3.2.0"

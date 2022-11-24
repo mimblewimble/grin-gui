@@ -187,7 +187,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let display_name_container = Container::new(display_name)
-        .style(grin_gui_core::theme::container::Container::BrightBackground(color_palette));
+        .style(grin_gui_core::theme::container::Container::BrightBackground);
 
     let password_column = {
         let password_input = TextInput::new(
@@ -205,7 +205,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery(color_palette))
+        .style(grin_gui_core::theme::text_input::TextInputStyles::AddonsQuery)
         .password();
 
         let password_input: Element<Interaction> = password_input.into();
@@ -224,7 +224,7 @@ pub fn data_container<'a>(
 
     let description_container = Container::new(description)
         .width(Length::Units(INPUT_WIDTH))
-        .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette)).padding(6);
+        .style(grin_gui_core::theme::container::Container::NormalBackground).padding(6);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
@@ -235,7 +235,7 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(submit_button_label_container)
-        .style(grin_gui_core::theme::button::Button::Primary(color_palette));
+        .style(grin_gui_core::theme::button::Button::Primary);
 
     submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::OpenWallet,
@@ -255,7 +255,7 @@ pub fn data_container<'a>(
         // &mut state.cancel_button_state,
         cancel_button_label_container,
     )
-    .style(grin_gui_core::theme::button::Button::Primary(color_palette));
+    .style(grin_gui_core::theme::button::Button::Primary);
 
     cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
         LocalViewInteraction::CancelOpenWallet,
@@ -265,17 +265,13 @@ pub fn data_container<'a>(
     let submit_button: Element<Interaction> = submit_button.into();
     let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
     let submit_container = Container::new(submit_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let cancel_button: Element<Interaction> = cancel_button.into();
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(grin_gui_core::theme::container::Container::Segmented(
-            color_palette,
-        ))
+        .style(grin_gui_core::theme::container::Container::Segmented)
         .padding(1);
 
     let button_row = Row::new()

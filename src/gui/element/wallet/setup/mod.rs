@@ -74,5 +74,5 @@ pub fn data_container<'a>(
          .center_y()
          .center_x()
          .width(Length::Fill)
-         .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))
+         .style(grin_gui_core::theme::container::Container::NormalBackground)
 }
