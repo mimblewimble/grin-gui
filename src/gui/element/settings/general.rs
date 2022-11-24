@@ -512,12 +512,11 @@ pub fn data_container<'a>(
         .push(scrollable)
         .push(Space::new(Length::Units(0), Length::Units(20)));
     let row = Row::new()
-        .push(Space::new(Length::Units(20), Length::Units(0)))
+        .push(Space::new(Length::Units(5), Length::Units(0)))
         .push(col);
 
     // Returns the final container.
     Container::new(row)
-        .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
         .style(grin_gui_core::theme::container::Container::NormalBackground(color_palette))

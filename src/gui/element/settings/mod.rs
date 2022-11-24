@@ -1,3 +1,5 @@
+use iced::alignment::Horizontal;
+
 pub mod general;
 pub mod node;
 pub mod wallet;
@@ -158,12 +160,7 @@ pub fn data_container<'a>(
         .push(segmented_mode_control_container)
         .align_items(Alignment::Center);
 
-    let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0, // top
-        0, // right
-        0, // bottom
-        0, // left
-    ]));
+    let header_container = Container::new(header_row);
 
     // Wrapper for submenu + actual content
     let mut wrapper_column =
