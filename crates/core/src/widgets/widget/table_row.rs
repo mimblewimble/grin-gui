@@ -1,8 +1,7 @@
 #![allow(clippy::type_complexity)]
 
-use crate::widgets::style::table_row::TableRowStyle;
-
-pub use super::super::style::table_row::{Appearance, StyleSheet, StyleSheetWithStyle};
+pub use super::super::style::table_row::{Appearance, StyleSheet};
+use iced::{Background, Color};
 use iced_native::{
     event, layout, mouse, overlay, renderer, widget, widget::Tree, Alignment, Clipboard, Element,
     Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
@@ -11,7 +10,8 @@ use iced_native::{
 #[allow(missing_debug_implementations)]
 pub struct TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     padding: Padding,
@@ -22,15 +22,15 @@ where
     inner_row_height: u32,
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
-    style_sheet: Box<dyn StyleSheet + 'a>,
-    style: <Renderer::Theme as StyleSheetWithStyle>::Style,
+    style: <Renderer::Theme as StyleSheet>::Style,
     content: Element<'a, Message, Renderer>,
     on_press: Option<Box<dyn Fn(Event) -> Message + 'a>>,
 }
 
 impl<'a, Message, Renderer> TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     /// Creates an empty [`TableRow`].
@@ -47,18 +47,18 @@ where
             inner_row_height: u32::MAX,
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
-            style_sheet: Default::default(),
-            style: <Renderer::Theme as StyleSheetWithStyle>::Style::default(),
+            style:  Default::default(),
             content: content.into(),
             on_press: None,
         }
     }
-    // pub fn style(mut self, style: <Renderer::Theme as StyleSheet>::Style) -> Self {
-    //     self.style_sheet = style.into();
-    //     self
-    // }
-    pub fn style(mut self, style: <Renderer::Theme as StyleSheetWithStyle>::Style) -> Self {
-        self.style = style;
+
+    /// Sets the style of the [`TableRow`].
+    pub fn style(
+        mut self,
+        style: impl Into<<Renderer::Theme as StyleSheet>::Style>,
+    ) -> Self {
+        self.style = style.into();
         self
     }
 
@@ -134,8 +134,8 @@ where
 impl<'a, Message, Renderer> Widget<Message, Renderer>
     for TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
-    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     fn width(&self) -> Length {
@@ -176,26 +176,52 @@ where
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        let mut bounds = layout.bounds();
+        let bounds = layout.bounds();
+        let mut custom_bounds = layout.bounds();
         let tree = Tree::new(&self.content); 
 
         // inner_row_height set?
         if self.inner_row_height != u32::MAX {
-            bounds.height = self.inner_row_height as f32;
+            custom_bounds.height = self.inner_row_height as f32;
         }
 
-        self::Renderer::draw(
-            renderer,
+        let is_mouse_over = custom_bounds.contains(cursor_position);
+        let content_layout = layout.children().next().unwrap();
+
+        let appearance = if is_mouse_over {
+            theme.hovered(&self.style)
+        } else {
+            theme.appearance(&self.style)
+        };
+
+        let background = iced_native::renderer::Quad {
+            bounds: Rectangle {
+                x: bounds.x + appearance.offset_left as f32,
+                y: bounds.y,
+                width: bounds.width - appearance.offset_right as f32,
+                height: custom_bounds.height,
+            },
+            border_radius: appearance.border_radius,
+            border_width: appearance.border_width,
+            border_color: appearance.border_color,
+        };
+
+        renderer.fill_quad(
+            background.into(),
+            appearance
+                .background
+                .unwrap_or(Background::Color(Color::TRANSPARENT)),
+        );
+
+        self.content.as_widget().draw(
             &tree,
-            layout,
+            renderer,
             theme,
-            cursor_position,
             style,
-            self.style_sheet.as_ref(),
-            &self.content,
+            content_layout,
+            cursor_position,
             viewport,
-            &bounds,
-        )
+        );
     }
 
     fn mouse_interaction(
@@ -206,7 +232,15 @@ where
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
-        self::Renderer::mouse_interaction(renderer, layout, cursor_position, viewport)
+        
+        let bounds = layout.bounds();
+        let is_mouse_over = bounds.contains(cursor_position);
+
+        if is_mouse_over {
+            mouse::Interaction::Pointer
+        } else {
+            mouse::Interaction::default()
+        }
     }
 
     /*fn hash_layout(&self, state: &mut Hasher) {
@@ -279,38 +313,11 @@ where
     }
 }
 
-//use grin_gui_core::theme::Theme as Custom;
-//pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
-pub trait Renderer: iced_native::Renderer<Theme = crate::theme::Theme> {
-    //type Style: Default;
-
-    #[allow(clippy::too_many_arguments)]
-    fn draw<Message>(
-        &mut self,
-        tree: &Tree,
-        layout: Layout<'_>,
-        theme: &crate::theme::Theme,
-        cursor_position: Point,
-        //style: TableRowStyle,
-        style: &renderer::Style,
-        style_sheet: &dyn StyleSheet,
-        content: &Element<'_, Message, Self>,
-        viewport: &Rectangle,
-        custom_bounds: &Rectangle,
-    );
-
-    fn mouse_interaction(
-        &self,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
-    ) -> mouse::Interaction;
-}
 
 impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
