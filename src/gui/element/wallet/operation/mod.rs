@@ -75,20 +75,19 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     config:&'a Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Open => open::data_container(color_palette, &state.open_state, config),
+        Mode::Open => open::data_container(&state.open_state, config),
         Mode::Home => {
-            home::data_container(color_palette, config, &state.home_state)
+            home::data_container(config, &state.home_state)
         }
         Mode::CreateTx => {
-            create_tx::data_container(color_palette, config, &state.create_tx_state)
+            create_tx::data_container(config, &state.create_tx_state)
         }
         Mode::ApplyTx => {
-            apply_tx::data_container(color_palette, config, &state.apply_tx_state)
+            apply_tx::data_container(config, &state.apply_tx_state)
         }
     };
 

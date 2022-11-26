@@ -52,17 +52,16 @@ impl StateContainer {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     config: &'a Config,
 ) -> Container<'a, Message> {
     let content = match &state.mode {
-        Mode::Init => setup::data_container(color_palette, &state.setup_state, config),
+        Mode::Init => setup::data_container(&state.setup_state, config),
         Mode::Operation => {
-            operation::data_container(color_palette, &state.operation_state, config)
+            operation::data_container(&state.operation_state, config)
         }
         Mode::CreateWallet(default_display_name) => {
-            setup::wallet_setup::data_container(color_palette, &state.setup_state.setup_wallet_state, default_display_name)
+            setup::wallet_setup::data_container(&state.setup_state.setup_wallet_state, default_display_name)
         }
     };
 

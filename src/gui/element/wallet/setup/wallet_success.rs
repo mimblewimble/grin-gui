@@ -45,7 +45,6 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row

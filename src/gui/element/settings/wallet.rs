@@ -53,7 +53,6 @@ pub fn handle_message(
 
 pub fn data_container<'a>(
     state: &'a StateContainer,
-    color_palette: ColorPalette,
 ) -> Container<'a, Message> {
    
     let language_container = {

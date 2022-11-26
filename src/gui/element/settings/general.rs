@@ -230,7 +230,6 @@ pub fn handle_message(
 pub fn data_container<'a>(
     state: &'a StateContainer,
     config: &Config,
-    color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))

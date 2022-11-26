@@ -229,22 +229,10 @@ impl Application for GrinGui {
     }
 
     fn view(&self) -> Element<Message> {
-        let color_palette = self
-            .general_settings_state
-            .theme_state
-            .themes
-            .iter()
-            .find(|(name, _)| name == &self.general_settings_state.theme_state.current_theme_name)
-            .as_ref()
-            .unwrap_or(&&("Alliance".to_string(), Theme::dark()))
-            .1
-            .palette;
-
         let menu_state = self.menu_state.clone();
 
         let mut content = Column::new().push(element::menu::data_container(
             &self.menu_state,
-            color_palette,
             &self.error,
         ));
 
@@ -253,7 +241,6 @@ impl Application for GrinGui {
         match menu_state.mode {
             element::menu::Mode::Wallet => {
                 let setup_container = element::wallet::data_container(
-                   color_palette,
                    &self.wallet_state,
                    &self.config
                 );
@@ -262,7 +249,6 @@ impl Application for GrinGui {
             element::menu::Mode::Node => {
                 let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
                 let node_container = element::node::data_container(
-                    color_palette,
                     &self.node_state,
                     chain_type,
                 );
@@ -270,7 +256,7 @@ impl Application for GrinGui {
             }
              element::menu::Mode::About => {
                 let about_container =
-                    element::about::data_container(color_palette, &None, &self.about_state);
+                    element::about::data_container(&None, &self.about_state);
                 content = content.push(about_container)
             }
             element::menu::Mode::Settings => {
@@ -280,7 +266,6 @@ impl Application for GrinGui {
                     &self.wallet_settings_state,
                     &self.node_settings_state,
                     &self.general_settings_state,
-                    color_palette,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
                     content = content.push(settings_container.view.data_container)

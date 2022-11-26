@@ -64,7 +64,6 @@ pub fn data_container<'a>(
     wallet_settings_state: &'a wallet::StateContainer,
     node_settings_state: &'a node::StateContainer,
     general_settings_state: &'a general::StateContainer,
-    color_palette: ColorPalette,
 ) -> Container<'a, Message> {
     let title_string = match state.mode {
         Mode::Wallet => localized_string("settings-wallet"),
@@ -163,17 +162,16 @@ pub fn data_container<'a>(
     match state.mode {
         Mode::Wallet => {
             wrapper_column =
-                wrapper_column.push(wallet::data_container(wallet_settings_state, color_palette))
+                wrapper_column.push(wallet::data_container(wallet_settings_state))
         }
         Mode::Node => {
             wrapper_column =
-                wrapper_column.push(node::data_container(node_settings_state, color_palette))
+                wrapper_column.push(node::data_container(node_settings_state))
         }
         Mode::General => {
             wrapper_column = wrapper_column.push(general::data_container(
                 general_settings_state,
                 config,
-                color_palette,
             ))
         }
     }

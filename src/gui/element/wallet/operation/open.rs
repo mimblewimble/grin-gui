@@ -169,7 +169,6 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {

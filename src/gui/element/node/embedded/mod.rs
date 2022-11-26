@@ -47,13 +47,11 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Summary => summary::data_container(
-            color_palette,
             &state.summary_state,
             &state.server_stats,
             chain_type,

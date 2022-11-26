@@ -19,7 +19,6 @@ impl Default for StateContainer {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     release: &Option<Release>,
     state: &'a StateContainer,
 ) -> Container<'a, Message> {

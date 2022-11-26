@@ -126,7 +126,6 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {

@@ -69,9 +69,7 @@ pub fn handle_message(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    color_palette: ColorPalette,
-) -> Container<'a, Message> {
+pub fn data_container<'a>() -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("setup-grin-first-time"))
         .size(DEFAULT_HEADER_FONT_SIZE)

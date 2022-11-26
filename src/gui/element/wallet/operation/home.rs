@@ -219,13 +219,12 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     config: &'a Config,
     state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Buttons to perform operations go here, but empty container for now
     let operations_menu =
-        action_menu::data_container(color_palette, config, &state.action_menu_state);
+        action_menu::data_container(config, &state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -476,7 +475,6 @@ pub fn data_container<'a>(
     // This is to add titles above each section of the tx row, to let
     // the user easily identify what the value is.
     let tx_row_titles = super::tx_list::titles_row_header(
-        color_palette,
         &state.wallet_txs,
         &state.tx_header_state.state,
         &state.tx_header_state.columns,
@@ -519,7 +517,6 @@ pub fn data_container<'a>(
         // A container cell which has all data about the current tx.
         // If the tx is expanded, then this is also included in this container.
         let tx_data_cell = tx_list::data_row_container(
-            color_palette,
             tx,
             is_tx_expanded,
             &state.expanded_type,

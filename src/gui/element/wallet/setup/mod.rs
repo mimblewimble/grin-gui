@@ -52,20 +52,19 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
     let content = match &state.mode {
-        Mode::Init => init::data_container(color_palette),
+        Mode::Init => init::data_container(),
         Mode::CreateWallet(default_display_name) => {
-            wallet_setup::data_container(color_palette, &state.setup_wallet_state, default_display_name)
+            wallet_setup::data_container(&state.setup_wallet_state, default_display_name)
         }
         Mode::WalletCreateSuccess => {
-            wallet_success::data_container(color_palette, &state.setup_wallet_success_state)
+            wallet_success::data_container(&state.setup_wallet_success_state)
         }
         Mode::ListWallets => {
-           wallet_list::data_container(color_palette, &state.setup_wallet_list_state,
+           wallet_list::data_container(&state.setup_wallet_list_state,
                                        config)
         }
     };

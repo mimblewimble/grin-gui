@@ -54,7 +54,6 @@ pub fn handle_message(
 
 pub fn data_container<'a>(
     state: &'a StateContainer,
-    color_palette: ColorPalette,
     error: &Option<anyhow::Error>,
 ) -> Container<'a, Message> {
     let mut wallet_mode_button: Button<Interaction> = Button::new(

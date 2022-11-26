@@ -897,7 +897,6 @@ fn row_title<T: PartialEq>(
 }
 
 pub fn titles_row_header<'a>(
-    color_palette: ColorPalette,
     tx_list: &TxList,
     header_state: &'a header::State,
     column_state: &'a [ColumnState],
@@ -968,7 +967,6 @@ pub fn titles_row_header<'a>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
-    color_palette: ColorPalette,
     tx: &TxLogEntry,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
