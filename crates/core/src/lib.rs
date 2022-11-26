@@ -11,6 +11,7 @@ pub mod error;
 pub mod fs;
 pub mod theme;
 pub mod network;
+pub mod widgets;
 #[cfg(feature = "gui")]
 pub mod utility;
 

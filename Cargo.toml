@@ -5,14 +5,14 @@ edition = "2021"
 
 [features]
 default = ["opengl"]
-wgpu = ["grin-gui-widgets/wgpu", "iced/wgpu", "iced/default_system_font"]
-opengl = ["grin-gui-widgets/opengl", "iced/glow"]
+wgpu = [ "iced/wgpu", "iced/default_system_font"]
+opengl = [ "iced/glow"]
 no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
 [dependencies]
 grin-gui-core = { version = "0.1.0", path = "crates/core", features=['gui'] }
-grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
+#grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 
 
 iced = { version = "0.5.2", default-features = false }
@@ -61,5 +61,4 @@ embed-resource = "1.3.3"
 members = [
     ".",
     "crates/core",
-    "crates/widgets"
 ]
