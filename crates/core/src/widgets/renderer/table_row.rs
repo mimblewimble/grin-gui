@@ -1,4 +1,4 @@
-use crate::{theme::Theme};
+use crate::{theme::Theme, widgets::style::table_row::TableRowStyle};
 use super::super::widget::table_row;
 use iced_graphics::{Backend, Renderer};
 use iced_native::{
@@ -11,6 +11,8 @@ impl<B> table_row::Renderer for Renderer<B, Theme>
 where
     B: Backend,
 {
+    //type Style = Box<dyn StyleSheet<Style = TableRowStyle>>;
+
     fn mouse_interaction(
         &self,
         layout: Layout<'_>,
