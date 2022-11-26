@@ -4,13 +4,14 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
+use grin_gui_widgets::{header};
+//use iced::button::StyleSheet;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
-use grin_gui_core::widgets::header;
+
 use super::action_menu;
 use super::tx_list::{HeaderState, TxList};
-
 
 use {
     super::super::super::{

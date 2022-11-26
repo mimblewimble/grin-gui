@@ -9,9 +9,9 @@ use iced_native::{
 use std::marker::PhantomData;
 
 #[allow(missing_debug_implementations)]
-pub struct TableRow<'a, Message, Renderer, Theme, Style>
+pub struct TableRow<'a, Message, Renderer, Theme>
 where
-    Renderer: 'a + self::Renderer<Theme, Style>,
+    Renderer: 'a + self::Renderer<Theme>,
     Message: 'a,
 {
     // we need to reference the genereic theme here so rust doesn't compain about Theme not being used
@@ -24,14 +24,14 @@ where
     inner_row_height: u32,
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
-    style_sheet: Box<dyn StyleSheet<Style = Style> + 'a>,
+    style_sheet: Box<dyn StyleSheet + 'a>,
     content: Element<'a, Message, Renderer>,
     on_press: Option<Box<dyn Fn(Event) -> Message + 'a>>,
 }
 
-impl<'a, Message, Renderer, Theme, Style> TableRow<'a, Message, Renderer, Theme, Style>
+impl<'a, Message, Renderer, Theme> TableRow<'a, Message, Renderer, Theme>
 where
-    Renderer: 'a + self::Renderer<Theme, Style>,
+    Renderer: 'a + self::Renderer<Theme>,
     Message: 'a,
 {
     /// Creates an empty [`TableRow`].
@@ -54,7 +54,7 @@ where
             on_press: None,
         }
     }
-    pub fn style(mut self, style: impl Into<Box<dyn StyleSheet<Style = Style> + 'a>>) -> Self {
+    pub fn style(mut self, style: impl Into<Box<dyn StyleSheet + 'a>>) -> Self {
         self.style_sheet = style.into();
         self
     }
@@ -128,10 +128,10 @@ where
     }
 }
 
-impl<'a, Message, Renderer, Theme, Style> Widget<Message, Renderer>
-    for TableRow<'a, Message, Renderer, Theme, Style>
+impl<'a, Message, Renderer, Theme> Widget<Message, Renderer>
+    for TableRow<'a, Message, Renderer, Theme>
 where
-    Renderer: 'a + self::Renderer<Theme, Style>,
+    Renderer: 'a + self::Renderer<Theme>,
     Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
     Message: 'a,
 {
@@ -277,7 +277,7 @@ where
 
 //use grin_gui_core::theme::Theme as Custom;
 //pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
-pub trait Renderer<T, S>: iced_native::Renderer<Theme = T> {
+pub trait Renderer<T>: iced_native::Renderer<Theme = T> {
     type Style: Default;
 
     #[allow(clippy::too_many_arguments)]
@@ -287,7 +287,7 @@ pub trait Renderer<T, S>: iced_native::Renderer<Theme = T> {
         layout: Layout<'_>,
         theme: &T,
         cursor_position: Point,
-        style_sheet: &dyn StyleSheet<Style = S>,
+        style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
         viewport: &Rectangle,
         custom_bounds: &Rectangle,
@@ -301,14 +301,14 @@ pub trait Renderer<T, S>: iced_native::Renderer<Theme = T> {
     ) -> mouse::Interaction;
 }
 
-impl<'a, Message, Renderer, Theme: 'a> From<TableRow<'a, Message, Renderer, Theme, Style>>
+impl<'a, Message, Renderer, Theme: 'a> From<TableRow<'a, Message, Renderer, Theme>>
     for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer<Theme, Style>,
+    Renderer: 'a + self::Renderer<Theme>,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
-    fn from(table_row: TableRow<'a, Message, Renderer, Theme, Style>) -> Element<'a, Message, Renderer> {
+    fn from(table_row: TableRow<'a, Message, Renderer, Theme>) -> Element<'a, Message, Renderer> {
         Element::new(table_row)
     }
 }

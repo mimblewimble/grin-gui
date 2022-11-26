@@ -17,8 +17,7 @@ use {
     std::path::PathBuf,
 };
 
-// use grin_gui_widgets::{table_row::StyleSheet};
-use grin_gui_core::widgets::table_row;
+use grin_gui_widgets::{table_row::StyleSheet};
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
@@ -285,13 +284,13 @@ pub fn data_container<'a>(
 
         if selected_wallet {
             // selected wallet should be highlighted
-            table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::TableRowSelected);
+            table_row = table_row.style(grin_gui_core::theme::table_row::TableRowSelected(color_palette));
         } else {
             // contrast row styles to spice things up
             if pos % 2 == 0 {
-                table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::TableRowLowlife);
+                table_row = table_row.style(grin_gui_core::theme::table_row::TableRowLowlife(color_palette));
             } else {
-                table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::TableRowHighlife);
+                table_row = table_row.style(grin_gui_core::theme::table_row::TableRowHighlife(color_palette));
             }
         }
 

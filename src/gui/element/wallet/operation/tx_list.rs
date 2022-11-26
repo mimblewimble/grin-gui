@@ -8,7 +8,7 @@ use {
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_core::widgets::widget::header,
+    grin_gui_widgets::{header},
     iced::{alignment, Alignment, Command, Length},
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
@@ -1754,9 +1754,9 @@ pub fn data_row_container<'a, 'b>(
         });
 
     if is_odd == Some(true) {
-        table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::TableRowAlternate)
+        table_row = table_row.style(grin_gui_core::theme::table_row::TableRowAlternate(color_palette))
     } else {
-        table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::Default)
+        table_row = table_row.style(grin_gui_core::theme::table_row::TableRow(color_palette))
     }
 
     table_row
