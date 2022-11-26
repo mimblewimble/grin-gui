@@ -1,4 +1,3 @@
-use super::ColorPalette;
 use super::Theme;
 use iced::widget::text_input;
 use iced::{Background, Color};
