@@ -10,6 +10,7 @@ pub mod container;
 pub mod modal;
 pub mod picklist;
 pub mod scrollable;
+pub mod table_row;
 pub mod text;
 pub mod text_input;
 
@@ -20,6 +21,7 @@ pub use container::ContainerStyle;
 pub use modal::ModalStyle;
 pub use picklist::PickListStyle;
 pub use scrollable::ScrollableStyle;
+pub use table_row::TableRowStyle;
 pub use text_input::TextInputStyle;
 
 pub async fn load_user_themes() -> Vec<Theme> {

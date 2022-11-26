@@ -1754,9 +1754,9 @@ pub fn data_row_container<'a, 'b>(
         });
 
     if is_odd == Some(true) {
-        table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::TableRowAlternate)
+        table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowAlternate)
     } else {
-        table_row = table_row.style(grin_gui_core::widgets::style::table_row::TableRowStyle::Default)
+        table_row = table_row.style(grin_gui_core::theme::TableRowStyle::Default)
     }
 
     table_row

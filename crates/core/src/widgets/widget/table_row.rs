@@ -1,8 +1,5 @@
 #![allow(clippy::type_complexity)]
-
-use crate::widgets::style::table_row::TableRowStyle;
-
-pub use super::super::style::table_row::{Appearance, StyleSheet, StyleSheetWithStyle};
+pub use super::super::style::table_row::{Appearance, StyleSheet, StyleSheetAssociated};
 use iced_native::{
     event, layout, mouse, overlay, renderer, widget, widget::Tree, Alignment, Clipboard, Element,
     Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
@@ -23,7 +20,7 @@ where
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
     style_sheet: Box<dyn StyleSheet + 'a>,
-    style: <Renderer::Theme as StyleSheetWithStyle>::Style,
+    style: <Renderer::Theme as StyleSheetAssociated>::Style,
     content: Element<'a, Message, Renderer>,
     on_press: Option<Box<dyn Fn(Event) -> Message + 'a>>,
 }
@@ -48,16 +45,14 @@ where
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
             style_sheet: Default::default(),
-            style: <Renderer::Theme as StyleSheetWithStyle>::Style::default(),
+            style: <Renderer::Theme as StyleSheetAssociated>::Style::default(),
             content: content.into(),
             on_press: None,
         }
     }
-    // pub fn style(mut self, style: <Renderer::Theme as StyleSheet>::Style) -> Self {
-    //     self.style_sheet = style.into();
-    //     self
-    // }
-    pub fn style(mut self, style: <Renderer::Theme as StyleSheetWithStyle>::Style) -> Self {
+
+    /// Sets the style of the [`TableRow`].
+    pub fn style(mut self, style: <Renderer::Theme as StyleSheetAssociated>::Style) -> Self {
         self.style = style;
         self
     }
@@ -279,10 +274,7 @@ where
     }
 }
 
-//use grin_gui_core::theme::Theme as Custom;
-//pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
 pub trait Renderer: iced_native::Renderer<Theme = crate::theme::Theme> {
-    //type Style: Default;
 
     #[allow(clippy::too_many_arguments)]
     fn draw<Message>(
@@ -291,7 +283,6 @@ pub trait Renderer: iced_native::Renderer<Theme = crate::theme::Theme> {
         layout: Layout<'_>,
         theme: &crate::theme::Theme,
         cursor_position: Point,
-        //style: TableRowStyle,
         style: &renderer::Style,
         style_sheet: &dyn StyleSheet,
         content: &Element<'_, Message, Self>,
