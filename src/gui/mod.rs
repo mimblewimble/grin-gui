@@ -89,15 +89,18 @@ impl GrinGui {
     }
 }
 
-impl<'a> Default for GrinGui {
-    fn default() -> Self {
+impl GrinGui{
+    fn from_config(config: &Config) -> Self {
 
         // Instantiate wallet node client
         // TODO: Fill out 
         let node_url = "http://localhost:8080";
     	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
 
-        // TODO restore theme from config
+        // restore theme from config
+        let name = config.theme.clone().unwrap_or("Alliance".to_string());
+        let theme = Theme::all().iter().find(|t| t.0 == name).unwrap().1.clone();
+
         Self {
             wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client))),
             node_interface: Arc::new(RwLock::new(NodeInterface::new())),
@@ -116,7 +119,7 @@ impl<'a> Default for GrinGui {
             show_modal: false,
             show_exit: false,
             exit: false,
-            theme: Theme::alliance(),
+            theme,
         }
     }
 }
@@ -143,7 +146,7 @@ impl Application for GrinGui {
     }
 
     fn new(config: Config) -> (Self, Command<Message>) {
-        let mut grin_gui = GrinGui::default();
+        let mut grin_gui = GrinGui::from_config(&config);
 
         // default Mainnet  
         global::set_local_chain_type(ChainTypes::Mainnet);
@@ -233,7 +236,7 @@ impl Application for GrinGui {
             .iter()
             .find(|(name, _)| name == &self.general_settings_state.theme_state.current_theme_name)
             .as_ref()
-            .unwrap_or(&&("Dark".to_string(), Theme::dark()))
+            .unwrap_or(&&("Alliance".to_string(), Theme::dark()))
             .1
             .palette;
 
