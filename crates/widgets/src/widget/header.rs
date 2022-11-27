@@ -1,27 +1,20 @@
 #![allow(clippy::type_complexity)]
-
-pub use crate::style::header::{Style, StyleSheet};
-
-use iced::widget;
+use crate::style::header::StyleSheet;
 use iced_native::{
     event, layout, mouse,
-    widget::{container::Container, space::Space, Tree},
+    widget::{self, space::Space, Container, Tree},
     Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
-use std::marker::PhantomData;
-
 
 mod state;
 pub use state::State;
 
-
-pub struct Header<'a, Message, Renderer, Theme>
+pub struct Header<'a, Message, Renderer>
 where
-    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
-    Renderer: self::Renderer<Theme>,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
+    Message: 'a,
 {
-    // we need to reference the genereic theme here so rust doesn't compain about Theme not being used
-    unused_arg: PhantomData<Theme>,
     spacing: u16,
     width: Length,
     height: Length,
@@ -32,13 +25,13 @@ where
     left_margin: bool,
     right_margin: bool,
     names: Vec<String>,
-    style_sheet: Box<dyn StyleSheet + 'a>,
+    style: <Renderer::Theme as StyleSheet>::Style,
 }
 
-impl<'a, Message, Renderer, Theme> Header<'a, Message, Renderer, Theme>
+impl<'a, Message, Renderer> Header<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer<Theme>,
-    Renderer::Theme: iced::widget::container::StyleSheet + iced::widget::text::StyleSheet,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     pub fn new(
@@ -46,7 +39,10 @@ where
         headers: Vec<(String, Container<'a, Message, Renderer>)>,
         left_margin: Option<Length>,
         right_margin: Option<Length>,
-    ) -> Self {
+    ) -> Self
+    where
+        <Renderer as iced_native::Renderer>::Theme: iced_style::container::StyleSheet,
+    {
         let mut names = vec![];
         let mut left = false;
         let mut right = false;
@@ -54,23 +50,23 @@ where
         let mut children = vec![];
 
         if let Some(margin) = left_margin {
-            children.push(Space::new(margin, Length::Units(0)).into());
+            children.push(Space::with_width(margin).into());
             left = true;
         }
 
         for (key, container) in headers {
             names.push(key);
 
+            // add container to children
             children.push(container.into());
         }
 
         if let Some(margin) = right_margin {
-            children.push(Space::new(margin, Length::Units(0)).into());
+            children.push(Space::with_width(margin).into());
             right = true;
         }
 
         Self {
-            unused_arg: PhantomData,
             spacing: 0,
             width: Length::Fill,
             height: Length::Fill,
@@ -81,7 +77,7 @@ where
             left_margin: left,
             right_margin: right,
             names,
-            style_sheet: Default::default(),
+            style: Default::default(),
         }
     }
 
@@ -135,10 +131,10 @@ where
     }
 }
 
-impl<'a, Message, Renderer, Theme> Widget<Message, Renderer> for Header<'a, Message, Renderer, Theme>
+impl<'a, Message, Renderer> Widget<Message, Renderer> for Header<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer<Theme>,
-    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     fn width(&self) -> Length {
@@ -312,17 +308,18 @@ where
             width: bounds.width,
             height: height as f32,
         };
-        self::Renderer::draw(
-            renderer,
-            tree,
-            layout,
-            theme,
-            cursor_position,
-            self.style_sheet.as_ref(),
-            &self.children,
-            viewport,
-            &custom_bounds,
-        )
+
+        for (child, layout) in self.children.iter().zip(layout.children()) {
+            child.as_widget().draw(
+                tree,
+                renderer,
+                theme,
+                &iced_native::renderer::Style::default(),
+                layout,
+                cursor_position,
+                viewport,
+            );
+        }
     }
 
     fn mouse_interaction(
@@ -333,7 +330,14 @@ where
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
-        self::Renderer::mouse_interaction(renderer,  tree, layout, cursor_position, viewport)
+        let bounds = layout.bounds();
+        let is_mouse_over = bounds.contains(cursor_position);
+
+        if is_mouse_over {
+            mouse::Interaction::Pointer
+        } else {
+            mouse::Interaction::default()
+        }
     }
 
     /*fn hash_layout(&self, state: &mut Hasher) {
@@ -355,41 +359,13 @@ where
     }*/
 }
 
-
-//use grin_gui_core::theme::Theme as Custom;
-// pub trait Renderer: iced_native::Renderer<Theme = iced_native::Theme> {
-pub trait Renderer<T>: iced_native::Renderer<Theme = T> {
-    type Style: Default;
-
-    #[allow(clippy::too_many_arguments)]
-    fn draw<Message>(
-        &mut self,
-        tree: &Tree,
-        layout: Layout<'_>,
-        theme: &T,
-        cursor_position: Point,
-        style_sheet: &dyn StyleSheet,
-        content: &Vec<Element<'_, Message, Self>>,
-        viewport: &Rectangle,
-        custom_bounds: &Rectangle,
-    );
-
-    fn mouse_interaction(
-        &self,
-        tree: &Tree,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
-    ) -> mouse::Interaction;
-}
-
-impl<'a, Message, Renderer, Theme: 'a> From<Header<'a, Message, Renderer, Theme>> for Element<'a, Message, Renderer>
+impl<'a, Message, Renderer> From<Header<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer<Theme>,
+    Renderer: 'a + iced_native::Renderer,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
-    fn from(header: Header<'a, Message, Renderer, Theme>) -> Element<'a, Message, Renderer> {
+    fn from(header: Header<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
         Element::new(header)
     }
 }

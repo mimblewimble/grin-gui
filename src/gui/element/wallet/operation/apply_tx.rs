@@ -5,8 +5,7 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_core::widgets::widget::header;
-//use iced::button::StyleSheet;
+use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;

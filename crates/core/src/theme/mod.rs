@@ -50,8 +50,8 @@ pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Rendere
 pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
 pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
-pub type Header<'a, Message> = crate::widgets::widget::header::Header<'a, Message, Renderer>;
-pub type TableRow<'a, Message> = crate::widgets::widget::table_row::TableRow<'a, Message, Renderer>;
+pub type Header<'a, Message> = grin_gui_widgets::widget::header::Header<'a, Message, Renderer>;
+pub type TableRow<'a, Message> = grin_gui_widgets::widget::table_row::TableRow<'a, Message, Renderer>;
 
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]

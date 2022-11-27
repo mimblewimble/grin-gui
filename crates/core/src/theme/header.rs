@@ -1,4 +1,4 @@
-use crate::widgets::style::header::{StyleSheet, Appearance};
+use grin_gui_widgets::style::header::{StyleSheet, Appearance};
 use iced::{Background, Color};
 use super::Theme;
 

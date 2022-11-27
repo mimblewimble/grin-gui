@@ -7,7 +7,7 @@ use grin_gui_core::{
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
-use grin_gui_core::widgets::header;
+use grin_gui_widgets::widget::header;
 use super::action_menu;
 use super::tx_list::{HeaderState, TxList};
 

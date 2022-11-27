@@ -6,7 +6,7 @@ use grin_gui_core::{
     wallet::{TxLogEntry, TxLogEntryType},
 };
 //use grin_gui_widgets::{header};
-use grin_gui_core::widgets::widget::header;
+//use grin_gui_core::widgets::widget::header;
 use iced::alignment;
 use iced_aw::Card;
 use iced_native::Widget;

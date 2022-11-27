@@ -17,8 +17,7 @@ use {
     std::path::PathBuf,
 };
 
-// use grin_gui_widgets::{table_row::StyleSheet};
-use grin_gui_core::widgets::table_row;
+use grin_gui_widgets::widget::table_row;
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;

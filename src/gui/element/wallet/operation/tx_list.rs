@@ -8,7 +8,7 @@ use {
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_core::widgets::widget::header,
+    grin_gui_widgets::widget::header,
     iced::{alignment, Alignment, Command, Length},
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
