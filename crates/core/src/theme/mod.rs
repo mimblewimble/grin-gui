@@ -2,6 +2,12 @@ use crate::fs;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
+#[cfg(feature = "wgpu")]
+use iced_wgpu::Renderer as IRenderer;
+
+#[cfg(feature = "opengl")]
+use iced_glow::Renderer as IRenderer;
+
 pub mod application;
 pub mod button;
 pub mod card;
@@ -38,7 +44,7 @@ pub struct Theme {
     pub palette: ColorPalette,
 }
 
-pub type Renderer = iced::Renderer<Theme>;
+pub type Renderer = IRenderer<Theme>;
 pub type Element<'a, Message> = iced::Element<'a, Message, Renderer>;
 pub type Container<'a, Message> = iced::widget::Container<'a, Message, Renderer>;
 pub type Column<'a, Message> = iced::widget::Column<'a, Message, Renderer>;

@@ -10,9 +10,11 @@ edition = "2018"
 build = "src/build/build.rs"
 
 [features]
-default = []
+default = ["opengl"]
 gui = ['iced_native']
 no-self-update = []
+wgpu = ["iced_wgpu"]
+opengl = ["iced_glow"]
 
 [build-dependencies]
 built = { version = "0.4", features = ["git2"] }
@@ -97,6 +99,9 @@ iced_style = "0.5.0"
 iced_graphics = { version = "0.4.0" }
 iced_native = { version = "0.6.1", optional = true }
 iced_aw = { git = "https://github.com/iced-rs/iced_aw" }
+
+iced_wgpu = { version = "0.6.1", optional = true }
+iced_glow = { version = "0.4.1", optional = true }
 
 [dev-dependencies]
 tempfile = "3.2.0"

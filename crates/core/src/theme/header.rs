@@ -1,6 +1,6 @@
 use super::Theme;
 use grin_gui_widgets::style::header::{Appearance, StyleSheet};
-use iced::{Background, Color};
+use iced::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum HeaderStyle {
