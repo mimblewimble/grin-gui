@@ -8,6 +8,7 @@ pub mod card;
 pub mod checkbox;
 pub mod container;
 pub mod modal;
+pub mod header;
 pub mod picklist;
 pub mod scrollable;
 pub mod text;
@@ -23,6 +24,7 @@ pub use picklist::PickListStyle;
 pub use scrollable::ScrollableStyle;
 pub use text_input::TextInputStyle;
 pub use table_row::TableRowStyle;
+pub use header::HeaderStyle;
 
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
@@ -50,6 +52,7 @@ pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
 pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
 pub type Header<'a, Message> = crate::widgets::widget::header::Header<'a, Message, Renderer>;
 pub type TableRow<'a, Message> = crate::widgets::widget::table_row::TableRow<'a, Message, Renderer>;
+
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {

@@ -1,4 +1,3 @@
-//! Decorate content and apply alignment.
 use iced_core::{Background, Color};
 
 /// The appearance of a table row.
@@ -17,8 +16,9 @@ pub struct Appearance {
 pub trait StyleSheet {
     type Style: std::default::Default + Copy;
 
+    /// Produces the default appearance of a table row.
     fn appearance(&self, style: &Self::Style) -> Appearance;
 
-    /// Produces the style of a hovered table row.
+    /// Produces the hovered appearance table row.
     fn hovered(&self, style: &Self::Style) -> Appearance;
 }
