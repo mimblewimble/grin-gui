@@ -23,7 +23,8 @@ impl card::StyleSheet for Theme {
                 head_text_color: self.palette.bright.surface,
                 border_color: self.palette.normal.primary,
                 body_text_color: self.palette.normal.surface,
-                border_radius: 5.0,
+                border_radius: 3.0,
+                border_width: 0.5,
                 ..card::Appearance::default()
             },
         }

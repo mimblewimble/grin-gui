@@ -8,6 +8,8 @@ use iced_wgpu::Renderer as IRenderer;
 #[cfg(feature = "opengl")]
 use iced_glow::Renderer as IRenderer;
 
+// TODO 
+// finish carryover from original stylesheet here: https://github.com/ajour/ajour/blob/master/src/gui/style.rs
 pub mod application;
 pub mod button;
 pub mod card;
