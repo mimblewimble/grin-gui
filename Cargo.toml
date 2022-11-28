@@ -19,10 +19,7 @@ iced_futures = { version = "0.5.1", features = ["async-std"] }
 iced_style = {version = "0.5.0"}
 iced_native = { version = "0.6.1" }
 #iced_aw = { version = "0.2.0", default-features = false, features = ["card", "modal"]}
-#iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
-#iced_aw = { path = "../iced_aw" }
-iced_aw = { git = "https://github.com/flomang/iced_aw" }
-
+iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
 
 async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }

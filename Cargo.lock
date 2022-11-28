@@ -3349,7 +3349,7 @@ dependencies = [
 [[package]]
 name = "iced_aw"
 version = "0.2.0"
-source = "git+https://github.com/flomang/iced_aw#54d53960840073aaf9e0e921170c686786138043"
+source = "git+https://github.com/iced-rs/iced_aw#9dc1ff53e4be0934c61d0fc92a23f96252045393"
 dependencies = [
  "iced_graphics",
  "iced_native",
