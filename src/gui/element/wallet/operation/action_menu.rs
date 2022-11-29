@@ -5,8 +5,9 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+//use grin_gui_widgets::{header};
+//use grin_gui_core::widgets::widget::header;
+use iced::alignment;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -15,30 +16,31 @@ use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::{Alignment, Command, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Checkbox, Space,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
-    pub create_tx_button_state: button::State,
-    pub apply_tx_button_state: button::State,
+    // pub create_tx_button_state: button::State,
+    // pub apply_tx_button_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            create_tx_button_state: Default::default(),
-            apply_tx_button_state: Default::default(),
+            // create_tx_button_state: Default::default(),
+            // apply_tx_button_state: Default::default(),
         }
     }
 }
@@ -85,9 +87,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     let button_width = Length::Units(70);
 
@@ -99,9 +100,9 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let create_tx_button: Element<Interaction> =
-        Button::new(&mut state.create_tx_button_state, create_tx_container)
+        Button::new(create_tx_container)
             .width(button_width)
-            .style(style::DefaultButton(color_palette))
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::CreateTx),
             ))
@@ -114,9 +115,9 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let apply_tx_button: Element<Interaction> =
-        Button::new(&mut state.apply_tx_button_state, apply_tx_container)
+        Button::new( apply_tx_container)
             .width(button_width)
-            .style(style::DefaultButton(color_palette))
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
             .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
                 LocalViewInteraction::SelectAction(Action::ApplyTx),
             ))
@@ -126,12 +127,12 @@ pub fn data_container<'a>(
     // TODO refactor since many of the buttons around the UI repeat this theme
     let create_container = Container::new(create_tx_button.map(Message::Interaction)).padding(1);
     let create_container = Container::new(create_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let apply_container = Container::new(apply_tx_button.map(Message::Interaction)).padding(1);
     let apply_container = Container::new(apply_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let menu_column = Row::new()

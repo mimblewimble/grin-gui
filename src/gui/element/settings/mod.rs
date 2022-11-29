@@ -1,31 +1,37 @@
+use iced::alignment::Horizontal;
+
 pub mod general;
 pub mod node;
 pub mod wallet;
 
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+    },
     grin_gui_core::{config::Config, theme::ColorPalette},
-    iced::{button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text},
+    iced::widget::{button, Space},
+    iced::{Alignment, Length},
     serde::{Deserialize, Serialize},
 };
 
 #[derive(Debug, Clone)]
 pub struct StateContainer {
     pub mode: Mode,
-    wallet_btn: button::State,
-    node_btn: button::State,
-    general_btn: button::State,
+    // wallet_btn: button::State,
+    // node_btn: button::State,
+    // general_btn: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             mode: Mode::Wallet,
-            wallet_btn: Default::default(),
-            node_btn: Default::default(),
-            general_btn: Default::default(),
+            // wallet_btn: Default::default(),
+            // node_btn: Default::default(),
+            // general_btn: Default::default(),
         }
     }
 }
@@ -53,12 +59,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: LocalViewInteraction) {
 }
 
 pub fn data_container<'a>(
-    state: &'a mut StateContainer,
-    config: &'a mut Config,
-    wallet_settings_state: &'a mut wallet::StateContainer,
-    node_settings_state: &'a mut node::StateContainer,
-    general_settings_state: &'a mut general::StateContainer,
-    color_palette: ColorPalette,
+    state: &'a StateContainer,
+    config: &'a Config,
+    wallet_settings_state: &'a wallet::StateContainer,
+    node_settings_state: &'a node::StateContainer,
+    general_settings_state: &'a general::StateContainer,
 ) -> Container<'a, Message> {
     let title_string = match state.mode {
         Mode::Wallet => localized_string("settings-wallet"),
@@ -69,10 +74,16 @@ pub fn data_container<'a>(
     // Submenu title to appear of left side of panel
     let general_settings_title = Text::new(title_string).size(DEFAULT_HEADER_FONT_SIZE);
     let general_settings_title_container = Container::new(general_settings_title)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
+        .padding(iced::Padding::from([
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
+        ]));
 
     let mut wallet_button: Button<Interaction> = Button::new(
-        &mut state.wallet_btn,
+        // &mut state.wallet_btn,
         Text::new(localized_string("wallet")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -80,7 +91,7 @@ pub fn data_container<'a>(
     ));
 
     let mut node_button: Button<Interaction> = Button::new(
-        &mut state.node_btn,
+        // &mut state.node_btn,
         Text::new(localized_string("node")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -88,7 +99,7 @@ pub fn data_container<'a>(
     ));
 
     let mut general_button: Button<Interaction> = Button::new(
-        &mut state.general_btn,
+        // &mut state.general_btn,
         Text::new(localized_string("general")).size(DEFAULT_FONT_SIZE),
     )
     .on_press(Interaction::SettingsViewInteraction(
@@ -97,19 +108,25 @@ pub fn data_container<'a>(
 
     match state.mode {
         Mode::Wallet => {
-            wallet_button = wallet_button.style(style::SelectedDefaultButton(color_palette));
-            node_button = node_button.style(style::DefaultButton(color_palette));
-            general_button = general_button.style(style::DefaultButton(color_palette));
+            wallet_button = wallet_button.style(grin_gui_core::theme::ButtonStyle::Selected);
+            node_button =
+                node_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            general_button =
+                general_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::Node => {
-            wallet_button = wallet_button.style(style::DefaultButton(color_palette));
-            node_button = node_button.style(style::SelectedDefaultButton(color_palette));
-            general_button = general_button.style(style::DefaultButton(color_palette));
+            wallet_button =
+                wallet_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_button = node_button.style(grin_gui_core::theme::ButtonStyle::Selected);
+            general_button =
+                general_button.style(grin_gui_core::theme::ButtonStyle::Primary);
         }
         Mode::General => {
-            wallet_button = wallet_button.style(style::DefaultButton(color_palette));
-            node_button = node_button.style(style::DefaultButton(color_palette));
-            general_button = general_button.style(style::SelectedDefaultButton(color_palette));
+            wallet_button =
+                wallet_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            node_button =
+                node_button.style(grin_gui_core::theme::ButtonStyle::Primary);
+            general_button = general_button.style(grin_gui_core::theme::ButtonStyle::Selected);
         }
     }
 
@@ -125,9 +142,10 @@ pub fn data_container<'a>(
 
     let segmented_mode_container = Container::new(segmented_mode_row).padding(1);
 
-    let segmented_mode_control_container = Container::new(segmented_mode_container)
-        .padding(1)
-        .style(style::SegmentedContainer(color_palette));
+    let segmented_mode_control_container =
+        Container::new(segmented_mode_container).padding(1).style(
+            grin_gui_core::theme::ContainerStyle::Segmented,
+        );
 
     let header_row = Row::new()
         .push(general_settings_title_container)
@@ -135,36 +153,31 @@ pub fn data_container<'a>(
         .push(segmented_mode_control_container)
         .align_items(Alignment::Center);
 
-    let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,                   // top
-        0,                   // right
-        0,                   // bottom
-        5,                   // left
-    ]));
+    let header_container = Container::new(header_row);
 
     // Wrapper for submenu + actual content
-    let mut wrapper_column = Column::with_children(vec![header_container.into()]).height(Length::Fill);
+    let mut wrapper_column =
+        Column::with_children(vec![header_container.into()]).height(Length::Fill);
     // Submenu Area + actual content
     match state.mode {
         Mode::Wallet => {
             wrapper_column =
-                wrapper_column.push(wallet::data_container(wallet_settings_state, color_palette))
+                wrapper_column.push(wallet::data_container(wallet_settings_state))
         }
         Mode::Node => {
             wrapper_column =
-                wrapper_column.push(node::data_container(node_settings_state, color_palette))
+                wrapper_column.push(node::data_container(node_settings_state))
         }
         Mode::General => {
             wrapper_column = wrapper_column.push(general::data_container(
                 general_settings_state,
                 config,
-                color_palette,
             ))
         }
     }
 
     Container::new(wrapper_column)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right

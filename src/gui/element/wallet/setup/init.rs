@@ -1,32 +1,27 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message, element::settings::wallet},
+    crate::gui::{GrinGui, Interaction, Message, element::settings::wallet},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
-    iced::{
-        alignment, button, Alignment, Button, Column, Command, Container, Element, Length, Row,
-        Space, Text,
+    grin_gui_core::theme::{Column, Element, Container, PickList, Row, Scrollable, Text, TextInput},
+    iced::{alignment, Alignment, Command, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Space,
     },
 };
 
 pub struct StateContainer {
     pub setup_wallet_defaults_is_selected: bool,
-    create_default_wallet_btn: button::State,
-    select_wallet_toml_btn: button::State,
-    execute_btn: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             setup_wallet_defaults_is_selected: true,
-            create_default_wallet_btn: Default::default(),
-            select_wallet_toml_btn: Default::default(),
-            execute_btn: Default::default(),
         }
     }
 }
@@ -74,17 +69,14 @@ pub fn handle_message(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
-) -> Container<'a, Message> {
+pub fn data_container<'a>() -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("setup-grin-first-time"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let title_row = Row::new()
         .push(title_container)
@@ -96,14 +88,14 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
     let description_container =
-        Container::new(description).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let or_text = Text::new(localized_string("or-caps"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let or_text_container =
-        Container::new(or_text).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(or_text).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let create_default_wallet_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-autogenerate-wallet")).size(DEFAULT_FONT_SIZE),
@@ -112,10 +104,9 @@ pub fn data_container<'a>(
     .align_x(alignment::Horizontal::Center);
 
     let create_default_wallet_button: Element<Interaction> = Button::new(
-        &mut state.create_default_wallet_btn,
         create_default_wallet_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
+    .style(grin_gui_core::theme::ButtonStyle::Bordered)
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletSetup,
     ))
@@ -127,10 +118,9 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let select_wallet_button: Element<Interaction> = Button::new(
-        &mut state.select_wallet_toml_btn,
         select_wallet_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette))
+    .style(grin_gui_core::theme::ButtonStyle::Bordered)
     .on_press(Interaction::WalletSetupInitViewInteraction(
         LocalViewInteraction::WalletList,
     ))
@@ -146,14 +136,14 @@ pub fn data_container<'a>(
             localized_string("setup-grin-autogenerate-wallet"),
             Interaction::ToggleCloseToTray,
         )
-        .style(style::DefaultCheckbox(color_palette))
+        .style(grin_gui_core::theme::CheckboxStyles::Normal)
         .text_size(DEFAULT_FONT_SIZE)
         .spacing(5);
 
         let checkbox: Element<Interaction> = checkbox.into();
 
         let checkbox_container = Container::new(checkbox.map(Message::Interaction))
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::NormalBackground);
 
         Column::new().push(checkbox_container)
     };*/

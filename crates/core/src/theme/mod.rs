@@ -2,19 +2,67 @@ use crate::fs;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
+#[cfg(feature = "wgpu")]
+use iced_wgpu::Renderer as IRenderer;
+
+#[cfg(feature = "opengl")]
+use iced_glow::Renderer as IRenderer;
+
+// TODO 
+// finish carryover from original stylesheet here: https://github.com/ajour/ajour/blob/master/src/gui/style.rs
+pub mod application;
+pub mod button;
+pub mod card;
+pub mod checkbox;
+pub mod container;
+pub mod modal;
+pub mod header;
+pub mod picklist;
+pub mod scrollable;
+pub mod text;
+pub mod text_input;
+pub mod table_row;
+
+pub use button::ButtonStyle;
+pub use card::CardStyle;
+pub use checkbox::CheckboxStyle;
+pub use container::ContainerStyle;
+pub use modal::ModalStyle;
+pub use picklist::PickListStyle;
+pub use scrollable::ScrollableStyle;
+pub use text_input::TextInputStyle;
+pub use table_row::TableRowStyle;
+pub use header::HeaderStyle;
+
 pub async fn load_user_themes() -> Vec<Theme> {
     log::debug!("loading user themes");
 
     fs::load_user_themes().await
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Theme {
     pub name: String,
     pub palette: ColorPalette,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub type Renderer = IRenderer<Theme>;
+pub type Element<'a, Message> = iced::Element<'a, Message, Renderer>;
+pub type Container<'a, Message> = iced::widget::Container<'a, Message, Renderer>;
+pub type Column<'a, Message> = iced::widget::Column<'a, Message, Renderer>;
+pub type Row<'a, Message> = iced::widget::Row<'a, Message, Renderer>;
+pub type Text<'a> = iced::widget::Text<'a, Renderer>;
+pub type TextInput<'a, Message> = iced::widget::TextInput<'a, Message, Renderer>;
+pub type Button<'a, Message> = iced::widget::Button<'a, Message, Renderer>;
+pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Renderer>;
+pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
+pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
+pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
+pub type Header<'a, Message> = grin_gui_widgets::widget::header::Header<'a, Message, Renderer>;
+pub type TableRow<'a, Message> = grin_gui_widgets::widget::table_row::TableRow<'a, Message, Renderer>;
+
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {
     #[serde(with = "serde_color")]
     pub background: iced_native::Color,
@@ -22,7 +70,7 @@ pub struct BaseColors {
     pub foreground: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct NormalColors {
     #[serde(with = "serde_color")]
     pub primary: iced_native::Color,
@@ -34,7 +82,7 @@ pub struct NormalColors {
     pub error: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BrightColors {
     #[serde(with = "serde_color")]
     pub primary: iced_native::Color,
@@ -46,7 +94,7 @@ pub struct BrightColors {
     pub error: iced_native::Color,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct ColorPalette {
     pub base: BaseColors,
     pub normal: NormalColors,

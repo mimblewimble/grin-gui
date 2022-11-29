@@ -1,6 +1,6 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, BUTTON_HEIGHT, BUTTON_WIDTH},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::config::Config,
@@ -8,38 +8,29 @@ use {
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
-    iced::{
-        alignment, button, scrollable, Alignment, Button, Checkbox, Column, Command, Container,
-        Element, Length, Row, Scrollable, Space, Text,
+    iced::{alignment, Alignment, Command, Length},
+    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Checkbox, Space,
     },
     native_dialog::FileDialog,
     std::path::PathBuf,
 };
 
-use grin_gui_widgets::{table_row::StyleSheet, TableRow};
+use grin_gui_widgets::widget::table_row;
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
 
 
 pub struct StateContainer {
-    pub back_button_state: button::State,
     selected_wallet_index: usize,
-    load_wallet_button_state: button::State,
-    select_folder_button_state: button::State,
-    new_wallet_button_state: button::State,
-    scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            back_button_state: Default::default(),
             selected_wallet_index: 0,
-            load_wallet_button_state: Default::default(),
-            select_folder_button_state: Default::default(),
-            new_wallet_button_state: Default::default(),
-            scrollable_state: Default::default(),
         }
     }
 }
@@ -134,8 +125,7 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     config: &Config,
 ) -> Container<'a, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);
@@ -143,17 +133,21 @@ pub fn data_container<'a>(
 
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::BrightBackground).padding(iced::Padding::from([
+            0,               // top
+            0,               // right
+            0,               // bottom
+            5,               // left
+        ]));
 
     let new_wallet_container =
         Container::new(Text::new(localized_string("create-wallet")).size(DEFAULT_FONT_SIZE))
-            //.height(button_height)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
     let new_wallet_button: Element<Interaction> =
-        Button::new(&mut state.new_wallet_button_state, new_wallet_container)
-            .style(style::DefaultButton(color_palette))
+        Button::new( new_wallet_container)
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
             .on_press(Interaction::WalletListWalletViewInteraction(
                 LocalViewInteraction::CreateWallet,
             ))
@@ -164,7 +158,7 @@ pub fn data_container<'a>(
 
     let segmented_mode_container = Container::new(button_row).padding(1);
     let segmented_mode_control_container = Container::new(segmented_mode_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let header_row = Row::new()
@@ -177,20 +171,20 @@ pub fn data_container<'a>(
         0,               // top
         0,               // right
         DEFAULT_PADDING, // bottom
-        5,               // left
+        0,               // left
     ]));
 
     let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
     let name_header_container =
-        Container::new(name_header).style(style::FadedBrightForegroundContainer(color_palette));
+        Container::new(name_header).style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
     let chain_header = Text::new(localized_string("type")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
     let chain_header_container =
-        Container::new(chain_header).style(style::FadedBrightForegroundContainer(color_palette));
+        Container::new(chain_header).style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
     let directory_header = Text::new(localized_string("folder")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
     let directory_header_container = Container::new(directory_header)
-        .style(style::FadedBrightForegroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
     let table_header_row = Row::new()
         .push(
@@ -216,7 +210,7 @@ pub fn data_container<'a>(
             9,               // bottom
             9,               // left
         ]))
-        .style(style::PanelForeground(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::PanelForeground);
 
     let mut wallet_rows: Vec<_> = vec![];
     for (pos, w) in config.wallets.iter().enumerate() {
@@ -226,7 +220,7 @@ pub fn data_container<'a>(
         //         LocalViewInteraction::WalletRowSelect(b, pos),
         //     ))
         // })
-        // .style(style::DefaultCheckbox(color_palette))
+        // .style(grin_gui_core::theme::CheckboxStyles::Normal)
         // .text_size(DEFAULT_FONT_SIZE)
         // .spacing(10);
 
@@ -235,10 +229,10 @@ pub fn data_container<'a>(
         let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
         let mut wallet_name_container =
-            Container::new(wallet_name).style(style::HoverableForegroundContainer(color_palette));
+            Container::new(wallet_name).style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         let mut wallet_chain_container =
-            Container::new(chain_name).style(style::HoverableForegroundContainer(color_palette));
+            Container::new(chain_name).style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         let tld_string = match &w.tld {
             Some(path_buf) => path_buf.display().to_string(),
@@ -247,15 +241,15 @@ pub fn data_container<'a>(
         let wallet_directory = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
         let mut wallet_directory_container = Container::new(wallet_directory)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         if selected_wallet {
             wallet_name_container = wallet_name_container
-                .style(style::HoverableBrightForegroundContainer(color_palette));
+                .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
             wallet_chain_container = wallet_chain_container
-                .style(style::HoverableBrightForegroundContainer(color_palette));
+                .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
             wallet_directory_container = wallet_directory_container
-                .style(style::HoverableBrightForegroundContainer(color_palette));
+                .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
         }
 
         let wallet_row = Row::new()
@@ -289,13 +283,13 @@ pub fn data_container<'a>(
 
         if selected_wallet {
             // selected wallet should be highlighted
-            table_row = table_row.style(style::TableRowSelected(color_palette));
+            table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowSelected);
         } else {
             // contrast row styles to spice things up
             if pos % 2 == 0 {
-                table_row = table_row.style(style::TableRowLowlife(color_palette));
+                table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowLowlife);
             } else {
-                table_row = table_row.style(style::TableRowHighlife(color_palette));
+                table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowHighlife);
             }
         }
 
@@ -312,10 +306,9 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut load_wallet_button = Button::new(
-        &mut state.load_wallet_button_state,
         load_wallet_button_container,
     )
-    .style(style::DefaultButton(color_palette));
+    .style(grin_gui_core::theme::ButtonStyle::Primary);
 
     // the load wallet button should be disabled if there are no wallets
     if !config.wallets.is_empty() {
@@ -335,10 +328,9 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let select_other_button: Element<Interaction> = Button::new(
-        &mut state.select_folder_button_state,
         select_folder_button_container,
     )
-    .style(style::DefaultButton(color_palette))
+    .style(grin_gui_core::theme::ButtonStyle::Primary)
     .on_press(Interaction::WalletListWalletViewInteraction(
         LocalViewInteraction::LocateWallet,
     ))
@@ -347,12 +339,12 @@ pub fn data_container<'a>(
     // button lipstick
     let load_container = Container::new(load_wallet_button.map(Message::Interaction)).padding(1);
     let load_container = Container::new(load_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let select_container = Container::new(select_other_button.map(Message::Interaction)).padding(1);
     let select_container = Container::new(select_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let button_row = Row::new()
@@ -361,13 +353,12 @@ pub fn data_container<'a>(
         .push(select_container)
         .height(Length::Shrink);
 
-    let scrollable = Scrollable::new(&mut state.scrollable_state)
-        .push(wallet_column)
-        .style(style::Scrollable(color_palette));
+    let scrollable = Scrollable::new(wallet_column)
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     let table_colummn = Column::new().push(table_header_container).push(scrollable);
     let table_container = Container::new(table_colummn)
-        .style(style::PanelBordered(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::PanelBordered)
         .height(Length::Fill)
         .padding(1);
 
@@ -382,7 +373,7 @@ pub fn data_container<'a>(
         .center_x()
         .width(Length::Fill)
         .height(Length::Shrink)
-        .style(style::NormalBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let wrapper_column = Column::new()
         .height(Length::Fill)

@@ -1,9 +1,10 @@
 pub mod embedded;
 
 use {
-    crate::gui::{style, Message},
+    crate::gui::{Message},
     grin_gui_core::{theme::ColorPalette, node::ChainTypes},
-    iced::{Column, Container, Length},
+    iced::Length,
+    grin_gui_core::theme::{Container, Column},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -31,12 +32,11 @@ impl StateContainer {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Embedded => embedded::data_container(color_palette, &mut state.embedded_state, chain_type),
+        Mode::Embedded => embedded::data_container(&state.embedded_state, chain_type),
         //_ => Container::new(Column::new()),
     };
 
@@ -48,5 +48,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
 }

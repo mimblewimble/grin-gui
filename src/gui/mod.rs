@@ -1,5 +1,5 @@
 mod element;
-mod style;
+//mod style;
 mod update;
 mod time;
 
@@ -7,22 +7,21 @@ use crate::cli::Opts;
 use crate::error_cause_string;
 use crate::localization::{localized_string, LANG};
 use crate::gui::element::{DEFAULT_FONT_SIZE, SMALLER_FONT_SIZE};
+use grin_gui_core::theme::Element;
 use grin_gui_core::{
     config::Config,
     fs::PersistentData,
-    theme::Theme,
+    theme::{Theme, Container, Column, ColorPalette, Button, PickList, Row, Scrollable, Text},
     wallet::{WalletInterfaceHttpNodeClient, HTTPNodeClient, global, get_grin_wallet_default_path},
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-
-use iced::{
-    button, pick_list, text_input, Alignment, Application, Button, Column,
-    Command, Container, Element, Length, Settings, Subscription,
-    Text, Row, Space,
+use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings};
+use iced::widget::{
+    button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
 
-use iced_native::alignment;
+//use iced_native::alignment;
 
 use iced_aw::{modal, Card, Modal};
 
@@ -30,6 +29,7 @@ use iced_futures::futures::channel::mpsc;
 
 use image::ImageFormat;
 
+use std::borrow::BorrowMut;
 //use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -69,14 +69,17 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
+    show_modal: bool,
     show_exit: bool,
     exit: bool,
+    theme: Theme,
 }
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
         self.modal_state.show(show);
         self.show_exit = show;
+        self.show_modal = show;
     }
 
     pub fn safe_exit (&mut self) {
@@ -86,13 +89,17 @@ impl GrinGui {
     }
 }
 
-impl<'a> Default for GrinGui {
-    fn default() -> Self {
+impl GrinGui{
+    fn from_config(config: &Config) -> Self {
 
         // Instantiate wallet node client
         // TODO: Fill out 
         let node_url = "http://localhost:8080";
     	let node_client = HTTPNodeClient::new(node_url, None).unwrap();
+
+        // restore theme from config
+        let name = config.theme.clone().unwrap_or("Alliance".to_string());
+        let theme = Theme::all().iter().find(|t| t.0 == name).unwrap().1.clone();
 
         Self {
             wallet_interface: Arc::new(RwLock::new(WalletInterfaceHttpNodeClient::new(node_client))),
@@ -109,8 +116,10 @@ impl<'a> Default for GrinGui {
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
+            show_modal: false,
             show_exit: false,
             exit: false,
+            theme,
         }
     }
 }
@@ -130,9 +139,14 @@ impl Application for GrinGui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Flags = Config;
+    type Theme = Theme;
+
+    fn theme(&self) -> Theme {
+        self.theme.clone()
+    }
 
     fn new(config: Config) -> (Self, Command<Message>) {
-        let mut grin_gui = GrinGui::default();
+        let mut grin_gui = GrinGui::from_config(&config);
 
         // default Mainnet  
         global::set_local_chain_type(ChainTypes::Mainnet);
@@ -214,24 +228,12 @@ impl Application for GrinGui {
         }
     }
 
-    fn view(&mut self) -> Element<Self::Message> {
-        let color_palette = self
-            .general_settings_state
-            .theme_state
-            .themes
-            .iter()
-            .find(|(name, _)| name == &self.general_settings_state.theme_state.current_theme_name)
-            .as_ref()
-            .unwrap_or(&&("Dark".to_string(), Theme::dark()))
-            .1
-            .palette;
-
+    fn view(&self) -> Element<Message> {
         let menu_state = self.menu_state.clone();
 
         let mut content = Column::new().push(element::menu::data_container(
-            &mut self.menu_state,
-            color_palette,
-            &mut self.error,
+            &self.menu_state,
+            &self.error,
         ));
 
         // Spacer between menu and content.
@@ -239,47 +241,44 @@ impl Application for GrinGui {
         match menu_state.mode {
             element::menu::Mode::Wallet => {
                 let setup_container = element::wallet::data_container(
-                   color_palette,
-                    &mut self.wallet_state,
-                    &self.config
+                   &self.wallet_state,
+                   &self.config
                 );
                 content = content.push(setup_container)
             }
             element::menu::Mode::Node => {
                 let chain_type = self.node_interface.read().unwrap().chain_type.unwrap_or_else( || ChainTypes::Mainnet);
                 let node_container = element::node::data_container(
-                    color_palette,
-                    &mut self.node_state,
+                    &self.node_state,
                     chain_type,
                 );
                 content = content.push(node_container)
             }
              element::menu::Mode::About => {
                 let about_container =
-                    element::about::data_container(color_palette, &None, &mut self.about_state);
+                    element::about::data_container(&None, &self.about_state);
                 content = content.push(about_container)
             }
             element::menu::Mode::Settings => {
                 content = content.push(element::settings::data_container(
-                    &mut self.settings_state,
-                    &mut self.config,
-                    &mut self.wallet_settings_state,
-                    &mut self.node_settings_state,
-                    &mut self.general_settings_state,
-                    color_palette,
+                    &self.settings_state,
+                    &self.config,
+                    &self.wallet_settings_state,
+                    &self.node_settings_state,
+                    &self.general_settings_state,
                 ))
                 /*if let Some(settings_container) = views.get_mut(settings_view_index) {
-                    content = content.push(settings_container.view.data_container(color_palette))
+                    content = content.push(settings_container.view.data_container)
                 }*/
             }
         }
  
-        let content: Element<Self::Message> = 
+        let content: Element<Message> = 
         // Wraps everything in a container.
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .style(style::NormalBackgroundContainer(color_palette))
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
         let show_exit = self.show_exit;
@@ -289,16 +288,16 @@ impl Application for GrinGui {
             "".into()
         };
 
-        Modal::new(&mut self.modal_state, content, move|state| {
+        Modal::new(self.show_modal, content, move|| {
             if show_exit {
-                element::modal::exit_card(color_palette, state).into()
+                element::modal::exit_card().into()
             } else {
-                element::modal::error_card(color_palette, state, error_cause.clone()).into()
+                element::modal::error_card(error_cause.clone()).into()
             }
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
-        .style(style::NormalModalContainer(color_palette))
+        .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
 
     }
@@ -395,7 +394,6 @@ impl std::fmt::Display for SelfUpdateStatus {
 #[derive(Default, Debug)]
 pub struct SelfUpdateState {
     status: Option<SelfUpdateStatus>,
-    btn_state: button::State,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -467,11 +465,9 @@ pub enum Interaction {
 pub struct ThemeState {
     themes: Vec<(String, Theme)>,
     current_theme_name: String,
-    pick_list_state: pick_list::State<String>,
-    input_state: text_input::State,
+    // pick_list_state: pick_list::State<String>,
+    // input_state: text_input::State,
     input_url: String,
-    import_button_state: button::State,
-    open_builder_button_state: button::State,
 }
 
 impl Default for ThemeState {
@@ -481,11 +477,7 @@ impl Default for ThemeState {
         ThemeState {
             themes,
             current_theme_name: "Dark".to_string(),
-            pick_list_state: Default::default(),
-            input_state: Default::default(),
             input_url: Default::default(),
-            import_button_state: Default::default(),
-            open_builder_button_state: Default::default(),
         }
     }
 }

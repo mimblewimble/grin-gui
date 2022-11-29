@@ -4,33 +4,28 @@ use super::{BUTTON_HEIGHT, BUTTON_WIDTH};
 
 use {
     super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE},
-    crate::gui::{style, Interaction, Message},
+    crate::gui::{Interaction, Message},
     crate::localization::localized_string,
     grin_gui_core::theme::ColorPalette,
-    iced::{
-        alignment, button, Alignment, Button, Column, Container, Element, Length, Row, Space, Text,
+    grin_gui_core::theme::{Card, Container, Column, Button, Element, Scrollable, Text, PickList, Row},
+    iced::{alignment, Alignment, Command, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
     },
-    iced_aw::{modal, native::card::Card, Modal},
+    iced_aw::{modal, Modal},
 };
 
 pub struct StateContainer {
-    ok_state: button::State,
-    cancel_state: button::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            ok_state: Default::default(),
-            cancel_state: Default::default(),
         }
     }
 }
 
-pub fn exit_card<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
-) -> Card<Message, Renderer> {
+pub fn exit_card() -> Card<'static, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);
     let button_width = Length::Units(BUTTON_WIDTH);
 
@@ -50,14 +45,14 @@ pub fn exit_card<'a>(
             .center_y()
             .align_x(alignment::Horizontal::Center);
 
-    let yes_button: Element<Interaction> = Button::new(&mut state.ok_state, yes_button_label)
-        .style(style::DefaultButton(color_palette))
+    let yes_button: Element<Interaction> = Button::new( yes_button_label)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
         .on_press(Interaction::Exit)
         .into();
 
     let cancel_button: Element<Interaction> =
-        Button::new(&mut state.cancel_state, cancel_button_label)
-            .style(style::DefaultButton(color_palette))
+        Button::new( cancel_button_label)
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
             .on_press(Interaction::ExitCancel)
             .into();
 
@@ -66,11 +61,11 @@ pub fn exit_card<'a>(
     // button lipstick
     let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
     let yes_container = Container::new(yes_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
-        .style(style::SegmentedContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
     let button_row = Row::new()
@@ -94,14 +89,12 @@ pub fn exit_card<'a>(
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(style::NormalModalCardContainer(color_palette))
+    .style(grin_gui_core::theme::CardStyle::Normal)
 }
 
-pub fn error_card<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+pub fn error_card(
     error_cause: String,
-) -> Card<Message, Renderer> {
+) -> Card<'static, Message> {
     Card::new(
         Text::new(localized_string("error-detail")).size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(error_cause.clone()).size(DEFAULT_FONT_SIZE),
@@ -114,22 +107,20 @@ pub fn error_card<'a>(
             .align_items(Alignment::Center)
             .push(
                 Button::new(
-                    &mut state.cancel_state,
                     Text::new(localized_string("ok-caps"))
                         .size(DEFAULT_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(style::DefaultButton(color_palette))
+                .style(grin_gui_core::theme::ButtonStyle::Primary)
                 .on_press(Message::Interaction(Interaction::CloseErrorModal)),
             )
             .push(
                 Button::new(
-                    &mut state.ok_state,
                     Text::new(localized_string("copy-to-clipboard"))
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(style::NormalTextButton(color_palette))
+                .style(grin_gui_core::theme::ButtonStyle::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
                     error_cause,
                 ))),
@@ -137,5 +128,5 @@ pub fn error_card<'a>(
     )
     .max_width(500)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
-    .style(style::NormalModalCardContainer(color_palette))
+    .style(grin_gui_core::theme::CardStyle::Normal)
 }

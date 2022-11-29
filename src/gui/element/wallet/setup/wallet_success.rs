@@ -1,19 +1,18 @@
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::theme::ColorPalette,
-    iced::{
-        alignment, button, Alignment, Button, Column, Command, Container,
-        Element, Length, Row, Space, Text,
+    iced::{alignment, Alignment, Command, Length},
+    grin_gui_core::theme::{Column, Element, Container, PickList, Row, Scrollable, Text, TextInput},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Button, Checkbox, Space, 
     },
     iced_aw::Card,
 };
 
 pub struct StateContainer {
-    pub copy_button_state: button::State,
-    pub next_button_state: button::State,
     // TODO: ZeroingString this
     pub recovery_phrase: String,
 }
@@ -21,8 +20,6 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            copy_button_state: Default::default(),
-            next_button_state: Default::default(),
             recovery_phrase: Default::default(),
         }
     }
@@ -48,8 +45,7 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("setup-grin-wallet-success"))
@@ -57,7 +53,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let title_row = Row::new()
         .push(title_container)
@@ -68,7 +64,7 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container =
-        Container::new(description).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let recovery_phrase_card = Card::new(
         Text::new(localized_string("setup-grin-wallet-recovery-phrase-title")).size(DEFAULT_HEADER_FONT_SIZE),
@@ -82,27 +78,26 @@ pub fn data_container<'a>(
             .align_items(Alignment::Center)
             .push(
                 Button::new(
-                    &mut state.copy_button_state,
                     Text::new(localized_string("copy-to-clipboard"))
                         .size(SMALLER_FONT_SIZE)
                         .horizontal_alignment(alignment::Horizontal::Center),
                 )
-                .style(style::NormalTextButton(color_palette))
+                .style(grin_gui_core::theme::ButtonStyle::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
                     state.recovery_phrase.clone(),
                 ))),
             ),
     )
     .max_width(400)
-    .style(style::NormalModalCardContainer(color_palette));
+    .style(grin_gui_core::theme::CardStyle::Normal);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("setup-grin-wallet-done")).size(DEFAULT_FONT_SIZE))
             .center_x()
             .align_x(alignment::Horizontal::Center);
 
-    let next_button = Button::new(&mut state.next_button_state, submit_button_label_container)
-        .style(style::DefaultBoxedButton(color_palette))
+    let next_button = Button::new(submit_button_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Bordered)
         .on_press(Interaction::WalletSetupWalletSuccessViewInteraction(
             LocalViewInteraction::Submit,
         ));

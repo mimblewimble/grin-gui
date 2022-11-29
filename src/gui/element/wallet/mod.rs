@@ -2,10 +2,11 @@ pub mod operation;
 pub mod setup;
 
 use {
-    crate::gui::{style, Message},
+    crate::gui::{Message},
     grin_gui_core::config::Config,
     grin_gui_core::theme::ColorPalette,
-    iced::{Column, Container, Length},
+    grin_gui_core::theme::{Container, Column},
+    iced::Length,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -51,17 +52,16 @@ impl StateContainer {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     config: &'a Config,
 ) -> Container<'a, Message> {
     let content = match &state.mode {
-        Mode::Init => setup::data_container(color_palette, &mut state.setup_state, config),
+        Mode::Init => setup::data_container(&state.setup_state, config),
         Mode::Operation => {
-            operation::data_container(color_palette, &mut state.operation_state, config)
+            operation::data_container(&state.operation_state, config)
         }
         Mode::CreateWallet(default_display_name) => {
-            setup::wallet_setup::data_container(color_palette, &mut state.setup_state.setup_wallet_state, default_display_name)
+            setup::wallet_setup::data_container(&state.setup_state.setup_wallet_state, default_display_name)
         }
     };
 
@@ -73,5 +73,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
 }

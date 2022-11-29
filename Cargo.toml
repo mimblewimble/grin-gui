@@ -5,8 +5,8 @@ edition = "2021"
 
 [features]
 default = ["opengl"]
-wgpu = ["grin-gui-widgets/wgpu", "iced/wgpu", "iced/default_system_font"]
-opengl = ["grin-gui-widgets/opengl", "iced/glow", "iced/glow_default_system_font"]
+wgpu = [ "iced/wgpu", "iced/default_system_font"]
+opengl = [ "iced/glow"]
 no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
@@ -14,11 +14,13 @@ debug = ["iced/debug"]
 grin-gui-core = { version = "0.1.0", path = "crates/core", features=['gui'] }
 grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 
+iced = { version = "0.5.2", default-features = false }
+iced_futures = { version = "0.5.1", features = ["async-std"] }
+iced_style = {version = "0.5.0"}
+iced_native = { version = "0.6.1" }
+#iced_aw = { version = "0.2.0", default-features = false, features = ["card", "modal"]}
+iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
 
-iced = { version = "0.4.0", default-features = false }
-iced_futures = { version = "0.4.1", features = ["async-std"] }
-iced_native = { version = "0.5.1" }
-iced_aw = { version = "0.2.0", default-features = false, features = ["card", "modal"]}
 async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }
 image = "0.23.8"
@@ -58,5 +60,4 @@ embed-resource = "1.3.3"
 members = [
     ".",
     "crates/core",
-    "crates/widgets"
 ]

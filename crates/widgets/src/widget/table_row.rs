@@ -1,13 +1,18 @@
 #![allow(clippy::type_complexity)]
-
-pub use crate::style::table_row::{Style, StyleSheet};
+use crate::style::table_row::StyleSheet;
+use iced::{Background, Color};
 use iced_native::{
-    event, layout, mouse, overlay, renderer, Alignment, Clipboard, Element, Event, Layout, Length,
-    Padding, Point, Rectangle, Shell, Widget,
+    event, layout, mouse, overlay, renderer, widget, widget::Tree, Alignment, Clipboard, Element,
+    Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
 
 #[allow(missing_debug_implementations)]
-pub struct TableRow<'a, Message, Renderer: self::Renderer> {
+pub struct TableRow<'a, Message, Renderer>
+where
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
+    Message: 'a,
+{
     padding: Padding,
     width: Length,
     height: Length,
@@ -16,14 +21,15 @@ pub struct TableRow<'a, Message, Renderer: self::Renderer> {
     inner_row_height: u32,
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
-    style_sheet: Box<dyn StyleSheet + 'a>,
+    style: <Renderer::Theme as StyleSheet>::Style,
     content: Element<'a, Message, Renderer>,
     on_press: Option<Box<dyn Fn(Event) -> Message + 'a>>,
 }
 
 impl<'a, Message, Renderer> TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     /// Creates an empty [`TableRow`].
@@ -40,13 +46,18 @@ where
             inner_row_height: u32::MAX,
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
-            style_sheet: Default::default(),
+            style:  Default::default(),
             content: content.into(),
             on_press: None,
         }
     }
-    pub fn style(mut self, style: impl Into<Box<dyn StyleSheet + 'a>>) -> Self {
-        self.style_sheet = style.into();
+
+    /// Sets the style of the [`TableRow`].
+    pub fn style(
+        mut self,
+        style: impl Into<<Renderer::Theme as StyleSheet>::Style>,
+    ) -> Self {
+        self.style = style.into();
         self
     }
 
@@ -113,15 +124,17 @@ where
         self
     }
 
-    pub fn padding(mut self, p:Padding) -> Self {
+    pub fn padding(mut self, p: Padding) -> Self {
         self.padding = p;
         self
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer> for TableRow<'a, Message, Renderer>
+impl<'a, Message, Renderer> Widget<Message, Renderer>
+    for TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet,
     Message: 'a,
 {
     fn width(&self) -> Length {
@@ -139,7 +152,7 @@ where
             .height(self.height)
             .pad(self.padding);
 
-        let mut content = self.content.layout(renderer, &limits.loose());
+        let mut content = self.content.as_widget().layout(renderer, &limits.loose());
         let size = limits.resolve(content.size());
 
         // TODO: MODIFIED COORDINATES, CHECK
@@ -154,38 +167,79 @@ where
 
     fn draw(
         &self,
+        _tree: &Tree,
         renderer: &mut Renderer,
-        _style: &renderer::Style,
+        theme: &Renderer::Theme,
+        style: &renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        let mut bounds = layout.bounds();
+        let bounds = layout.bounds();
+        let mut custom_bounds = layout.bounds();
+        let tree = Tree::new(&self.content); 
 
         // inner_row_height set?
         if self.inner_row_height != u32::MAX {
-            bounds.height = self.inner_row_height as f32;
+            custom_bounds.height = self.inner_row_height as f32;
         }
 
-        self::Renderer::draw(
+        let is_mouse_over = custom_bounds.contains(cursor_position);
+        let content_layout = layout.children().next().unwrap();
+
+        let appearance = if is_mouse_over {
+            theme.hovered(&self.style)
+        } else {
+            theme.appearance(&self.style)
+        };
+
+        let background = iced_native::renderer::Quad {
+            bounds: Rectangle {
+                x: bounds.x + appearance.offset_left as f32,
+                y: bounds.y,
+                width: bounds.width - appearance.offset_right as f32,
+                height: custom_bounds.height,
+            },
+            border_radius: appearance.border_radius,
+            border_width: appearance.border_width,
+            border_color: appearance.border_color,
+        };
+
+        renderer.fill_quad(
+            background.into(),
+            appearance
+                .background
+                .unwrap_or(Background::Color(Color::TRANSPARENT)),
+        );
+
+        self.content.as_widget().draw(
+            &tree,
             renderer,
-            layout,
+            theme,
+            style,
+            content_layout,
             cursor_position,
-            self.style_sheet.as_ref(),
-            &self.content,
             viewport,
-            &bounds,
-        )
+        );
     }
 
     fn mouse_interaction(
         &self,
+        _tree: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
-        self::Renderer::mouse_interaction(renderer, layout, cursor_position, viewport)
+        
+        let bounds = layout.bounds();
+        let is_mouse_over = bounds.contains(cursor_position);
+
+        if is_mouse_over {
+            mouse::Interaction::Pointer
+        } else {
+            mouse::Interaction::default()
+        }
     }
 
     /*fn hash_layout(&self, state: &mut Hasher) {
@@ -204,6 +258,7 @@ where
 
     fn on_event(
         &mut self,
+        _tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -211,7 +266,10 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
-        let status_from_content = self.content.on_event(
+        let mut tree = Tree::new(&self.content); 
+
+        let status_from_content = self.content.as_widget_mut().on_event(
+            &mut tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -242,40 +300,24 @@ where
         }
     }
 
-    fn overlay(
-        &mut self,
+    fn overlay<'b>(
+        &'b self,
+        tree: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-    ) -> Option<overlay::Element<'_, Message, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, Renderer>> {
         self.content
-            .overlay(layout.children().next().unwrap(), renderer)
+            .as_widget()
+            .overlay(tree, layout.children().next().unwrap(), renderer)
     }
 }
 
-pub trait Renderer: iced_native::Renderer {
-    type Style: Default;
-    #[allow(clippy::too_many_arguments)]
-    fn draw<Message>(
-        &mut self,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        style_sheet: &dyn StyleSheet,
-        content: &Element<'_, Message, Self>,
-        viewport: &Rectangle,
-        custom_bounds: &Rectangle,
-    );
 
-    fn mouse_interaction(
-        &self,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
-    ) -> mouse::Interaction;
-}
-
-impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>
+impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>>
+    for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + self::Renderer,
+    Renderer: 'a + iced_native::Renderer,
+    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn from(table_row: TableRow<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {

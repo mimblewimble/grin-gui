@@ -3,12 +3,14 @@ use crate::gui::element::DEFAULT_PADDING;
 pub mod summary;
 
 use {
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::Result,
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
     grin_gui_core::theme::ColorPalette,
-    iced::{Column, Command, Container, Length},
+    grin_gui_core::theme::{Container, Column},
+    iced::{Command, Length},
+    iced::widget::{container},
 };
 
 pub struct StateContainer {
@@ -45,14 +47,12 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Summary => summary::data_container(
-            color_palette,
-            &mut state.summary_state,
+            &state.summary_state,
             &state.server_stats,
             chain_type,
         ),
@@ -60,13 +60,13 @@ pub fn data_container<'a>(
     };
 
     let column = Column::new().push(content);
-
+    
     Container::new(column)
         .center_y()
         .center_x()
         .width(Length::Fill)
         .height(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right
