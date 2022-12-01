@@ -6,7 +6,7 @@ use {
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
-        config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
+        config::Config, node::amount_to_hr_string, theme::{ColorPalette, ButtonStyle, ContainerStyle}, wallet::TxLogEntry,
     },
     grin_gui_widgets::widget::header,
     iced::{alignment, Alignment, Command, Length},
@@ -174,14 +174,12 @@ impl SortDirection {
 #[derive(Debug, Clone)]
 pub struct TxLogEntryWrap {
     pub tx: TxLogEntry,
-    pub cancel_button_state: button::State,
 }
 
 impl TxLogEntryWrap {
     pub fn new(tx: TxLogEntry) -> Self {
         Self {
             tx,
-            cancel_button_state: button::State::default(),
         }
     }
 }
@@ -979,8 +977,7 @@ pub fn titles_row_header<'a>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
-    tx_log_entry_wrap: &'a mut TxLogEntryWrap,
-    tx: &TxLogEntry,
+    tx_log_entry_wrap: &'a TxLogEntryWrap,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
     config: &Config,
@@ -1567,7 +1564,7 @@ pub fn data_row_container<'a, 'b>(
                 let mut tx_cancel_button = Button::new(
                     Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
                 )
-                .style(style::DefaultBoxedButton(color_palette));
+                .style(ButtonStyle::Default);
 
                 tx_cancel_button =
                     tx_cancel_button.on_press(Interaction::WalletOperationHomeViewInteraction(

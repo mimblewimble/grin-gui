@@ -530,9 +530,8 @@ pub fn data_container<'a>(
 
     let mut has_txs = false;
 
-    let cancel_states = &mut state.cancel_button_states;
     // Loops though the txs.
-    for (idx, tx_wrap) in state.wallet_txs.txs.iter_mut().enumerate() {
+    for (idx, tx_wrap) in state.wallet_txs.txs.iter().enumerate() {
         has_txs = true;
         // If hiding ignored addons, we will skip it.
         /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
@@ -560,7 +559,6 @@ pub fn data_container<'a>(
         // If the tx is expanded, then this is also included in this container.
         let tx_data_cell = tx_list::data_row_container(
             tx_wrap,
-            tx,
             is_tx_expanded,
             &state.expanded_type,
             config,
@@ -594,17 +592,9 @@ pub fn data_container<'a>(
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
-<<<<<<< HEAD
         .push(status_row)
         .padding(10)
         .align_items(Alignment::Center);
-
-    Container::new(column)
-        .center_y()
-        .center_x()
-        .width(Length::Fill)
-=======
-        .push(status_row);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top
@@ -612,5 +602,4 @@ pub fn data_container<'a>(
         DEFAULT_PADDING, // bottom
         DEFAULT_PADDING, // left
     ]))
->>>>>>> master
 }

@@ -113,7 +113,13 @@ pub fn handle_message(
             );
 
             // set theme for gui
-            let theme = &state.theme_state.themes.iter().find(|x| theme_name == x.0).unwrap().1;
+            let theme = &state
+                .theme_state
+                .themes
+                .iter()
+                .find(|x| theme_name == x.0)
+                .unwrap()
+                .1;
             grin_gui.theme = theme.clone();
 
             state.theme_state.current_theme_name = theme_name.clone();
@@ -227,10 +233,7 @@ pub fn handle_message(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    state: &'a StateContainer,
-    config: &Config,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {
     let language_container = {
         let title = Container::new(Text::new(localized_string("language")).size(DEFAULT_FONT_SIZE))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
@@ -463,7 +466,7 @@ pub fn data_container<'a>(
         Column::new().push(checkbox_container)
     };
 
-    let column = Column::new()
+    let mut column = Column::new()
         .spacing(1)
         .push(language_container)
         .push(Space::new(Length::Units(0), Length::Units(10)))
@@ -472,19 +475,10 @@ pub fn data_container<'a>(
         .push(open_theme_row)
         .spacing(1);
 
-    let scrollable = Scrollable::new(column)
-        .height(Length::Fill)
-        .style(grin_gui_core::theme::ScrollableStyle::Primary);
-
-    // scrollable = scrollable
-    //     .push(Space::new(Length::Units(0), Length::Units(10)))
-    //     .push(theme_scale_row)
-    //     .push(Space::new(Length::Units(0), Length::Units(10)))
-    //     .push(open_theme_row);
-
+    // Systray settings
     #[cfg(target_os = "windows")]
     {
-        scrollable = scrollable
+        column = column
             .push(Space::new(Length::Units(0), Length::Units(10)))
             .push(close_to_tray_column)
             .push(Space::new(Length::Units(0), Length::Units(10)))
@@ -492,6 +486,10 @@ pub fn data_container<'a>(
             .push(Space::new(Length::Units(0), Length::Units(10)))
             .push(toggle_autostart_column);
     }
+
+    let scrollable = Scrollable::new(column)
+        .height(Length::Fill)
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     // Colum wrapping all the settings content.
     //scrollable = scrollable.height(Length::Fill);

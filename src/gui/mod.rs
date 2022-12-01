@@ -198,7 +198,7 @@ impl Application for GrinGui {
         SHOULD_EXIT.load(Ordering::Relaxed)
     }
 
-    #[cfg(target_os = "windows")]
+    /*#[cfg(target_os = "windows")]
     fn mode(&self) -> iced::window::Mode {
         use crate::tray::GUI_VISIBLE;
         use iced::window::Mode;
@@ -209,7 +209,7 @@ impl Application for GrinGui {
         } else {
             Mode::Hidden
         }
-    }
+    }*/
 
     fn subscription(&self) -> Subscription<Message> {
         let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);

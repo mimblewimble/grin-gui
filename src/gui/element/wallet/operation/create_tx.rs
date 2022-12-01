@@ -19,7 +19,7 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface, InitTxArgs, Slate},
-    grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
+    grin_gui_core::{node::amount_to_hr_string, theme::{ButtonStyle, ColorPalette, ContainerStyle}},
     iced::{alignment, Alignment, Command, Length},
     grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
     iced::widget::{
@@ -204,7 +204,7 @@ pub fn data_container<'a>(
             .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_instruction_container = Container::new(address_instruction_container)
-        .style(style::NormalBackgroundContainer(color_palette));
+        .style(ContainerStyle::NormalBackground);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("create-transaction")).size(DEFAULT_FONT_SIZE))
@@ -214,7 +214,7 @@ pub fn data_container<'a>(
     let mut submit_button = Button::new(
         submit_button_label_container,
     )
-    .style(style::DefaultBoxedButton(color_palette));
+    .style(ButtonStyle::Bordered);
 
     submit_button = submit_button.on_press(Interaction::WalletOperationCreateTxViewInteraction(
         LocalViewInteraction::CreateTransaction(),
