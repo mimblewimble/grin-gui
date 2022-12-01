@@ -9,9 +9,9 @@ pub mod logger;
 pub mod node;
 pub mod error;
 pub mod fs;
+pub mod theme;
 pub mod network;
 #[cfg(feature = "gui")]
-pub mod theme;
 pub mod utility;
 
 #[macro_use]

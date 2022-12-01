@@ -6,11 +6,14 @@ pub mod create_tx;
 pub mod apply_tx;
 
 use {
-    crate::gui::{style, GrinGui, Message},
+    crate::gui::{GrinGui, Message},
     crate::Result,
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,
-    iced::{Column, Command, Container, Length},
+    iced::{Command, Length},
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+    },
 };
 
 pub struct StateContainer {
@@ -72,20 +75,19 @@ pub fn handle_message(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     config:&'a Config
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Open => open::data_container(color_palette, &mut state.open_state, config),
+        Mode::Open => open::data_container(&state.open_state, config),
         Mode::Home => {
-            home::data_container(color_palette, config, &mut state.home_state)
+            home::data_container(config, &state.home_state)
         }
         Mode::CreateTx => {
-            create_tx::data_container(color_palette, config, &mut state.create_tx_state)
+            create_tx::data_container(config, &state.create_tx_state)
         }
         Mode::ApplyTx => {
-            apply_tx::data_container(color_palette, config, &mut state.apply_tx_state)
+            apply_tx::data_container(config, &state.apply_tx_state)
         }
     };
 
@@ -96,5 +98,5 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
-        .style(style::NormalBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
 }

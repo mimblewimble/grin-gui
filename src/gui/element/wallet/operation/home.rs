@@ -1,44 +1,46 @@
 use super::tx_list::{self, ExpandType};
-use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
 use super::action_menu;
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
+use grin_gui_widgets::widget::header;
+
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    super::super::super::{
+        DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, DEFAULT_SUB_HEADER_FONT_SIZE,
+        SMALLER_FONT_SIZE,
+    },
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
+    crate::log_error,
     crate::Result,
     anyhow::Context,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
+    },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
-    },
+    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
+    iced::{alignment, Alignment, Command, Length},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
-    pub back_button_state: button::State,
-    pub cancel_button_states: Vec<button::State>,
     pub expanded_type: ExpandType,
 
     wallet_info: Option<WalletInfo>,
     wallet_txs: TxList,
     wallet_status: String,
-    txs_scrollable_state: scrollable::State,
+    // txs_scrollable_state: scrollable::State,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 }
@@ -47,13 +49,12 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             action_menu_state: Default::default(),
-            cancel_button_states: vec![],
-            back_button_state: Default::default(),
+            // back_button_state: Default::default(),
             expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
-            txs_scrollable_state: Default::default(),
+            // txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
         }
@@ -258,43 +259,12 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
-    // Title row
-    let title = Text::new(localized_string("wallet-home"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
-
-    let back_button_label_container =
-        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-            .height(Length::Units(20))
-            .align_y(alignment::Vertical::Bottom)
-            .align_x(alignment::Horizontal::Center);
-
-    let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
-            .on_press(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::Back,
-            ))
-            .into();
-
-    let title_row = Row::new()
-        .push(title_container)
-        .push(back_button.map(Message::Interaction))
-        //.push(Space::new(Length::Fill, Length::Units(0)))
-        .align_items(Alignment::Center)
-        .padding(6)
-        .spacing(20);
-
     // Buttons to perform operations go here, but empty container for now
     let operations_menu =
-        action_menu::data_container(color_palette, config, &mut state.action_menu_state);
+        action_menu::data_container(config, &state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -321,92 +291,152 @@ pub fn data_container<'a>(
         ),
     };
 
-    let total_value_label = Text::new(format!("{}:", localized_string("info-confirmed-total")));
-    let total_value_label_container =
-        Container::new(total_value_label).style(style::BrightBackgroundContainer(color_palette));
+    let wallet_name = config.wallets[config.current_wallet_index.unwrap()]
+        .display_name
+        .clone();
 
-    let total_value = Text::new(total_string);
+    // Title row
+    let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
+    let title_container = Container::new(title)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+
+    let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
+    let subtitle_container = Container::new(subtitle)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
+        .padding(iced::Padding::from([
+            3, // top
+            0, // right
+            0, // bottom
+            0, // left
+        ]));
+
+    let close_wallet_label_container =
+        Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
+            .height(Length::Units(14))
+            .width(Length::Units(30))
+            .center_y()
+            .center_x();
+
+    let close_wallet_button: Element<Interaction> = Button::new(close_wallet_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Bordered)
+        .on_press(Interaction::WalletOperationHomeViewInteraction(
+            LocalViewInteraction::Back,
+        ))
+        .padding(2)
+        .into();
+
+    let subtitle_row = Row::new()
+        .push(subtitle_container)
+        .push(Space::with_width(Length::Units(2)))
+        .push(close_wallet_button.map(Message::Interaction));
+
+    let title_container = Container::new(Column::new().push(title_container).push(subtitle_row)).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        0,               // bottom
+        5,               // left
+    ]));
+
+    let header_row = Row::new()
+        .push(title_container)
+        .push(Space::with_width(Length::Fill))
+        .push(operations_menu);
+
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        0,               // left
+    ]));
+
+    let total_value_label =
+        Text::new(format!("{}:", localized_string("info-confirmed-total"))).size(DEFAULT_FONT_SIZE);
+    let total_value_label_container = Container::new(total_value_label)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+
+    let total_value = Text::new(total_string).size(DEFAULT_FONT_SIZE);
     let total_value_container = Container::new(total_value)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
     let total_row = Row::new()
         .push(total_value_label_container)
         .push(total_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_confirmation_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-confirmation")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_label_container = Container::new(awaiting_confirmation_label)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
-    let awaiting_confirmation_value = Text::new(awaiting_confirmation_string);
+    let awaiting_confirmation_value =
+        Text::new(awaiting_confirmation_string).size(DEFAULT_FONT_SIZE);
     let awaiting_confirmation_value_container = Container::new(awaiting_confirmation_value)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
     let awaiting_confirmation_row = Row::new()
         .push(awaiting_confirmation_label_container)
         .push(awaiting_confirmation_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let awaiting_finalization_label = Text::new(format!(
         "{}:",
         localized_string("info-awaiting-finalization")
-    ));
+    ))
+    .size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_label_container = Container::new(awaiting_finalization_label)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
-    let awaiting_finalization_value = Text::new(awaiting_finalization_string);
+    let awaiting_finalization_value =
+        Text::new(awaiting_finalization_string).size(DEFAULT_FONT_SIZE);
     let awaiting_finalization_value_container = Container::new(awaiting_finalization_value)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
     let awaiting_finalization_row = Row::new()
         .push(awaiting_finalization_label_container)
         .push(awaiting_finalization_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
-    let locked_label = Text::new(format!("{}:", localized_string("info-locked")));
-    let locked_label_container =
-        Container::new(locked_label).style(style::BrightBackgroundContainer(color_palette));
+    let locked_label =
+        Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
+    let locked_label_container = Container::new(locked_label)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
-    let locked_value = Text::new(locked_string);
+    let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
     let locked_row = Row::new()
         .push(locked_label_container)
         .push(locked_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let amount_spendable_label =
-        Text::new(format!("{}:", localized_string("info-amount-spendable")));
+        Text::new(format!("{}:", localized_string("info-amount-spendable")))
+            .size(DEFAULT_FONT_SIZE);
     let amount_spendable_label_container = Container::new(amount_spendable_label)
-        .style(style::BrightBackgroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
-    let amount_spendable_value = Text::new(amount_spendable_string);
+    let amount_spendable_value = Text::new(amount_spendable_string).size(DEFAULT_FONT_SIZE);
     let amount_spendable_value_container = Container::new(amount_spendable_value)
-        .style(style::BrightBackgroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
         .width(Length::Fill)
         .align_x(alignment::Horizontal::Right);
 
     let amount_spendable_row = Row::new()
         .push(amount_spendable_label_container)
         .push(amount_spendable_value_container)
-        .width(Length::Fill)
-        .spacing(5);
+        .width(Length::Fill);
 
     let info_column = Column::new()
         .push(total_row)
@@ -414,22 +444,18 @@ pub fn data_container<'a>(
         .push(awaiting_finalization_row)
         .push(locked_row)
         .push(amount_spendable_row)
-        .spacing(10);
+        .spacing(7);
 
-    let wallet_info_card_title_string = "".to_owned();
-    let wallet_info_card = Card::new(
-        Text::new(wallet_info_card_title_string).size(DEFAULT_HEADER_FONT_SIZE),
-        info_column,
-    )
-    .style(style::NormalModalCardContainer(color_palette));
+    let wallet_info_card_container = Container::new(info_column)
+        .width(Length::Units(240))
+        .padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            5,               // left
+        ]));
 
-    let wallet_info_card_container = Container::new(wallet_info_card).width(Length::FillPortion(2));
-
-    // Home 'row', operation buttons beside info
-    let first_row_container = Row::new()
-        .push(wallet_info_card_container)
-        .push(operations_menu)
-        .padding(10);
+    let first_row_container = Row::new().push(wallet_info_card_container);
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -458,10 +484,10 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)));
 
     let status_container = Container::new(status_container_contents)
-        .style(style::BrightForegroundContainer(color_palette))
+        .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
         .height(Length::Fill)
         .width(Length::Fill)
-        .style(style::NormalForegroundContainer(color_palette));
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let status_row = Row::new()
         .push(status_container)
@@ -489,20 +515,18 @@ pub fn data_container<'a>(
     // This is to add titles above each section of the tx row, to let
     // the user easily identify what the value is.
     let tx_row_titles = super::tx_list::titles_row_header(
-        color_palette,
         &state.wallet_txs,
-        &mut state.tx_header_state.state,
-        &mut state.tx_header_state.columns,
+        &state.tx_header_state.state,
+        &state.tx_header_state.columns,
         state.tx_header_state.previous_column_key,
         state.tx_header_state.previous_sort_direction,
     );
 
     // A scrollable list containing rows.
     // Each row holds data about a single tx.
-    let mut tx_list_scrollable = Scrollable::new(&mut state.txs_scrollable_state)
-        .spacing(1)
-        //.height(Length::Fill)
-        .style(style::Scrollable(color_palette));
+    let mut content = Column::new().spacing(1);
+    //.height(Length::Fill)
+    //.style(grin_gui_core::theme::ScrollableStyles::Primary);
 
     let mut has_txs = false;
 
@@ -535,8 +559,8 @@ pub fn data_container<'a>(
         // A container cell which has all data about the current tx.
         // If the tx is expanded, then this is also included in this container.
         let tx_data_cell = tx_list::data_row_container(
-            color_palette,
             tx_wrap,
+            tx,
             is_tx_expanded,
             &state.expanded_type,
             config,
@@ -546,8 +570,12 @@ pub fn data_container<'a>(
         );
 
         // Adds the addon data cell to the scrollable.
-        tx_list_scrollable = tx_list_scrollable.push(tx_data_cell);
+        content = content.push(tx_data_cell);
     }
+
+    let mut tx_list_scrollable = Scrollable::new(content).style(
+        grin_gui_core::theme::ScrollableStyle::Primary,
+    );
 
     // Bottom space below the scrollable.
     let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
@@ -562,10 +590,11 @@ pub fn data_container<'a>(
 
     // Overall Home screen layout column
     let column = Column::new()
-        .push(title_row)
+        .push(header_container)
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
+<<<<<<< HEAD
         .push(status_row)
         .padding(10)
         .align_items(Alignment::Center);
@@ -574,4 +603,14 @@ pub fn data_container<'a>(
         .center_y()
         .center_x()
         .width(Length::Fill)
+=======
+        .push(status_row);
+
+    Container::new(column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
+>>>>>>> master
 }

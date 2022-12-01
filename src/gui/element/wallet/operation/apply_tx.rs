@@ -5,8 +5,7 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -15,33 +14,34 @@ use super::tx_list::{HeaderState, TxList};
 
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::{alignment, Alignment, Command, Length},
+    iced::widget::{
+        button, pick_list, scrollable, text_input,Checkbox, Space,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
-    pub back_button_state: button::State,
-    pub copy_address_button_state: button::State,
-    pub address_state: text_input::State,
+    // pub back_button_state: button::State,
+    // pub copy_address_button_state: button::State,
+    // pub address_state: text_input::State,
     pub address_value: String,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            back_button_state: Default::default(),
-            copy_address_button_state: Default::default(),
-            address_state: Default::default(),
+            // back_button_state: Default::default(),
+            // copy_address_button_state: Default::default(),
+            // address_state: Default::default(),
             address_value: Default::default(),
         }
     }
@@ -79,9 +79,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("apply-tx"))
@@ -89,7 +88,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -98,8 +97,8 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
+        Button::new( back_button_label_container)
+            .style(grin_gui_core::theme::ButtonStyle::NormalText)
             .on_press(Interaction::WalletOperationApplyTxViewInteraction(
                 LocalViewInteraction::Back,
             ))
@@ -118,25 +117,25 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_name_container =
-        Container::new(address_name).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(address_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let address_input = TextInput::new(&mut state.address_state, "", &state.address_value, |s| {
+    let address_input = TextInput::new( "", &state.address_value, |s| {
         Interaction::WalletOperationApplyTxViewInteraction(LocalViewInteraction::Address(s))
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(400))
-    .style(style::AddonsQueryInput(color_palette));
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let address_input: Element<Interaction> = address_input.into();
 
     let copy_address_button = Button::new(
-        &mut state.copy_address_button_state,
+        // &mut state.copy_address_button_state,
         Text::new(localized_string("copy-to-clipboard"))
             .size(SMALLER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Center),
     )
-    .style(style::NormalTextButton(color_palette))
+    .style(grin_gui_core::theme::ButtonStyle::NormalText)
     .on_press(Interaction::WriteToClipboard(
         state.address_value.clone(),
     ));
@@ -155,7 +154,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let address_instruction_container =
-        Container::new(address_instruction_container).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(address_instruction_container).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
 
     let column = Column::new()

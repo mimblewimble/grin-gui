@@ -1,15 +1,20 @@
+use std::borrow::Borrow;
+
 use {
     super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Interaction, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
         config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
     },
-    grin_gui_widgets::{header, Header, TableRow},
-    iced::{
-        button, pick_list, scrollable, text_input, Button, Column, Command, Container, Element,
-        Length, Row, Space, Text,
+    grin_gui_widgets::widget::header,
+    iced::{alignment, Alignment, Command, Length},
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
+    },
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Space,
     },
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
@@ -262,126 +267,126 @@ impl Default for HeaderState {
             columns: vec![
                 ColumnState {
                     key: ColumnKey::Id,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(20),
                     hidden: true,
                     order: 0,
                 },
                 ColumnState {
                     key: ColumnKey::NetDifference,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: false,
                     order: 1,
                 },
                 ColumnState {
                     key: ColumnKey::CreationTime,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: false,
                     order: 2,
                 },
                 ColumnState {
                     key: ColumnKey::Status,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(300),
                     hidden: false,
                     order: 3,
                 },
                 ColumnState {
                     key: ColumnKey::ConfirmationTime,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 4,
                 },
                 ColumnState {
                     key: ColumnKey::Type,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: true,
                     order: 5,
                 },
                 ColumnState {
                     key: ColumnKey::SharedTransactionId,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: true,
                     order: 6,
                 },
                 ColumnState {
                     key: ColumnKey::TTLCutoff,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 7,
                 },
                 ColumnState {
                     key: ColumnKey::Height,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 8,
                 },
                 ColumnState {
                     key: ColumnKey::IsConfirmed,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 9,
                 },
                 ColumnState {
                     key: ColumnKey::NumInputs,
-                    btn_state: Default::default(),
+                    // btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 10,
                 },
                 ColumnState {
                     key: ColumnKey::NumOutputs,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 11,
                 },
                 ColumnState {
                     key: ColumnKey::AmountCredited,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 12,
                 },
                 ColumnState {
                     key: ColumnKey::AmountDebited,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 13,
                 },
                 ColumnState {
                     key: ColumnKey::Fee,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 14,
                 },
                 ColumnState {
                     key: ColumnKey::PaymentProof,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 15,
                 },
                 ColumnState {
                     key: ColumnKey::Kernel,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 16,
                 },
                 ColumnState {
                     key: ColumnKey::TxData,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 17,
@@ -393,129 +398,93 @@ impl Default for HeaderState {
 
 pub struct ColumnState {
     key: ColumnKey,
-    btn_state: button::State,
+    // btn_state: button::State,
     width: Length,
     hidden: bool,
     order: usize,
 }
 
 pub struct ColumnSettings {
-    pub scrollable_state: scrollable::State,
+    // pub scrollable_state: scrollable::State,
     pub columns: Vec<ColumnSettingState>,
 }
 
 impl Default for ColumnSettings {
     fn default() -> Self {
         ColumnSettings {
-            scrollable_state: Default::default(),
+            // scrollable_state: Default::default(),
             columns: vec![
                 ColumnSettingState {
                     key: ColumnKey::Id,
                     order: 0,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::NetDifference,
                     order: 1,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::CreationTime,
                     order: 2,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::Status,
                     order: 3,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::ConfirmationTime,
                     order: 4,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::Type,
                     order: 5,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::SharedTransactionId,
                     order: 6,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::TTLCutoff,
                     order: 7,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::Height,
                     order: 8,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::IsConfirmed,
                     order: 9,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::NumInputs,
                     order: 10,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::NumOutputs,
                     order: 11,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::AmountCredited,
                     order: 12,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::AmountDebited,
                     order: 13,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::Fee,
                     order: 14,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::PaymentProof,
                     order: 15,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::Kernel,
                     order: 16,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
                 ColumnSettingState {
                     key: ColumnKey::TxData,
                     order: 17,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
                 },
             ],
         }
@@ -525,8 +494,8 @@ impl Default for ColumnSettings {
 pub struct ColumnSettingState {
     pub key: ColumnKey,
     pub order: usize,
-    pub up_btn_state: button::State,
-    pub down_btn_state: button::State,
+    // pub up_btn_state: button::State,
+    // pub down_btn_state: button::State,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
@@ -628,7 +597,6 @@ impl From<&str> for TxListColumnKey {
 }
 pub struct TxListColumnState {
     key: ColumnKey,
-    btn_state: button::State,
     width: Length,
     hidden: bool,
     order: usize,
@@ -659,126 +627,126 @@ impl Default for TxListHeaderState {
             columns: vec![
                 TxListColumnState {
                     key: ColumnKey::Id,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(20),
                     hidden: false,
                     order: 0,
                 },
                 TxListColumnState {
                     key: ColumnKey::NetDifference,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 1,
                 },
                 TxListColumnState {
                     key: ColumnKey::CreationTime,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 2,
                 },
                 TxListColumnState {
                     key: ColumnKey::Status,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 3,
                 },
                 TxListColumnState {
                     key: ColumnKey::ConfirmationTime,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 4,
                 },
                 TxListColumnState {
                     key: ColumnKey::Type,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: true,
                     order: 5,
                 },
                 TxListColumnState {
                     key: ColumnKey::SharedTransactionId,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: false,
                     order: 6,
                 },
                 TxListColumnState {
                     key: ColumnKey::TTLCutoff,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 7,
                 },
                 TxListColumnState {
                     key: ColumnKey::Height,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 8,
                 },
                 TxListColumnState {
                     key: ColumnKey::IsConfirmed,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: false,
                     order: 9,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumInputs,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 10,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumOutputs,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 11,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountCredited,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 12,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountDebited,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 13,
                 },
                 TxListColumnState {
                     key: ColumnKey::Fee,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 14,
                 },
                 TxListColumnState {
                     key: ColumnKey::PaymentProof,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 15,
                 },
                 TxListColumnState {
                     key: ColumnKey::Kernel,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 16,
                 },
                 TxListColumnState {
                     key: ColumnKey::TxData,
-                    btn_state: Default::default(),
+                  //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 17,
@@ -789,122 +757,102 @@ impl Default for TxListHeaderState {
 }
 
 pub struct TxListColumnSettings {
-    pub scrollable_state: scrollable::State,
     pub columns: Vec<TxListColumnSettingState>,
 }
 
 impl Default for TxListColumnSettings {
     fn default() -> Self {
         TxListColumnSettings {
-            scrollable_state: Default::default(),
             columns: vec![
                 TxListColumnSettingState {
                     key: ColumnKey::Id,
                     order: 0,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NetDifference,
                     order: 1,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::CreationTime,
                     order: 2,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Status,
                     order: 3,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::ConfirmationTime,
                     order: 4,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Type,
                     order: 5,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::SharedTransactionId,
                     order: 6,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::TTLCutoff,
                     order: 7,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Height,
                     order: 8,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::IsConfirmed,
                     order: 9,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NumInputs,
                     order: 10,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NumOutputs,
                     order: 11,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::AmountCredited,
                     order: 12,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::AmountDebited,
                     order: 13,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Fee,
                     order: 14,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::PaymentProof,
                     order: 15,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Kernel,
                     order: 16,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::TxData,
                     order: 17,
-                    up_btn_state: Default::default(),
-                    down_btn_state: Default::default(),
+
                 },
             ],
         }
@@ -914,36 +862,33 @@ impl Default for TxListColumnSettings {
 pub struct TxListColumnSettingState {
     pub key: ColumnKey,
     pub order: usize,
-    pub up_btn_state: button::State,
-    pub down_btn_state: button::State,
+ 
 }
 
 pub struct CatalogSearchState {
     pub catalog_rows: Vec<CatalogRow>,
-    pub scrollable_state: scrollable::State,
     pub query: Option<String>,
-    pub query_state: text_input::State,
+    // pub query_state: text_input::State,
     pub result_size: TxListResultSize,
     pub result_sizes: Vec<TxListResultSize>,
-    pub result_sizes_state: pick_list::State<TxListResultSize>,
+    // pub result_sizes_state: pick_list::State<TxListResultSize>,
 }
 
 impl Default for CatalogSearchState {
     fn default() -> Self {
         CatalogSearchState {
             catalog_rows: Default::default(),
-            scrollable_state: Default::default(),
             query: None,
-            query_state: Default::default(),
+            // query_state: Default::default(),
             result_size: Default::default(),
             result_sizes: TxListResultSize::all(),
-            result_sizes_state: Default::default(),
+            // result_sizes_state: Default::default(),
         }
     }
 }
 
 pub struct CatalogRow {
-    install_button_state: button::State,
+    // install_button_state: button::State,
 }
 
 fn row_title<T: PartialEq>(
@@ -964,17 +909,16 @@ fn row_title<T: PartialEq>(
 }
 
 pub fn titles_row_header<'a>(
-    color_palette: ColorPalette,
     tx_list: &TxList,
-    header_state: &'a mut header::State,
-    column_state: &'a mut [ColumnState],
+    header_state: &'a header::State,
+    column_state: &'a [ColumnState],
     previous_column_key: Option<ColumnKey>,
     previous_sort_direction: Option<SortDirection>,
 ) -> Header<'a, Message> {
     // A row containing titles above the addon rows.
     let mut row_titles = vec![];
 
-    for column in column_state.iter_mut().filter(|c| !c.hidden) {
+    for column in column_state.iter().filter(|c| !c.hidden) {
         let column_key = column.key;
 
         let row_title = row_title(
@@ -985,7 +929,7 @@ pub fn titles_row_header<'a>(
         );
 
         let mut row_header = Button::new(
-            &mut column.btn_state,
+            // &mut column.btn_state,
             Text::new(row_title)
                 .size(DEFAULT_FONT_SIZE)
                 .width(Length::Fill),
@@ -998,20 +942,20 @@ pub fn titles_row_header<'a>(
         //}
 
         if previous_column_key == Some(column_key) {
-            row_header = row_header.style(style::SelectedColumnHeaderButton(color_palette));
+            row_header = row_header.style(grin_gui_core::theme::ButtonStyle::SelectedColumn);
         }
         /*else if column_key == ColumnKey::Install {
-            row_header = row_header.style(style::UnclickableColumnHeaderButton(color_palette));
+            row_header = row_header.style(style::UnclickableColumnHeaderButton);
         } */
         else {
-            row_header = row_header.style(style::ColumnHeaderButton(color_palette));
+            row_header = row_header.style(grin_gui_core::theme::ButtonStyle::ColumnHeader);
         }
 
         let row_header: Element<Interaction> = row_header.into();
 
         let row_container = Container::new(row_header.map(Message::Interaction))
             .width(column.width)
-            .style(style::NormalBackgroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         // Only shows row titles if we have any catalog results.
         if !tx_list.txs.is_empty() {
@@ -1020,7 +964,7 @@ pub fn titles_row_header<'a>(
     }
 
     Header::new(
-        header_state,
+        header_state.clone(),
         row_titles,
         Some(Length::Units(DEFAULT_PADDING)),
         Some(Length::Units(DEFAULT_PADDING + 5)),
@@ -1035,8 +979,8 @@ pub fn titles_row_header<'a>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
-    color_palette: ColorPalette,
     tx_log_entry_wrap: &'a mut TxLogEntryWrap,
+    tx: &TxLogEntry,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
     config: &Config,
@@ -1102,7 +1046,7 @@ pub fn data_row_container<'a, 'b>(
         if addon.release_channel != ReleaseChannel::Default {
             let release_channel =
                 Container::new(Text::new(addon.release_channel.to_string()).size(10))
-                    .style(style::ChannelBadge(color_palette))
+                    .style(style::ChannelBadge)
                     .padding(3);
 
             title_row = title_row.push(release_channel);
@@ -1115,10 +1059,10 @@ pub fn data_row_container<'a, 'b>(
             .center_y();
         if is_addon_expanded && matches!(expand_type, ExpandType::Details(_)) {
             title_container =
-                title_container.style(style::SelectedBrightForegroundContainer(color_palette));
+                title_container.style(style::SelectedBrightForegroundContainer);
         } else {
             title_container =
-                title_container.style(style::HoverableBrightForegroundContainer(color_palette));
+                title_container.style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
         }
 
         row_containers.push((idx, title_container));
@@ -1143,7 +1087,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, id_container));
     }
@@ -1167,7 +1111,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_creation_time_container));
     }
@@ -1191,7 +1135,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_confirmation_time_container));
     }
@@ -1215,7 +1159,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_net_difference_container));
     }
@@ -1239,7 +1183,7 @@ pub fn data_row_container<'a, 'b>(
             .height(default_height)
             .width(*width)
             .center_y()
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_status_container));
     }
@@ -1265,7 +1209,7 @@ pub fn data_row_container<'a, 'b>(
 
         let mut remote_version_button =
             Button::new(&mut addon.remote_version_btn_state, remote_version)
-                .style(style::NormalTextButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::NormalText);
 
         if changelog_url.is_some() {
             remote_version_button =
@@ -1282,7 +1226,7 @@ pub fn data_row_container<'a, 'b>(
                 .height(default_height)
                 .width(*width)
                 .center_y()
-                .style(style::HoverableForegroundContainer(color_palette));
+                .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, remote_version_container));
     }*/
@@ -1305,7 +1249,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         row_containers.push((idx, display_tx_type_container));
     }
@@ -1328,7 +1272,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, author_container));
     }*/
@@ -1352,7 +1296,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, game_version_container));
     }*/
@@ -1387,7 +1331,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, game_version_container));
     }*/
@@ -1412,7 +1356,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, source_container));
     }*/
@@ -1436,7 +1380,7 @@ pub fn data_row_container<'a, 'b>(
             .width(*width)
             .center_y()
             .padding(5)
-            .style(style::HoverableForegroundContainer(color_palette));
+            .style(grin_gui_core::theme::container::Container::HoverableForeground);
 
         row_containers.push((idx, container));
     }*/
@@ -1459,14 +1403,14 @@ pub fn data_row_container<'a, 'b>(
                 .width(*width)
                 .center_y()
                 .center_x()
-                .style(style::HoverableForegroundContainer(color_palette)),
+                .style(grin_gui_core::theme::container::Container::HoverableForeground),
             AddonState::Completed => {
                 Container::new(Text::new(localized_string("completed")).size(DEFAULT_FONT_SIZE))
                     .height(default_height)
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Error(message) => {
                 Container::new(Text::new(message).size(DEFAULT_FONT_SIZE))
@@ -1474,7 +1418,7 @@ pub fn data_row_container<'a, 'b>(
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Updatable | AddonState::Retry => {
                 let id = addon.primary_folder_id.clone();
@@ -1492,7 +1436,7 @@ pub fn data_row_container<'a, 'b>(
                 let update_button: Element<Interaction> =
                     Button::new(&mut addon.update_btn_state, update_wrapper)
                         .width(Length::FillPortion(1))
-                        .style(style::SecondaryButton(color_palette))
+                        .style(style::SecondaryButton)
                         .on_press(Interaction::Update(id))
                         .into();
 
@@ -1501,7 +1445,7 @@ pub fn data_row_container<'a, 'b>(
                     .width(*width)
                     .center_y()
                     .center_x()
-                    .style(style::HoverableBrightForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground)
             }
             AddonState::Downloading => {
                 Container::new(Text::new(localized_string("downloading")).size(DEFAULT_FONT_SIZE))
@@ -1510,7 +1454,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Unpacking => {
                 Container::new(Text::new(localized_string("unpacking")).size(DEFAULT_FONT_SIZE))
@@ -1519,7 +1463,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Fingerprint => {
                 Container::new(Text::new(localized_string("hashing")).size(DEFAULT_FONT_SIZE))
@@ -1528,7 +1472,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Ignored => {
                 Container::new(Text::new(localized_string("ignored")).size(DEFAULT_FONT_SIZE))
@@ -1537,7 +1481,7 @@ pub fn data_row_container<'a, 'b>(
                     .center_y()
                     .center_x()
                     .padding(5)
-                    .style(style::HoverableForegroundContainer(color_palette))
+                    .style(grin_gui_core::theme::container::Container::HoverableForeground)
             }
             AddonState::Unknown => Container::new(Text::new("").size(DEFAULT_FONT_SIZE))
                 .height(default_height)
@@ -1545,7 +1489,7 @@ pub fn data_row_container<'a, 'b>(
                 .center_y()
                 .center_x()
                 .padding(5)
-                .style(style::HoverableForegroundContainer(color_palette)),
+                .style(grin_gui_core::theme::container::Container::HoverableForeground),
         };
 
         row_containers.push((idx, update_button_container));
@@ -1573,11 +1517,11 @@ pub fn data_row_container<'a, 'b>(
                 let id_title_text =
                     Text::new(format!("{}: ", localized_string("tx-id"))).size(DEFAULT_FONT_SIZE);
                 let id_title_container = Container::new(id_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let id_text = Text::new(id).size(DEFAULT_FONT_SIZE);
                 let id_text_container = Container::new(id_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let id_row = Row::new()
                     .push(id_title_container)
@@ -1588,11 +1532,11 @@ pub fn data_row_container<'a, 'b>(
                 let uuid_title_text = Text::new(format!("{}: ", localized_string("tx-shared-id")))
                     .size(DEFAULT_FONT_SIZE);
                 let uuid_title_container = Container::new(uuid_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let uuid_text = Text::new(shared_tx_id).size(DEFAULT_FONT_SIZE);
                 let uuid_text_container = Container::new(uuid_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let uuid_row = Row::new()
                     .push(uuid_title_container)
@@ -1603,11 +1547,11 @@ pub fn data_row_container<'a, 'b>(
                 let type_title_text =
                     Text::new(format!("{}: ", localized_string("tx-type"))).size(DEFAULT_FONT_SIZE);
                 let type_title_container = Container::new(type_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let type_text = Text::new(tx_type).size(DEFAULT_FONT_SIZE);
                 let type_text_container = Container::new(type_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
                 let type_row = Row::new()
                     .push(type_title_container)
@@ -1621,7 +1565,6 @@ pub fn data_row_container<'a, 'b>(
                 let bottom_space = Space::new(Length::Units(0), Length::Units(4));
 
                 let mut tx_cancel_button = Button::new(
-                    &mut tx_log_entry_wrap.cancel_button_state,
                     Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
                 )
                 .style(style::DefaultBoxedButton(color_palette));
@@ -1641,9 +1584,9 @@ pub fn data_row_container<'a, 'b>(
                 let author_title_text =
                     Text::new(localized_string("authors")).size(DEFAULT_FONT_SIZE);
                 let author_title_container = Container::new(author_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
                 let notes_title_container = Container::new(notes_title_text)
-                    .style(style::HoverableBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
 
                 let release_date_text: String = if let Some(package) = &release_package {
                     let f = localized_timeago_formatter();
@@ -1661,12 +1604,12 @@ pub fn data_row_container<'a, 'b>(
                 let release_date_text_container = Container::new(release_date_text)
                     .center_y()
                     .padding(5)
-                    .style(style::FadedBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::NormalBackground);
 
                 let release_channel_title =
                     Text::new(localized_string("remote-release-channel")).size(DEFAULT_FONT_SIZE);
                 let release_channel_title_container = Container::new(release_channel_title)
-                    .style(style::FadedBrightForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::container::Container::NormalBackground);
                 let release_channel_list = PickList::new(
                     &mut addon.pick_release_channel_state,
                     &ReleaseChannel::ALL[..],
@@ -1675,13 +1618,13 @@ pub fn data_row_container<'a, 'b>(
                 )
                 .text_size(14)
                 .width(Length::Units(100))
-                .style(style::PickList(color_palette));
+                .style(style::PickList);
 
                 let mut website_button = Button::new(
                     &mut addon.website_btn_state,
                     Text::new(localized_string("website")).size(DEFAULT_FONT_SIZE),
                 )
-                .style(style::DefaultButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::Primary);
 
                 if let Some(link) = website_url {
                     website_button = website_button.on_press(Interaction::OpenLink(link));
@@ -1699,7 +1642,7 @@ pub fn data_row_container<'a, 'b>(
                 let mut ignore_button =
                     Button::new(&mut addon.ignore_btn_state, ignore_button_text)
                         .on_press(Interaction::Ignore(addon.primary_folder_id.clone()))
-                        .style(style::DefaultButton(color_palette));
+                        .style(grin_gui_core::theme::button::Button::Primary);
 
                 if is_ignored {
                     ignore_button = ignore_button
@@ -1729,7 +1672,7 @@ pub fn data_row_container<'a, 'b>(
                     Text::new(title).size(DEFAULT_FONT_SIZE),
                 )
                 .on_press(interaction)
-                .style(style::DefaultDeleteButton(color_palette))
+                .style(style::DefaultDeleteButton)
                 .into();
 
                 let (title, interaction) = if Some(Confirm::DeleteSavedVariables)
@@ -1750,14 +1693,14 @@ pub fn data_row_container<'a, 'b>(
                     Text::new(title).size(DEFAULT_FONT_SIZE),
                 )
                 .on_press(interaction)
-                .style(style::DefaultDeleteButton(color_palette))
+                .style(style::DefaultDeleteButton)
                 .into();
 
                 let mut changelog_button = Button::new(
                     &mut addon.changelog_btn_state,
                     Text::new(localized_string("changelog")).size(DEFAULT_FONT_SIZE),
                 )
-                .style(style::DefaultButton(color_palette));
+                .style(grin_gui_core::theme::button::Button::Primary);
 
                 if changelog_url.is_some() {
                     changelog_button =
@@ -1807,7 +1750,7 @@ pub fn data_row_container<'a, 'b>(
                 let details_container = Container::new(column)
                     .width(Length::Fill)
                     .padding(20)
-                    .style(style::FadedNormalForegroundContainer(color_palette));
+                    .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
                 let row = Row::new()
                     .push(left_spacer)
@@ -1836,9 +1779,9 @@ pub fn data_row_container<'a, 'b>(
         });
 
     if is_odd == Some(true) {
-        table_row = table_row.style(style::TableRowAlternate(color_palette))
+        table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowAlternate)
     } else {
-        table_row = table_row.style(style::TableRow(color_palette))
+        table_row = table_row.style(grin_gui_core::theme::TableRowStyle::Default)
     }
 
     table_row

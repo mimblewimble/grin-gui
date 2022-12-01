@@ -5,20 +5,26 @@ use iced_aw::Card;
 const NANO_TO_MILLIS: f64 = 1.0 / 1_000_000.0;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE},
-    crate::gui::{style, GrinGui, Message},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_SUB_HEADER_FONT_SIZE},
+    crate::gui::{GrinGui, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
     grin_gui_core::theme::ColorPalette,
-    iced::{alignment, Alignment, Column, Command, Container, Length, Row, Space, Text},
+    grin_gui_core::theme::{Container, Column, Row, Text, Scrollable},
+    iced::{
+        alignment, Alignment, Command, Length, 
+    },
+    iced::widget::{scrollable, Space}
 };
 
-pub struct StateContainer {}
+pub struct StateContainer {
+}
 
 impl Default for StateContainer {
     fn default() -> Self {
-        Self {}
+        Self {
+        }
     }
 }
 
@@ -93,7 +99,7 @@ fn format_sync_status(sync_status: &SyncStatus) -> String {
 							dur_secs,
 					)
             }
-        },
+        }
         SyncStatus::TxHashsetSetup {
             headers,
             headers_total,
@@ -170,25 +176,24 @@ fn format_sync_status(sync_status: &SyncStatus) -> String {
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
     stats: &'a Option<ServerStats>,
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
+
     fn stat_row<'a>(
-        label_text: &str,
-        value_text: &str,
-        color_palette: ColorPalette,
+        label_text: String,
+        value_text: String,
     ) -> Column<'a, Message> {
-        let line_label = Text::new(label_text).size(DEFAULT_HEADER_FONT_SIZE);
+        let line_label = Text::new(label_text).size(DEFAULT_FONT_SIZE);
 
         let line_label_container =
-            Container::new(line_label).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         let line_value = Text::new(value_text).size(DEFAULT_FONT_SIZE);
 
         let line_value_container =
-            Container::new(line_value).style(style::BrightBackgroundContainer(color_palette));
+            Container::new(line_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
             .push(line_label_container)
@@ -200,12 +205,12 @@ pub fn data_container<'a>(
     // Basic Info "Box"
     let stats_info_container = match stats {
         Some(s) => {
-            let status_line_value = Text::new(&format_sync_status(&s.sync_status))
-                .size(DEFAULT_HEADER_FONT_SIZE)
+            let status_line_value = Text::new(format_sync_status(&s.sync_status))
+                .size(DEFAULT_FONT_SIZE)
                 .horizontal_alignment(alignment::Horizontal::Center);
 
             let status_line_value_container = Container::new(status_line_value)
-                .style(style::BrightBackgroundContainer(color_palette));
+                .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
             let status_line_column = Column::new()
                 .push(status_line_value_container)
@@ -221,51 +226,51 @@ pub fn data_container<'a>(
                 ChainTypes::Testnet => localized_string("status-line-title-test"),
                 _ => localized_string("status-line-title-main"),
             };
+            let status_line_container =
+                Container::new(Text::new(status_line_title).size(DEFAULT_SUB_HEADER_FONT_SIZE))
+                    .width(Length::Fill)
+                    .center_x();
 
-            let status_line_card = Card::new(
-                Text::new(status_line_title).size(DEFAULT_HEADER_FONT_SIZE),
-                status_line_row,
-            )
-            .style(style::NormalModalCardContainer(color_palette));
+            let status_line_card = Card::new(status_line_container, status_line_row)
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Basic status
             let connected_peers_row = stat_row(
-                &localized_string("connected-peers-label"),
-                &format!("{}", &s.peer_count),
-                color_palette,
+                localized_string("connected-peers-label"),
+                format!("{}", &s.peer_count),
             );
             let disk_usage_row = stat_row(
-                &localized_string("disk-usage-label"),
-                &format!("{}", &s.disk_usage_gb),
-                color_palette,
+                localized_string("disk-usage-label"),
+                format!("{}", &s.disk_usage_gb),
             );
             let basic_status_column = Column::new().push(connected_peers_row).push(disk_usage_row);
-            let basic_status_card = Card::new(
-                Text::new(localized_string("basic-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                basic_status_column,
+
+            let basic_status_container = Container::new(
+                Text::new(localized_string("basic-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let basic_status_card = Card::new(basic_status_container, basic_status_column)
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Tip Status
             let header_tip_hash_row = stat_row(
-                &localized_string("header-tip-label"),
-                &format!("{}", &s.header_stats.last_block_h),
-                color_palette,
+                localized_string("header-tip-label"),
+                format!("{}", &s.header_stats.last_block_h),
             );
             let header_chain_height_row = stat_row(
-                &localized_string("header-chain-height-label"),
-                &format!("{}", &s.header_stats.height),
-                color_palette,
+                localized_string("header-chain-height-label"),
+                format!("{}", &s.header_stats.height),
             );
             let header_chain_difficulty_row = stat_row(
-                &localized_string("header-chain-difficulty-label"),
-                &format!("{}", &s.header_stats.total_difficulty),
-                color_palette,
+                localized_string("header-chain-difficulty-label"),
+                format!("{}", &s.header_stats.total_difficulty),
             );
             let header_tip_timestamp_row = stat_row(
-                &localized_string("header-tip-timestamp-label"),
-                &format!("{}", &s.header_stats.latest_timestamp),
-                color_palette,
+                localized_string("header-tip-timestamp-label"),
+                format!("{}", &s.header_stats.latest_timestamp),
             );
             let header_status_column = Column::new()
                 .push(header_tip_hash_row)
@@ -273,32 +278,32 @@ pub fn data_container<'a>(
                 .push(header_chain_difficulty_row)
                 .push(header_tip_timestamp_row);
 
-            let header_status_card = Card::new(
-                Text::new(localized_string("header-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                header_status_column,
+            let header_status_container = Container::new(
+                Text::new(localized_string("header-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let header_status_card = Card::new(header_status_container, header_status_column)
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // Chain status
             let chain_tip_hash_row = stat_row(
-                &localized_string("chain-tip-label"),
-                &format!("{}", &s.chain_stats.last_block_h),
-                color_palette,
+                localized_string("chain-tip-label"),
+                format!("{}", &s.chain_stats.last_block_h),
             );
             let chain_height_row = stat_row(
-                &localized_string("chain-height-label"),
-                &format!("{}", &s.chain_stats.height),
-                color_palette,
+                localized_string("chain-height-label"),
+                format!("{}", &s.chain_stats.height),
             );
             let chain_difficulty_row = stat_row(
-                &localized_string("chain-difficulty-label"),
-                &format!("{}", &s.chain_stats.total_difficulty),
-                color_palette,
+                localized_string("chain-difficulty-label"),
+                format!("{}", &s.chain_stats.total_difficulty),
             );
             let chain_tip_timestamp_row = stat_row(
-                &localized_string("chain-tip-timestamp-label"),
-                &format!("{}", &s.chain_stats.latest_timestamp),
-                color_palette,
+                localized_string("chain-tip-timestamp-label"),
+                format!("{}", &s.chain_stats.latest_timestamp),
             );
             let chain_status_column = Column::new()
                 .push(chain_tip_hash_row)
@@ -306,52 +311,76 @@ pub fn data_container<'a>(
                 .push(chain_difficulty_row)
                 .push(chain_tip_timestamp_row);
 
-            let chain_status_card = Card::new(
-                Text::new(localized_string("chain-status-title")).size(DEFAULT_HEADER_FONT_SIZE),
-                chain_status_column,
+            let chain_status_container = Container::new(
+                Text::new(localized_string("chain-status-title"))
+                    .size(DEFAULT_SUB_HEADER_FONT_SIZE),
             )
-            .style(style::NormalModalCardContainer(color_palette));
+            .width(Length::Fill)
+            .center_x();
+
+            let chain_status_card = Card::new(chain_status_container, chain_status_column)
+                .style(grin_gui_core::theme::CardStyle::Normal);
 
             // TX Pool
             let tx_status_card = match &s.tx_stats {
                 Some(t) => {
                     let transaction_pool_size_row = stat_row(
-                        &localized_string("transaction-pool-size-label"),
-                        &format!("{}", t.tx_pool_size),
-                        color_palette,
+                        localized_string("transaction-pool-size-label"),
+                        format!("{}", t.tx_pool_size),
                     );
                     let stem_pool_size_row = stat_row(
-                        &localized_string("stem-pool-size-label"),
-                        &format!("{}", t.stem_pool_size),
-                        color_palette,
+                        localized_string("stem-pool-size-label"),
+                        format!("{}", t.stem_pool_size),
                     );
                     let tx_status_column = Column::new()
                         .push(transaction_pool_size_row)
                         .push(stem_pool_size_row);
 
-                    Card::new(
+                    let tx_status_container = Container::new(
                         Text::new(localized_string("transaction-pool-title"))
-                            .size(DEFAULT_HEADER_FONT_SIZE),
-                        tx_status_column,
+                            .size(DEFAULT_SUB_HEADER_FONT_SIZE),
                     )
+                    .width(Length::Fill)
+                    .center_x();
+
+                    Card::new(tx_status_container, tx_status_column)
                 }
                 None => Card::new(
                     Text::new(localized_string("transaction-pool-title")),
                     Column::new(),
                 ),
             }
-            .style(style::NormalModalCardContainer(color_palette));
+            .style(grin_gui_core::theme::CardStyle::Normal);
 
-            let display_row_1 = Row::new().push(status_line_card).padding(6).spacing(10);
+            let display_row_1 = Row::new()
+                .push(status_line_card)
+                .padding(iced::Padding::from([
+                    0, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
+                .spacing(10);
+
             let display_row_2 = Row::new()
                 .push(header_status_card)
                 .push(chain_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    6, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
             let display_row_3 = Row::new()
                 .push(basic_status_card)
                 .push(tx_status_card)
-                .padding(6)
+                .padding(iced::Padding::from([
+                    6, // top
+                    0, // right
+                    0, // bottom
+                    0, // left
+                ]))
                 .spacing(10);
 
             let status_column = Column::new()
@@ -365,15 +394,15 @@ pub fn data_container<'a>(
     };
 
     let stats_info_container = stats_info_container.width(Length::Units(600));
+    let scrollable = Scrollable::new(stats_info_container)
+        //.align_items(Alignment::Center)
+        .height(Length::Fill)
+        //.width(Length::Fill)
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
-    let colum = Column::new()
-        .push(Space::new(Length::Units(0), Length::Fill))
-        .push(stats_info_container)
-        .push(Space::new(Length::Units(0), Length::Fill))
-        .align_items(Alignment::Center);
-
-    Container::new(colum)
+    Container::new(scrollable)
         .center_y()
         .center_x()
         .width(Length::Fill)
+        .height(Length::Shrink)
 }

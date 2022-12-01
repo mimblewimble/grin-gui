@@ -1,6 +1,6 @@
 use iced_native::Point;
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct State {
     pub resize_hovering: bool,
     pub resizing: bool,

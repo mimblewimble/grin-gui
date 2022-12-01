@@ -5,8 +5,7 @@ use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::{header, Header, TableRow};
-use iced::button::StyleSheet;
+use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -14,40 +13,32 @@ use std::path::PathBuf;
 use super::tx_list::{HeaderState, TxList};
 
 use {
-    super::super::super::{
-        DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE,
-    },
-    crate::gui::{style, GrinGui, Interaction, Message},
+    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface, InitTxArgs, Slate},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    iced::{
-        alignment, button, scrollable, text_input, Alignment, Button, Checkbox, Column, Command,
-        Container, Element, Length, Row, Scrollable, Space, Text, TextInput,
+    iced::{alignment, Alignment, Command, Length},
+    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::widget::{
+        button, pick_list, scrollable, text_input, Checkbox, Space,
     },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
 pub struct StateContainer {
-    pub back_button_state: button::State,
-    pub recipient_address_input_state: text_input::State,
-    pub submit_button_state: button::State,
     pub recipient_address_value: String,
-    pub amount_input_state: text_input::State,
+    // pub amount_input_state: text_input::State,
     pub amount_value: String,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            back_button_state: Default::default(),
-            recipient_address_input_state: Default::default(),
-            submit_button_state: Default::default(),
             recipient_address_value: Default::default(),
-            amount_input_state: Default::default(),
             amount_value: Default::default(),
         }
     }
@@ -131,9 +122,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(
-    color_palette: ColorPalette,
     config: &'a Config,
-    state: &'a mut StateContainer,
+    state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
     let title = Text::new(localized_string("create-tx"))
@@ -141,7 +131,7 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let title_container =
-        Container::new(title).style(style::BrightBackgroundContainer(color_palette));
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let back_button_label_container =
         Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
@@ -150,8 +140,8 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let back_button: Element<Interaction> =
-        Button::new(&mut state.back_button_state, back_button_label_container)
-            .style(style::NormalTextButton(color_palette))
+        Button::new( back_button_label_container)
+            .style(grin_gui_core::theme::ButtonStyle::NormalText)
             .on_press(Interaction::WalletOperationCreateTxViewInteraction(
                 LocalViewInteraction::Back,
             ))
@@ -170,10 +160,9 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let recipient_address_container =
-        Container::new(recipient_address).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(recipient_address).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let recipient_address_input = TextInput::new(
-        &mut state.recipient_address_input_state,
         "",
         &state.recipient_address_value,
         |s| {
@@ -185,8 +174,8 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(400))
-    .style(style::AddonsQueryInput(color_palette));
-
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+    
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
 
     let amount = Text::new(localized_string("create-tx-amount"))
@@ -194,10 +183,10 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Left);
 
     let amount_container =
-        Container::new(amount).style(style::NormalBackgroundContainer(color_palette));
+        Container::new(amount).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let amount_input = TextInput::new(
-        &mut state.amount_input_state,
+        // &mut state.amount_input_state,
         "",
         &state.amount_value,
         |s| Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::Amount(s)),
@@ -205,8 +194,8 @@ pub fn data_container<'a>(
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Units(100))
-    .style(style::AddonsQueryInput(color_palette));
-
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+    
     let amount_input: Element<Interaction> = amount_input.into();
 
     let address_instruction_container =
@@ -223,7 +212,6 @@ pub fn data_container<'a>(
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(
-        &mut state.submit_button_state,
         submit_button_label_container,
     )
     .style(style::DefaultBoxedButton(color_palette));
