@@ -583,7 +583,10 @@ pub fn data_container<'a>(
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
+        //TODO: Header widget is crashing specatularly on windows after iced-rs 0.5.0 update
+        // disable header column until we figure out why and how to fix
+        // tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
+        tx_list_content = tx_list_content.push(tx_list_scrollable);
     }
 
     // Overall Home screen layout column
