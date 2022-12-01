@@ -359,7 +359,7 @@ where
     ) -> Result<(bool, Vec<TxLogEntry>), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
-            let mut res = o.retrieve_txs(None, false, None, None)?;
+            let res = o.retrieve_txs(None, false, None, None)?;
             /*for tx in &mut res.1 {
                 if tx.amount_credited == 0 && tx.amount_debited == 0 {
                     let saved_tx = o.get_stored_tx(None, Some(tx.id), None);
