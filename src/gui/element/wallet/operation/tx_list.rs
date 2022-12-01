@@ -6,7 +6,7 @@ use {
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::{
-        config::Config, node::amount_to_hr_string, theme::ColorPalette, wallet::TxLogEntry,
+        config::Config, node::amount_to_hr_string, theme::{ColorPalette, ButtonStyle, ContainerStyle}, wallet::TxLogEntry,
     },
     grin_gui_widgets::widget::header,
     iced::{alignment, Alignment, Command, Length},
@@ -23,7 +23,7 @@ use {
 
 #[derive(Debug, Clone)]
 pub enum ExpandType {
-    Details(TxLogEntry),
+    Details(TxLogEntryWrap),
     None,
 }
 
@@ -171,20 +171,30 @@ impl SortDirection {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct TxList {
-    pub txs: Vec<TxLogEntry>,
+#[derive(Debug, Clone)]
+pub struct TxLogEntryWrap {
+    pub tx: TxLogEntry,
 }
 
-impl Default for TxList {
-    fn default() -> Self {
+impl TxLogEntryWrap {
+    pub fn new(tx: TxLogEntry) -> Self {
         Self {
-            txs: vec![],
+            tx,
         }
     }
 }
 
+
+#[derive(Debug, Clone)]
+pub struct TxList {
+    pub txs: Vec<TxLogEntryWrap>,
+}
+
+impl Default for TxList {
+    fn default() -> Self {
+        Self { txs: vec![] }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TxListResultSize {
@@ -967,7 +977,7 @@ pub fn titles_row_header<'a>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
-    tx: &TxLogEntry,
+    tx_log_entry_wrap: &'a TxLogEntryWrap,
     is_tx_expanded: bool,
     expand_type: &'a ExpandType,
     config: &Config,
@@ -980,27 +990,27 @@ pub fn data_row_container<'a, 'b>(
 
     let mut row_containers = vec![];
 
-    let id = tx.id.to_string();
-    let mut tx_type = format!("{}", tx.tx_type.to_string().replace("\n", ""));
-    let shared_tx_id = match tx.tx_slate_id {
+    let id = tx_log_entry_wrap.tx.id.to_string();
+    let mut tx_type = format!("{}", tx_log_entry_wrap.tx.tx_type.to_string().replace("\n", ""));
+    let shared_tx_id = match tx_log_entry_wrap.tx.tx_slate_id {
         Some(t) => t.to_string(),
         None => "None".to_string(),
     };
-    let creation_time = tx.creation_ts.to_string();
-    let ttl_cutoff = tx.ttl_cutoff_height;
-    let height = tx.kernel_lookup_min_height;
+    let creation_time = tx_log_entry_wrap.tx.creation_ts.to_string();
+    let ttl_cutoff = tx_log_entry_wrap.tx.ttl_cutoff_height;
+    let height = tx_log_entry_wrap.tx.kernel_lookup_min_height;
 
-    let tx_cloned = tx.clone();
-    let tx_cloned_for_row = tx.clone();
+    let tx_cloned = tx_log_entry_wrap.clone();
+    let tx_cloned_for_row = tx_log_entry_wrap.clone();
 
-    let creation_time = tx.creation_ts.to_string();
-    let confirmation_time = tx.creation_ts.to_string();
-    let net_diff = if tx.amount_credited >= tx.amount_debited {
-        amount_to_hr_string(tx.amount_credited - tx.amount_debited, true)
+    let creation_time = tx_log_entry_wrap.tx.creation_ts.to_string();
+    let confirmation_time = tx_log_entry_wrap.tx.creation_ts.to_string();
+    let net_diff = if tx_log_entry_wrap.tx.amount_credited >= tx_log_entry_wrap.tx.amount_debited {
+        amount_to_hr_string(tx_log_entry_wrap.tx.amount_credited - tx_log_entry_wrap.tx.amount_debited, true)
     } else {
         format!(
             "-{}",
-            amount_to_hr_string(tx.amount_debited - tx.amount_credited, true)
+            amount_to_hr_string(tx_log_entry_wrap.tx.amount_debited - tx_log_entry_wrap.tx.amount_credited, true)
         )
     };
     //TODO this will show the latest status
@@ -1516,8 +1526,8 @@ pub fn data_row_container<'a, 'b>(
                     .push(id_text_container);
 
                 // UUID
-                let uuid_title_text =
-                    Text::new(format!("{}: ", localized_string("tx-shared-id"))).size(DEFAULT_FONT_SIZE);
+                let uuid_title_text = Text::new(format!("{}: ", localized_string("tx-shared-id")))
+                    .size(DEFAULT_FONT_SIZE);
                 let uuid_title_container = Container::new(uuid_title_text)
                     .style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 
@@ -1550,6 +1560,18 @@ pub fn data_row_container<'a, 'b>(
                 let left_spacer = Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0));
                 let space = Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING * 2));
                 let bottom_space = Space::new(Length::Units(0), Length::Units(4));
+
+                let mut tx_cancel_button = Button::new(
+                    Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
+                )
+                .style(ButtonStyle::Default);
+
+                tx_cancel_button =
+                    tx_cancel_button.on_press(Interaction::WalletOperationHomeViewInteraction(
+                        super::home::LocalViewInteraction::CancelTx(tx_log_entry_wrap.tx.id),
+                    ));
+
+                let tx_cancel_button: Element<Interaction> = tx_cancel_button.into();
 
                 /*
                 let notes_title_text =
@@ -1709,6 +1731,8 @@ pub fn data_row_container<'a, 'b>(
                     .push(uuid_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(type_row)
+                    .push(Space::new(Length::Units(0), Length::Units(5)))
+                    .push(tx_cancel_button.map(Message::Interaction))
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     /* .push(notes_title_container)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
@@ -1772,10 +1796,10 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::Expand(expand_type) => match &expand_type {
-            ExpandType::Details(tx) => {
-                log::debug!("Interaction::Expand(Tx({:?}))", &tx.id,);
+            ExpandType::Details(tx_wrap) => {
+                log::debug!("Interaction::Expand(Tx({:?}))", &tx_wrap.tx.id,);
                 let should_close = match &state.expanded_type {
-                    ExpandType::Details(a) => tx.id == a.id,
+                    ExpandType::Details(a) => tx_wrap.tx.id == a.tx.id,
                     _ => false,
                 };
 

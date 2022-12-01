@@ -7,9 +7,10 @@ use grin_gui_core::{
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
-use grin_gui_widgets::widget::header;
+
 use super::action_menu;
-use super::tx_list::{HeaderState, TxList};
+use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
+use grin_gui_widgets::widget::header;
 
 
 use {
@@ -34,7 +35,6 @@ use {
 
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
-    // pub back_button_state: button::State,
     pub expanded_type: ExpandType,
 
     wallet_info: Option<WalletInfo>,
@@ -71,6 +71,9 @@ pub enum LocalViewInteraction {
     WalletSlatepackAddressUpdateSuccess(String),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
+    CancelTx(u32),
+    TxCancelledOk(u32),
+    TxCancelError(Arc<RwLock<Option<anyhow::Error>>>)
 }
 
 // Okay to modify state and access wallet here
@@ -189,7 +192,11 @@ pub fn handle_message<'a>(
             );
             state.wallet_info = Some(wallet_info);
             debug!("Update Wallet Txs Summary: {:?}", txs);
-            state.wallet_txs = TxList { txs };
+            let tx_wrap_list = txs
+                .iter()
+                .map(|tx| TxLogEntryWrap::new(tx.clone()))
+                .collect();
+            state.wallet_txs = TxList { txs: tx_wrap_list };
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -214,6 +221,39 @@ pub fn handle_message<'a>(
                 .apply_tx_state
                 .address_value = address;
         }
+        LocalViewInteraction::CancelTx(id) => {
+            debug!("Cancel Tx: {}", id);
+            grin_gui.error.take();
+
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
+
+            let w = grin_gui.wallet_interface.clone();
+
+            let fut = move || WalletInterface::cancel_tx(w, id);
+
+            return Ok(Command::perform(fut(), |r| {
+                match r.context("Failed to Cancel Transaction") {
+                    Ok(ret) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                        LocalViewInteraction::TxCancelledOk(ret),
+                    )),
+                    Err(e) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                        LocalViewInteraction::TxCancelError(Arc::new(RwLock::new(Some(e)))),
+                    )),
+                }
+            }));
+        },
+        LocalViewInteraction::TxCancelledOk(id) => {
+            //TODO: Message
+            debug!("TX cancelled okay: {}", id);
+        },
+        LocalViewInteraction::TxCancelError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
+        }
+
+        
     }
     Ok(Command::none())
 }
@@ -489,8 +529,9 @@ pub fn data_container<'a>(
     //.style(grin_gui_core::theme::ScrollableStyles::Primary);
 
     let mut has_txs = false;
+
     // Loops though the txs.
-    for (idx, tx) in state.wallet_txs.txs.iter().enumerate() {
+    for (idx, tx_wrap) in state.wallet_txs.txs.iter().enumerate() {
         has_txs = true;
         // If hiding ignored addons, we will skip it.
         /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
@@ -504,7 +545,7 @@ pub fn data_container<'a>(
 
         // Checks if the current tx is expanded.
         let is_tx_expanded = match &state.expanded_type {
-            ExpandType::Details(a) => a.id == tx.id,
+            ExpandType::Details(a) => a.tx.id == tx_wrap.tx.id,
             ExpandType::None => false,
         };
 
@@ -517,7 +558,7 @@ pub fn data_container<'a>(
         // A container cell which has all data about the current tx.
         // If the tx is expanded, then this is also included in this container.
         let tx_data_cell = tx_list::data_row_container(
-            tx,
+            tx_wrap,
             is_tx_expanded,
             &state.expanded_type,
             config,
@@ -542,7 +583,10 @@ pub fn data_container<'a>(
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
+        //TODO: Header widget is crashing specatularly on windows after iced-rs 0.5.0 update
+        // disable header column until we figure out why and how to fix
+        // tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
+        tx_list_content = tx_list_content.push(tx_list_scrollable);
     }
 
     // Overall Home screen layout column
@@ -551,7 +595,9 @@ pub fn data_container<'a>(
         .push(first_row_container)
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
-        .push(status_row);
+        .push(status_row)
+        .padding(10)
+        .align_items(Alignment::Center);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top
