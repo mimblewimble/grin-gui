@@ -33,6 +33,7 @@ use {
 pub struct StateContainer {
     pub password_state: PasswordState,
     pub restore_from_seed: bool,
+    pub seed_input_value: String,
     pub show_advanced_options: bool,
     pub is_testnet: bool,
     pub advanced_options_state: AdvancedOptionsState,
@@ -45,6 +46,7 @@ impl Default for StateContainer {
             show_advanced_options: false,
             is_testnet: false,
             restore_from_seed: false,
+            seed_input_value: Default::default(),
             advanced_options_state: Default::default(),
         }
     }
@@ -94,6 +96,7 @@ pub enum LocalViewInteraction {
     CreateWallet(String, PathBuf),
     WalletCreatedOk((String, String, String, ChainTypes)),
     WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
+    SeedInput(String),
     ShowFolderPicker,
 }
 
@@ -190,6 +193,11 @@ pub fn handle_message<'a>(
             let password = state.password_state.input_value.clone();
             let w = grin_gui.wallet_interface.clone();
             let chain_type = if state.is_testnet { Testnet } else { Mainnet };
+            let recovery_phrase = if !state.seed_input_value.is_empty() {
+                Some(state.seed_input_value.clone())
+            } else {
+                None
+            };
 
             let fut = move || {
                 WalletInterface::init(
@@ -198,6 +206,7 @@ pub fn handle_message<'a>(
                     top_level_directory,
                     display_name,
                     chain_type,
+                    recovery_phrase,
                 )
             };
 
@@ -243,6 +252,9 @@ pub fn handle_message<'a>(
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
+        }
+        LocalViewInteraction::SeedInput(seed) => {
+            state.seed_input_value = seed;
         }
     }
 
@@ -350,9 +362,8 @@ pub fn data_container<'a>(
         if !check_password() && disp_password_status() {
             password_input_col = password_input_col.push(password_entry_status_container)
         } else if check_password() {
-            password_entry_status_container = password_entry_status_container.style(
-                grin_gui_core::theme::ContainerStyle::SuccessBackground,
-            );
+            password_entry_status_container = password_entry_status_container
+                .style(grin_gui_core::theme::ContainerStyle::SuccessBackground);
             password_input_col = password_input_col.push(password_entry_status_container)
         }
         Column::new().push(password_input_col)
@@ -360,13 +371,11 @@ pub fn data_container<'a>(
 
     let description = Text::new(localized_string("setup-grin-wallet-enter-password"))
         .size(DEFAULT_FONT_SIZE)
-        //.width(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container = Container::new(description)
-        //.width(Length::Fill)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let restore_from_seed_column = {
+    let mut restore_from_seed_column = {
         let checkbox = Checkbox::new(
             state.restore_from_seed,
             localized_string("restore-from-seed"),
@@ -408,14 +417,34 @@ pub fn data_container<'a>(
         Column::new().push(checkbox_container)
     };
 
+    // ** start hideable restore from seed section
+    let seed_input: Element<Interaction> = TextInput::new("seed", &state.seed_input_value, |s| {
+        Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedInput(s))
+    })
+    .size(DEFAULT_FONT_SIZE)
+    .padding(6)
+    .width(Length::Units(200))
+    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
+    .into();
+
+    let seed_column = Column::with_children(vec![seed_input.map(Message::Interaction)]);
+
+    if state.restore_from_seed {
+        restore_from_seed_column = restore_from_seed_column
+            .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+            .push(seed_column);
+    }
+
+    // ** end hideable restore
+
     // ** start hideable advanced options
     //let display_name_label =
     let display_name = Text::new(localized_string("display-name"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let display_name_container = Container::new(display_name)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let display_name_container =
+        Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let display_name_input = TextInput::new(
         default_display_name,
@@ -431,8 +460,8 @@ pub fn data_container<'a>(
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let tld_container = Container::new(tld)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let tld_container =
+        Container::new(tld).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let folder_select_button_container =
         Container::new(Text::new(localized_string("select-directory")).size(DEFAULT_FONT_SIZE));
@@ -450,8 +479,8 @@ pub fn data_container<'a>(
         .unwrap();
     let current_tld = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
-    let current_tld_container = Container::new(current_tld)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let current_tld_container =
+        Container::new(current_tld).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let current_tld_column = Column::new()
         .push(Space::new(Length::Units(0), Length::Units(5)))
@@ -486,6 +515,7 @@ pub fn data_container<'a>(
         .spacing(DEFAULT_PADDING)
         .push(Space::new(Length::Units(0), Length::Units(5)))
         .push(is_testnet_row)
+        .push(restore_from_seed_column)
         .align_items(Alignment::Start);
 
     // ** end hideable advanced options
@@ -555,11 +585,6 @@ pub fn data_container<'a>(
         .push(description_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(password_column)
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
-        ))
-        .push(restore_from_seed_column)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(show_advanced_options_column)
         .push(Space::new(
@@ -578,16 +603,16 @@ pub fn data_container<'a>(
     let form_container = Container::new(column)
         .width(Length::Fill)
         .padding(iced::Padding::from([
-            0,  // top
-            0,  // right
-            0,  // bottom
-            5,  // left
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
         ]));
 
     // form container should be scrollable in tiny windows
-    let scrollable = Scrollable::new(form_container).height(Length::Fill).style(
-        grin_gui_core::theme::ScrollableStyle::Primary,
-    );
+    let scrollable = Scrollable::new(form_container)
+        .height(Length::Fill)
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     let content = Container::new(scrollable)
         .width(Length::Fill)
