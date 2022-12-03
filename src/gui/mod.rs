@@ -442,6 +442,7 @@ pub enum Interaction {
     Update(String),
     ScaleUp,
     ScaleDown,
+    SortCatalogColumn(element::wallet::operation::tx_list::ColumnKey),
     Backup,
     ToggleHideIgnoredAddons(bool),
     CatalogQuery(String),
