@@ -137,6 +137,14 @@ where
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
+    fn children(&self) -> Vec<Tree> {
+        self.children.iter().map(Tree::new).collect()
+    }
+
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(&self.children);
+    }
+
     fn width(&self) -> Length {
         self.width
     }
@@ -267,7 +275,7 @@ where
             self.state.resize_hovering = false;
         }
 
-        self.children
+        self.children 
             .iter_mut()
             .zip(&mut tree.children)
             .zip(layout.children())
@@ -295,20 +303,6 @@ where
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        let bounds = layout.bounds();
-        let height = {
-            if let Length::Units(height) = self.height {
-                height as f32
-            } else {
-                bounds.height
-            }
-        };
-        let custom_bounds = Rectangle {
-            x: bounds.x,
-            y: bounds.y,
-            width: bounds.width,
-            height: height as f32,
-        };
 
         for ((child, state), layout) in self
             .children
