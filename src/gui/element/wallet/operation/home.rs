@@ -585,8 +585,8 @@ pub fn data_container<'a>(
     if has_txs {
         //TODO: Header widget is crashing specatularly on windows after iced-rs 0.5.0 update
         // disable header column until we figure out why and how to fix
-        // tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
-        tx_list_content = tx_list_content.push(tx_list_scrollable);
+        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
+        //tx_list_content = tx_list_content.push(tx_list_scrollable);
     }
 
     // Overall Home screen layout column
@@ -596,8 +596,8 @@ pub fn data_container<'a>(
         .push(tx_list_content)
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
-        .padding(10)
-        .align_items(Alignment::Center);
+        .padding(10);
+        //.align_items(Alignment::Center);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top
