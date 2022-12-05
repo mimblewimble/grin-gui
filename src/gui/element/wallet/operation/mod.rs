@@ -4,6 +4,7 @@ pub mod home;
 pub mod tx_list;
 pub mod create_tx;
 pub mod apply_tx;
+pub mod chart;
 
 use {
     crate::gui::{GrinGui, Message},

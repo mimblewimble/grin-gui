@@ -14,12 +14,18 @@ debug = ["iced/debug"]
 grin-gui-core = { version = "0.1.0", path = "crates/core", features=['gui'] }
 grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 
-iced = { version = "0.5.2", default-features = false }
+iced = { version = "0.5.2", features = ["canvas", "tokio"] }
 iced_futures = { version = "0.5.1", features = ["async-std"] }
 iced_style = {version = "0.5.0"}
 iced_native = { version = "0.6.1" }
 #iced_aw = { version = "0.2.0", default-features = false, features = ["card", "modal"]}
 iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
+plotters-iced = "0.4"
+plotters="0.3"
+plotters-backend = "0.3"
+sysinfo = { version = "0.26", default_features = false }
+rand = "0.8.3"
+
 
 async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }

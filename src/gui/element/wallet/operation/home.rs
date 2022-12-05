@@ -12,7 +12,6 @@ use super::action_menu;
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 use grin_gui_widgets::widget::header;
 
-
 use {
     super::super::super::{
         DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, DEFAULT_SUB_HEADER_FONT_SIZE,
@@ -24,7 +23,8 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::{
-        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
+        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+        TextInput,
     },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
@@ -43,10 +43,28 @@ pub struct StateContainer {
     // txs_scrollable_state: scrollable::State,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
+
+    // chart
+    chart: super::chart::CpuUsageChart,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
+        let now = chrono::Utc::now();
+        let chart = super::chart::CpuUsageChart::new(
+            vec![
+                (now, 100),
+                (now, 100),
+                (now, 100),
+                (now, 100),
+                (now, 100),
+                (now, 100),
+                (now, 100),
+                (now, 100),
+            ]
+            .into_iter(),
+        );
+
         Self {
             action_menu_state: Default::default(),
             // back_button_state: Default::default(),
@@ -57,6 +75,7 @@ impl Default for StateContainer {
             // txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
+            chart,
         }
     }
 }
@@ -73,7 +92,7 @@ pub enum LocalViewInteraction {
     WalletCloseSuccess,
     CancelTx(u32),
     TxCancelledOk(u32),
-    TxCancelError(Arc<RwLock<Option<anyhow::Error>>>)
+    TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 // Okay to modify state and access wallet here
@@ -197,6 +216,12 @@ pub fn handle_message<'a>(
                 .map(|tx| TxLogEntryWrap::new(tx.clone()))
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
+
+            // experimental
+            use rand::Rng;
+            let mut rng = rand::thread_rng();
+            let now = chrono::Utc::now();
+            state.chart.push_data(now, rng.gen_range(0..100));
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -233,38 +258,36 @@ pub fn handle_message<'a>(
 
             return Ok(Command::perform(fut(), |r| {
                 match r.context("Failed to Cancel Transaction") {
-                    Ok(ret) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                        LocalViewInteraction::TxCancelledOk(ret),
-                    )),
-                    Err(e) => Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                        LocalViewInteraction::TxCancelError(Arc::new(RwLock::new(Some(e)))),
-                    )),
+                    Ok(ret) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::TxCancelledOk(ret),
+                        ))
+                    }
+                    Err(e) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::TxCancelError(Arc::new(RwLock::new(Some(e)))),
+                        ))
+                    }
                 }
             }));
-        },
+        }
         LocalViewInteraction::TxCancelledOk(id) => {
             //TODO: Message
             debug!("TX cancelled okay: {}", id);
-        },
+        }
         LocalViewInteraction::TxCancelError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
             }
         }
-
-        
     }
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    config: &'a Config,
-    state: &'a StateContainer,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu =
-        action_menu::data_container(config, &state.action_menu_state);
+    let operations_menu = action_menu::data_container(config, &state.action_menu_state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -297,8 +320,8 @@ pub fn data_container<'a>(
 
     // Title row
     let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
-    let title_container = Container::new(title)
-        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+    let title_container =
+        Container::new(title).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let subtitle = Text::new(wallet_name).size(SMALLER_FONT_SIZE);
     let subtitle_container = Container::new(subtitle)
@@ -330,12 +353,13 @@ pub fn data_container<'a>(
         .push(Space::with_width(Length::Units(2)))
         .push(close_wallet_button.map(Message::Interaction));
 
-    let title_container = Container::new(Column::new().push(title_container).push(subtitle_row)).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
-        0,               // bottom
-        5,               // left
-    ]));
+    let title_container = Container::new(Column::new().push(title_container).push(subtitle_row))
+        .padding(iced::Padding::from([
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
+        ]));
 
     let header_row = Row::new()
         .push(title_container)
@@ -407,8 +431,8 @@ pub fn data_container<'a>(
 
     let locked_label =
         Text::new(format!("{}:", localized_string("info-locked"))).size(DEFAULT_FONT_SIZE);
-    let locked_label_container = Container::new(locked_label)
-        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+    let locked_label_container =
+        Container::new(locked_label).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let locked_value = Text::new(locked_string).size(DEFAULT_FONT_SIZE);
     let locked_value_container = Container::new(locked_value)
@@ -455,7 +479,10 @@ pub fn data_container<'a>(
             5,               // left
         ]));
 
-    let first_row_container = Row::new().push(wallet_info_card_container);
+    let mut first_row_container = Row::new()
+        .push(wallet_info_card_container)
+        .push(state.chart.view(0))
+        .height(Length::Units(120));
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -571,9 +598,8 @@ pub fn data_container<'a>(
         content = content.push(tx_data_cell);
     }
 
-    let mut tx_list_scrollable = Scrollable::new(content).style(
-        grin_gui_core::theme::ScrollableStyle::Primary,
-    );
+    let mut tx_list_scrollable =
+        Scrollable::new(content).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     // Bottom space below the scrollable.
     let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
@@ -597,7 +623,7 @@ pub fn data_container<'a>(
         .push(Space::new(Length::Units(0), Length::Fill))
         .push(status_row)
         .padding(10);
-        //.align_items(Alignment::Center);
+    //.align_items(Alignment::Center);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top
