@@ -1,6 +1,6 @@
 use super::Theme;
 use grin_gui_widgets::style::header::{Appearance, StyleSheet};
-use iced::Color;
+use iced::{Color, Background};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum HeaderStyle {
@@ -14,8 +14,9 @@ impl StyleSheet for Theme {
     fn appearance(&self, style: &Self::Style) -> Appearance {
         match style {
             HeaderStyle::Default => Appearance {
+                //text_color: Some(self.palette.bright.surface),
                 text_color: None,
-                background: None,
+                background: Some(Background::Color(self.palette.base.foreground)),
                 border_radius: 0.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,

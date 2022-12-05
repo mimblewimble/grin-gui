@@ -137,6 +137,14 @@ where
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
+    fn children(&self) -> Vec<Tree> {
+        self.children.iter().map(Tree::new).collect()
+    }
+
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(&self.children);
+    }
+
     fn width(&self) -> Length {
         self.width
     }
@@ -267,12 +275,13 @@ where
             self.state.resize_hovering = false;
         }
 
-        self.children
+        self.children 
             .iter_mut()
+            .zip(&mut tree.children)
             .zip(layout.children())
-            .map(|(child, layout)| {
+            .map(|((child, state), layout)| {
                 child.as_widget_mut().on_event(
-                    tree,
+                    state,
                     event.clone(),
                     layout,
                     cursor_position,
@@ -289,32 +298,23 @@ where
         tree: &Tree,
         renderer: &mut Renderer,
         theme: &Renderer::Theme,
-        _inherited_style: &iced_native::renderer::Style,
+        style: &iced_native::renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        let bounds = layout.bounds();
-        let height = {
-            if let Length::Units(height) = self.height {
-                height as f32
-            } else {
-                bounds.height
-            }
-        };
-        let custom_bounds = Rectangle {
-            x: bounds.x,
-            y: bounds.y,
-            width: bounds.width,
-            height: height as f32,
-        };
 
-        for (child, layout) in self.children.iter().zip(layout.children()) {
+        for ((child, state), layout) in self
+            .children
+            .iter()
+            .zip(&tree.children)
+            .zip(layout.children())
+        {
             child.as_widget().draw(
-                tree,
+                state,
                 renderer,
                 theme,
-                &iced_native::renderer::Style::default(),
+                style,
                 layout,
                 cursor_position,
                 viewport,

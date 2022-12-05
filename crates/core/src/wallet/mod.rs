@@ -10,7 +10,7 @@ use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
 pub use grin_core::global;
 use grin_core::{self};
 use grin_keychain as keychain;
-use grin_util::{file, Mutex};
+use grin_util::{file, Mutex, ZeroingString};
 
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -228,6 +228,7 @@ where
         top_level_directory: PathBuf,
         display_name: String,
         chain_type: global::ChainTypes,
+        recovery_phrase: Option<String>,
     ) -> Result<(String, String, String, global::ChainTypes), GrinWalletInterfaceError> {
         WalletInterface::inst_owner_api(
             wallet_interface.clone(),
@@ -237,12 +238,15 @@ where
 
         let w = wallet_interface.read().unwrap();
 
+        let recover_length = recovery_phrase.clone().map(|f| f.len()).unwrap_or(0);
+        let recover_phrase = recovery_phrase.map(|f| ZeroingString::from(f));
+
         let args = InitArgs {
-            list_length: 32,
-            password: "".into(),
+            list_length: recover_length,
+            password: password.clone().into(),
             config: w.config.clone().unwrap().clone().members.unwrap().wallet,
-            recovery_phrase: None,
-            restore: false,
+            recovery_phrase: recover_phrase.clone(),
+            restore: recover_phrase.is_some(),
         };
 
         let (tld, ret_phrase) = match w.owner_api.as_ref() {
@@ -272,16 +276,19 @@ where
                         logging_config,
                         None,
                     )?;
+                    
                     p.create_wallet(
                         None,
                         args.recovery_phrase,
                         args.list_length,
-                        password.clone().into(),
+                        args.password.clone(),
                         chain_type == global::ChainTypes::Testnet,
                     )?;
+
                     p.get_top_level_directory()?
                 };
-                (tld, o.get_mnemonic(None, password.into())?.to_string())
+
+                (tld, o.get_mnemonic(None, args.password)?.to_string())
             }
             None => ("".to_string(), "".to_string()),
         };

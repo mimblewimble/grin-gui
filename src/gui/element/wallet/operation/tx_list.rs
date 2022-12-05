@@ -936,7 +936,7 @@ pub fn titles_row_header<'a>(
 
         //if column_key != ColumnKey::Install {
         //TODO
-        //row_header = row_header.on_press(Interaction::SortCatalogColumn(column_key));
+        row_header = row_header.on_press(Interaction::SortCatalogColumn(column_key));
         //}
 
         if previous_column_key == Some(column_key) {
