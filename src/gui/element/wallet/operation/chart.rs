@@ -3,7 +3,7 @@ extern crate iced;
 extern crate plotters;
 extern crate sysinfo;
 
-use crate::gui::Message;
+use crate::gui::{Message, element::DEFAULT_PADDING};
 use chrono::{DateTime, Utc};
 use grin_gui_core::theme::{
     Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
@@ -37,14 +37,14 @@ const FONT_BOLD: Font = Font::External {
     bytes: include_bytes!("../../../../../fonts/notosans-bold.ttf"),
 };
 
-pub struct CpuUsageChart {
+pub struct BalanceChart {
     cache: Cache,
-    data_points: VecDeque<(DateTime<Utc>, i32)>,
+    data_points: VecDeque<(DateTime<Utc>, f64)>,
     limit: Duration,
 }
 
-impl CpuUsageChart {
-    pub fn new(data: impl Iterator<Item = (DateTime<Utc>, i32)>) -> Self {
+impl BalanceChart {
+    pub fn new(data: impl Iterator<Item = (DateTime<Utc>, f64)>) -> Self {
         let data_points: VecDeque<_> = data.collect();
         Self {
             cache: Cache::new(),
@@ -53,19 +53,19 @@ impl CpuUsageChart {
         }
     }
 
-    pub fn push_data(&mut self, time: DateTime<Utc>, value: i32) {
+    pub fn push_data(&mut self, time: DateTime<Utc>, value: f64) {
         let cur_ms = time.timestamp_millis();
         self.data_points.push_front((time, value));
-        loop {
-            if let Some((time, _)) = self.data_points.back() {
-                let diff = Duration::from_millis((cur_ms - time.timestamp_millis()) as u64);
-                if diff > self.limit {
-                    self.data_points.pop_back();
-                    continue;
-                }
-            }
-            break;
-        }
+        // loop {
+        //     if let Some((time, _)) = self.data_points.back() {
+        //         let diff = Duration::from_millis((cur_ms - time.timestamp_millis()) as u64);
+        //         if diff > self.limit {
+        //             self.data_points.pop_back();
+        //             continue;
+        //         }
+        //     }
+        //     break;
+        // }
         self.cache.clear();
     }
 
@@ -92,7 +92,7 @@ impl CpuUsageChart {
     }
 }
 
-impl Chart<Message> for CpuUsageChart {
+impl Chart<Message> for BalanceChart {
     type State = ();
     // fn update(
     //     &mut self,
@@ -115,46 +115,61 @@ impl Chart<Message> for CpuUsageChart {
         const PLOT_LINE_COLOR: RGBColor = RGBColor(0, 175, 255);
 
         // Acquire time range
-        let newest_time = self
+        // let newest_time = self
+        //     .data_points
+        //     .front()
+        //     .unwrap_or(&(
+        //         chrono::DateTime::from_utc(
+        //             chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
+        //             chrono::Utc,
+        //         ),
+        //         0.0,
+        //     ))
+        //     .0;
+        let newest_time = Utc::now(); 
+        let oldest_time = self
             .data_points
-            .front()
+            .back()
             .unwrap_or(&(
                 chrono::DateTime::from_utc(
                     chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
                     chrono::Utc,
                 ),
-                0,
+                0.0,
             ))
             .0;
-        let oldest_time = newest_time - chrono::Duration::seconds(PLOT_SECONDS as i64);
+        // let oldest_time = newest_time - chrono::Duration::seconds(PLOT_SECONDS as i64);
+
+        // TODO y spec max value
         let mut chart = chart
-            .x_label_area_size(0)
-            .y_label_area_size(28)
-            .margin(20)
-            .build_cartesian_2d(oldest_time..newest_time, 0..100)
+            .x_label_area_size(6)
+            .y_label_area_size(0)
+            .margin(DEFAULT_PADDING as u32)
+            .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..500.0_f64)
             .expect("failed to build chart");
 
         chart
             .configure_mesh()
-            .bold_line_style(plotters::style::colors::BLUE.mix(0.1))
-            .light_line_style(plotters::style::colors::BLUE.mix(0.05))
-            .axis_style(ShapeStyle::from(plotters::style::colors::BLUE.mix(0.45)).stroke_width(1))
-            .y_labels(10)
-            .y_label_style(
+            //.bold_line_style(plotters::style::colors::BLUE.mix(0.0001))
+            //.light_line_style(plotters::style::colors::BLUE.mix(0.005))
+            //.axis_style(ShapeStyle::from(plotters::style::colors::BLUE.mix(0.45)).stroke_width(1))
+            //.y_labels(4)
+            .x_labels(4)
+            .x_label_style(
                 ("sans-serif", 15)
                     .into_font()
                     .color(&plotters::style::colors::BLUE.mix(0.65))
                     .transform(FontTransform::Rotate90),
             )
-            .y_label_formatter(&|y| format!("{}%", y))
+            .x_label_formatter(&|x| format!("{}", x.format("%b %d, %Y")))
             .draw()
             .expect("failed to draw chart mesh");
 
         chart
             .draw_series(
                 AreaSeries::new(
-                    self.data_points.iter().map(|x| (x.0, x.1 as i32)),
-                    0,
+                    self.data_points.iter().map(|x| (x.0, x.1 as f64)),
+                    0.0,
                     PLOT_LINE_COLOR.mix(0.175),
                 )
                 .border_style(ShapeStyle::from(PLOT_LINE_COLOR).stroke_width(2)),

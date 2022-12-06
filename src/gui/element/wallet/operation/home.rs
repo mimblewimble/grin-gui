@@ -45,37 +45,20 @@ pub struct StateContainer {
     tx_header_state: HeaderState,
 
     // chart
-    chart: super::chart::CpuUsageChart,
+    chart: Option<super::chart::BalanceChart>,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
-        let now = chrono::Utc::now();
-        let chart = super::chart::CpuUsageChart::new(
-            vec![
-                (now, 100),
-                (now, 100),
-                (now, 100),
-                (now, 100),
-                (now, 100),
-                (now, 100),
-                (now, 100),
-                (now, 100),
-            ]
-            .into_iter(),
-        );
-
         Self {
             action_menu_state: Default::default(),
-            // back_button_state: Default::default(),
             expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
-            // txs_scrollable_state: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
-            chart,
+            chart: None,
         }
     }
 }
@@ -217,11 +200,19 @@ pub fn handle_message<'a>(
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
 
-            // experimental
-            use rand::Rng;
-            let mut rng = rand::thread_rng();
-            let now = chrono::Utc::now();
-            state.chart.push_data(now, rng.gen_range(0..100));
+           //let chart = super::chart::BalanceChart::new(vec![].into_iter());
+            let mut data = vec![]; 
+            for (idx, tx) in txs.iter().enumerate() {
+                if tx.confirmed {
+                    let date = tx.confirmation_ts.unwrap();
+                    let amount = tx.amount_credited;
+                    // TODO import GRIN_BASE
+                    let amount = (amount as f64 / 1_000_000_000 as f64) as f64;
+                    //state.chart.push_data(date, amount);
+                    data.push((date, amount));
+                }
+            }
+            state.chart = Some(super::chart::BalanceChart::new(data.into_iter()));
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -481,8 +472,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut first_row_container = Row::new()
         .push(wallet_info_card_container)
-        .push(state.chart.view(0))
+        // .push(state.chart.view(0))
         .height(Length::Units(120));
+    
+    if let Some(chart) = state.chart.as_ref(){
+        first_row_container = first_row_container.push(chart.view(0));
+    }
 
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
@@ -560,6 +555,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     // Loops though the txs.
     for (idx, tx_wrap) in state.wallet_txs.txs.iter().enumerate() {
         has_txs = true;
+
         // If hiding ignored addons, we will skip it.
         /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
             continue;
