@@ -233,5 +233,8 @@
     "recipient-address-instruction": "Input the address of the recipient's wallet here",
     "recipient-address": "Recipient's Slatepack Address",
     "create-tx-amount": "Amount",
-    "cancel-tx": "Cancel Transaction"
+    "cancel-tx": "Cancel Transaction",
+    "tx-confirmed": "Confirmed",
+    "tx-unconfirmed": "Not Confirmed",
+    "tx-list": "Transactions"
 }

@@ -164,7 +164,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationHomeViewInteraction(l)) => {
             return element::wallet::operation::home::handle_message(grin_gui, l);
         }
-        // Wallet -> Operation -> TxList
+        // Wallet -> Operation -> Home -> TxListDisplay Settings
+        Message::Interaction(Interaction::WalletOperationHomeTxListDisplayInteraction(l)) => {
+            return element::wallet::operation::tx_list_display::handle_message(grin_gui, l);
+        }
+         // Wallet -> Operation -> TxList
         Message::Interaction(Interaction::WalletOperationTxListInteraction(l)) => {
             return element::wallet::operation::tx_list::handle_message(grin_gui, l);
         }

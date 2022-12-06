@@ -975,6 +975,15 @@ pub fn titles_row_header<'a>(
     })*/
 }
 
+//TODO: Move somewhere else
+pub fn create_tx_display_status(log_entry: &TxLogEntry) -> String {
+    if log_entry.confirmed {
+        localized_string("tx-confirmed")
+    } else {
+        localized_string("tx-unconfirmed")
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
     tx_log_entry_wrap: &'a TxLogEntryWrap,
@@ -1016,7 +1025,8 @@ pub fn data_row_container<'a, 'b>(
     //TODO this will show the latest status
     // Unconfirmed - Created time
     // Confirmed
-    let status = "Unconfirmed - Created 2000/01/10";
+    let status = create_tx_display_status(&tx_log_entry_wrap.tx);
+    
 
     /*let version = tx
         .version()
