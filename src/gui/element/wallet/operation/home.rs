@@ -200,15 +200,13 @@ pub fn handle_message<'a>(
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
 
-           //let chart = super::chart::BalanceChart::new(vec![].into_iter());
-            let mut data = vec![]; 
+            let mut data = vec![];
             for (idx, tx) in txs.iter().enumerate() {
                 if tx.confirmed {
                     let date = tx.confirmation_ts.unwrap();
                     let amount = tx.amount_credited;
                     // TODO import GRIN_BASE
                     let amount = (amount as f64 / 1_000_000_000 as f64) as f64;
-                    //state.chart.push_data(date, amount);
                     data.push((date, amount));
                 }
             }
@@ -472,10 +470,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut first_row_container = Row::new()
         .push(wallet_info_card_container)
-        // .push(state.chart.view(0))
         .height(Length::Units(120));
-    
-    if let Some(chart) = state.chart.as_ref(){
+
+    if let Some(chart) = state.chart.as_ref() {
         first_row_container = first_row_container.push(chart.view(0));
     }
 
@@ -605,21 +602,21 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // Adds the rest of the elements to the content column.
     if has_txs {
-        //TODO: Header widget is crashing specatularly on windows after iced-rs 0.5.0 update
-        // disable header column until we figure out why and how to fix
         tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
-        //tx_list_content = tx_list_content.push(tx_list_scrollable);
     }
+
+    // let tx_list_content = Container::new(tx_list_content)
+    //     .style(grin_gui_core::theme::ContainerStyle::PanelForeground)
+    //     .width(Length::Fill);
 
     // Overall Home screen layout column
     let column = Column::new()
         .push(header_container)
         .push(first_row_container)
+        .push(Space::with_height(Length::Units(DEFAULT_PADDING * 3)))
         .push(tx_list_content)
-        .push(Space::new(Length::Units(0), Length::Fill))
-        .push(status_row)
-        .padding(10);
-    //.align_items(Alignment::Center);
+        .push(Space::with_height(Length::Fill))
+        .push(status_row);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top

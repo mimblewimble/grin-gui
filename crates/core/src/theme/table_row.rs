@@ -23,8 +23,10 @@ impl StyleSheet for Theme {
                 border_radius: 0.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
-                offset_left: 10.0,
-                offset_right: 25.0,
+                // offset_left: 10.0,
+                // offset_right: 25.0,
+                offset_left: 0.0,
+                offset_right: 0.0,
             },
             TableRowStyle::TableRowAlternate => Appearance {
                 background: Some(Background::Color(Color {

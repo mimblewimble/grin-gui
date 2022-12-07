@@ -144,7 +144,7 @@ impl Chart<Message> for BalanceChart {
         let mut chart = chart
             .x_label_area_size(6)
             .y_label_area_size(0)
-            .margin(DEFAULT_PADDING as u32)
+            //.margin(DEFAULT_PADDING as u32)
             .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..500.0_f64)
             .expect("failed to build chart");
 
