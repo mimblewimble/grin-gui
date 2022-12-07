@@ -200,17 +200,71 @@ pub fn handle_message<'a>(
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
 
-            let mut data = vec![];
+            let mut datetime_sums = vec![];
+            let mut sum: u64 = 0;
             for (idx, tx) in txs.iter().enumerate() {
                 if tx.confirmed {
-                    let date = tx.confirmation_ts.unwrap();
-                    let amount = tx.amount_credited;
+                    let datetime = tx.confirmation_ts.unwrap();
+                    let credits = tx.amount_credited;
+                    let debits = tx.amount_debited;
+
+                    sum = sum + credits - debits;
                     // TODO import GRIN_BASE
-                    let amount = (amount as f64 / 1_000_000_000 as f64) as f64;
-                    data.push((date, amount));
+                    //let timed_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                    datetime_sums.push((datetime, sum));
                 }
             }
-            state.chart = Some(super::chart::BalanceChart::new(data.into_iter()));
+
+            // loop through the data and sum up the amounts to with dates
+            // assume assorted for now
+            let mut dt = datetime_sums[0].0;
+            let mut sum = 0;
+            let now = chrono::Utc::now();
+
+            let mut data = vec![];
+            while dt.date() <= now.date() {
+                let datetime_sum = datetime_sums
+                    .iter()
+                    .enumerate()
+                    .filter(|(idx, (date, _))| date.date() == dt.date());
+
+                let mut found = false;
+                for (idx, (date, amount)) in datetime_sum {
+                    found = true;
+                    sum = amount.to_owned(); 
+                    let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+
+                    data.push((date.to_owned(), dec_sum));
+                    //datetime_sums.remove(idx);
+                }
+
+                if !found {
+                    let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                    data.push((dt, dec_sum));
+                }
+
+                // sum = match datetime_sum {
+                //     Some((idx, tup)) => {
+                //         let amount = tup.1.to_owned();
+                //         datetime_sums.remove(idx);
+                //         amount
+                //     }
+                //     None => sum,
+                // };
+
+                // // TODO import GRIN_BASE
+                // let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                // data.push((dt, dec_sum));
+
+                dt = dt + chrono::Duration::days(1);
+            }
+
+            debug!("data: {:?}", data);
+            
+            let theme_name = grin_gui.config.theme.clone().unwrap_or("Alliance".to_string());
+            let theme = grin_gui_core::theme::Theme::all().iter().find(|t| t.0 == theme_name).unwrap().1.clone();
+
+            state.chart = Some(super::chart::BalanceChart::new(theme, data.into_iter().rev()));
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();

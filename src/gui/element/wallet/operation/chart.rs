@@ -6,7 +6,7 @@ extern crate sysinfo;
 use crate::gui::{Message, element::DEFAULT_PADDING};
 use chrono::{DateTime, Utc};
 use grin_gui_core::theme::{
-    Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
+    Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow, Theme
 };
 use iced::{
     alignment::{Horizontal, Vertical},
@@ -14,7 +14,7 @@ use iced::{
     widget::{
         canvas::{Cache, Frame, Geometry}, Space
     },
-    Alignment, Application, Command, Font, Length, Settings, Size, Subscription, Theme,
+    Alignment, Application, Command, Font, Length, Settings, Size, Subscription,
 };
 use plotters::prelude::ChartBuilder;
 use plotters_backend::DrawingBackend;
@@ -41,15 +41,19 @@ pub struct BalanceChart {
     cache: Cache,
     data_points: VecDeque<(DateTime<Utc>, f64)>,
     limit: Duration,
+    theme: Theme,
 }
 
 impl BalanceChart {
-    pub fn new(data: impl Iterator<Item = (DateTime<Utc>, f64)>) -> Self {
+
+    // data points should be presorted with the most recent first
+    pub fn new(theme: Theme, data: impl Iterator<Item = (DateTime<Utc>, f64)>) -> Self {
         let data_points: VecDeque<_> = data.collect();
         Self {
             cache: Cache::new(),
             data_points,
             limit: Duration::from_secs(PLOT_SECONDS as u64),
+            theme,
         }
     }
 
@@ -115,18 +119,18 @@ impl Chart<Message> for BalanceChart {
         const PLOT_LINE_COLOR: RGBColor = RGBColor(0, 175, 255);
 
         // Acquire time range
-        // let newest_time = self
-        //     .data_points
-        //     .front()
-        //     .unwrap_or(&(
-        //         chrono::DateTime::from_utc(
-        //             chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
-        //             chrono::Utc,
-        //         ),
-        //         0.0,
-        //     ))
-        //     .0;
-        let newest_time = Utc::now(); 
+        let newest_time = self
+            .data_points
+            .front()
+            .unwrap_or(&(
+                chrono::DateTime::from_utc(
+                    chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
+                    chrono::Utc,
+                ),
+                0.0,
+            ))
+            .0;
+
         let oldest_time = self
             .data_points
             .back()
@@ -138,7 +142,6 @@ impl Chart<Message> for BalanceChart {
                 0.0,
             ))
             .0;
-        // let oldest_time = newest_time - chrono::Duration::seconds(PLOT_SECONDS as i64);
 
         // TODO y spec max value
         let mut chart = chart
@@ -147,6 +150,9 @@ impl Chart<Message> for BalanceChart {
             //.margin(DEFAULT_PADDING as u32)
             .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..500.0_f64)
             .expect("failed to build chart");
+    
+        let color =  self.theme.palette.bright.primary;
+        let color = RGBColor((color.r * 255.0) as u8, (color.g  * 255.0) as u8, (color.b * 255.0) as u8);
 
         chart
             .configure_mesh()
@@ -158,7 +164,7 @@ impl Chart<Message> for BalanceChart {
             .x_label_style(
                 ("sans-serif", 15)
                     .into_font()
-                    .color(&plotters::style::colors::BLUE.mix(0.65))
+                    .color(&color.mix(0.7))
                     .transform(FontTransform::Rotate90),
             )
             .x_label_formatter(&|x| format!("{}", x.format("%b %d, %Y")))
@@ -170,9 +176,9 @@ impl Chart<Message> for BalanceChart {
                 AreaSeries::new(
                     self.data_points.iter().map(|x| (x.0, x.1 as f64)),
                     0.0,
-                    PLOT_LINE_COLOR.mix(0.175),
+                    color.mix(0.075),
                 )
-                .border_style(ShapeStyle::from(PLOT_LINE_COLOR).stroke_width(2)),
+                .border_style(ShapeStyle::from(color).stroke_width(2)),
             )
             .expect("failed to draw chart data");
     }
