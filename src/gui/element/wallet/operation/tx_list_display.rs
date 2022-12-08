@@ -43,6 +43,7 @@ pub struct StateContainer {
     tx_header_state: HeaderState,
     pub expanded_type: ExpandType,
     mode: Mode,
+    pub chart: Option<super::chart::BalanceChart>,
 }
 
 impl Default for StateContainer {
@@ -52,6 +53,7 @@ impl Default for StateContainer {
             tx_header_state: Default::default(),
             expanded_type: ExpandType::None,
             mode: Mode::NotInit,
+            chart: None,
         }
     }
 }
@@ -132,6 +134,70 @@ pub fn handle_message<'a>(
                 .map(|tx| TxLogEntryWrap::new(tx.clone()))
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
+
+            let mut datetime_sums = vec![];
+            let mut wallet_sum: u64 = 0;
+            for (idx, tx) in txs.iter().enumerate() {
+                if tx.confirmed {
+                    let datetime = tx.confirmation_ts.unwrap();
+                    let credits = tx.amount_credited;
+                    let debits = tx.amount_debited;
+
+                    wallet_sum = wallet_sum + credits - debits;
+                    datetime_sums.push((datetime, wallet_sum));
+                }
+            }
+
+            // loop through the data and sum up the amounts to with dates
+            // assume assorted for now
+            if datetime_sums.len() > 0 {
+                let mut dt = datetime_sums[0].0;
+                let mut sum = 0;
+                let now = chrono::Utc::now();
+
+                let mut data = vec![];
+                while dt.date() < now.date() {
+                    let datetime_sum = datetime_sums
+                        .iter()
+                        .enumerate()
+                        .filter(|(idx, (date, _))| date.date() == dt.date());
+
+                    let mut found = false;
+                    for (idx, (date, amount)) in datetime_sum {
+                        found = true;
+                        sum = amount.to_owned();
+                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+
+                        data.push((date.to_owned(), dec_sum));
+                    }
+
+                    if !found {
+                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                        data.push((dt, dec_sum));
+                    }
+
+                    dt = dt + chrono::Duration::days(1);
+                }
+
+                debug!("data: {:?}", data);
+
+                let theme_name = grin_gui
+                    .config
+                    .theme
+                    .clone()
+                    .unwrap_or("Alliance".to_string());
+                let theme = grin_gui_core::theme::Theme::all()
+                    .iter()
+                    .find(|t| t.0 == theme_name)
+                    .unwrap()
+                    .1
+                    .clone();
+
+                state.chart = Some(super::chart::BalanceChart::new(
+                    theme,
+                    data.into_iter().rev(),
+                ));
+            }
         }
         LocalViewInteraction::TxListUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();

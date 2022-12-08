@@ -42,8 +42,6 @@ pub struct StateContainer {
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
-
-    chart: Option<super::chart::BalanceChart>,
 }
 
 impl Default for StateContainer {
@@ -56,7 +54,6 @@ impl Default for StateContainer {
             wallet_status: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
-            chart: None,
         }
     }
 }
@@ -206,84 +203,6 @@ pub fn handle_message<'a>(
                 .map(|tx| TxLogEntryWrap::new(tx.clone()))
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
-
-            let mut datetime_sums = vec![];
-            let mut wallet_sum: u64 = 0;
-            for (idx, tx) in txs.iter().enumerate() {
-                if tx.confirmed {
-                    let datetime = tx.confirmation_ts.unwrap();
-                    let credits = tx.amount_credited;
-                    let debits = tx.amount_debited;
-
-                    wallet_sum = wallet_sum + credits - debits;
-                    datetime_sums.push((datetime, wallet_sum));
-                }
-            }
-
-            // loop through the data and sum up the amounts to with dates
-            // assume assorted for now
-            if datetime_sums.len() > 0 {
-                let mut dt = datetime_sums[0].0;
-                let mut sum = 0;
-                let now = chrono::Utc::now();
-
-                let mut data = vec![];
-                while dt.date() <= now.date() {
-                    let datetime_sum = datetime_sums
-                        .iter()
-                        .enumerate()
-                        .filter(|(idx, (date, _))| date.date() == dt.date());
-
-                    let mut found = false;
-                    for (idx, (date, amount)) in datetime_sum {
-                        found = true;
-                        sum = amount.to_owned();
-                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
-
-                        data.push((date.to_owned(), dec_sum));
-                        //datetime_sums.remove(idx);
-                    }
-
-                    if !found {
-                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
-                        data.push((dt, dec_sum));
-                    }
-
-                    // sum = match datetime_sum {
-                    //     Some((idx, tup)) => {
-                    //         let amount = tup.1.to_owned();
-                    //         datetime_sums.remove(idx);
-                    //         amount
-                    //     }
-                    //     None => sum,
-                    // };
-
-                    // // TODO import GRIN_BASE
-                    // let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
-                    // data.push((dt, dec_sum));
-
-                    dt = dt + chrono::Duration::days(1);
-                }
-
-                debug!("data: {:?}", data);
-
-                let theme_name = grin_gui
-                    .config
-                    .theme
-                    .clone()
-                    .unwrap_or("Alliance".to_string());
-                let theme = grin_gui_core::theme::Theme::all()
-                    .iter()
-                    .find(|t| t.0 == theme_name)
-                    .unwrap()
-                    .1
-                    .clone();
-
-                state.chart = Some(super::chart::BalanceChart::new(
-                    theme,
-                    data.into_iter().rev(),
-                ));
-            }
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -549,7 +468,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(wallet_info_card_container)
         .height(Length::Units(120));
 
-    if let Some(chart) = state.chart.as_ref() {
+    if let Some(chart) = state.tx_list_display_state.chart.as_ref() {
         first_row_container = first_row_container.push(chart.view(0));
     }
 
@@ -587,7 +506,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let status_row = Row::new()
         .push(status_container)
-        //.height(Length::Units(25))
         .align_items(Alignment::Center)
         .spacing(25);
 
@@ -598,11 +516,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let column = Column::new()
         .push(header_container)
         .push(first_row_container)
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::with_height(Length::Units(DEFAULT_PADDING * 3)))
         .push(tx_list_display)
         .push(status_row);
-    //    .padding(10);
-    //.align_items(Alignment::Center);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top
