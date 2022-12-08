@@ -1,18 +1,19 @@
-
 extern crate iced;
 extern crate plotters;
 extern crate sysinfo;
 
-use crate::gui::{Message, element::DEFAULT_PADDING};
+use crate::gui::{element::DEFAULT_PADDING, Message};
 use chrono::{DateTime, Utc};
 use grin_gui_core::theme::{
-    Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow, Theme
+    Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+    TextInput, Theme,
 };
 use iced::{
     alignment::{Horizontal, Vertical},
     executor,
     widget::{
-        canvas::{Cache, Frame, Geometry}, Space
+        canvas::{Cache, Frame, Geometry},
+        Space,
     },
     Alignment, Application, Command, Font, Length, Settings, Size, Subscription,
 };
@@ -38,21 +39,49 @@ const FONT_BOLD: Font = Font::External {
 };
 
 pub struct BalanceChart {
-    cache: Cache,
     data_points: VecDeque<(DateTime<Utc>, f64)>,
     theme: Theme,
 }
 
-impl BalanceChart {
-
-    // data points should be presorted with the most recent first
-    pub fn new(theme: Theme, data: impl Iterator<Item = (DateTime<Utc>, f64)>) -> Self {
-        let data_points: VecDeque<_> = data.collect();
+impl Default for BalanceChart {
+    fn default() -> Self {
         Self {
-            cache: Cache::new(),
+            data_points: VecDeque::default(),
+            theme: Theme::default(),
+        }
+    }
+}
+
+impl BalanceChart {
+    pub fn new(
+        theme: Theme,
+        data: impl Iterator<Item = (DateTime<Utc>, f64)>,
+    ) -> Element<'static, Message> {
+        let data_points: VecDeque<_> = data.collect();
+        let chart = BalanceChart {
             data_points,
             theme,
-        }
+        };
+
+        Container::new(
+            Column::new()
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .spacing(5)
+                .push(
+                    ChartWidget::new(chart).height(Length::Fill).resolve_font(
+                        |_, style| match style {
+                            plotters_backend::FontStyle::Bold => FONT_BOLD,
+                            _ => FONT_REGULAR,
+                        },
+                    ),
+                ),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(Horizontal::Center)
+        .align_y(Vertical::Center)
+        .into()
     }
 
     pub fn push_data(&mut self, time: DateTime<Utc>, value: f64) {
@@ -68,29 +97,7 @@ impl BalanceChart {
         //     }
         //     break;
         // }
-        self.cache.clear();
-    }
-
-    pub fn view(&self, idx: usize) -> Element<Message> {
-        Container::new(
-            Column::new()
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .spacing(5)
-                .push(
-                    ChartWidget::new(self).height(Length::Fill).resolve_font(
-                        |_, style| match style {
-                            plotters_backend::FontStyle::Bold => FONT_BOLD,
-                            _ => FONT_REGULAR,
-                        },
-                    ),
-                ),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .align_x(Horizontal::Center)
-        .align_y(Vertical::Center)
-        .into()
+        //self.cache.clear();
     }
 }
 
@@ -106,10 +113,10 @@ impl Chart<Message> for BalanceChart {
     //     (event::Status::Ignored, None)
     // }
 
-    #[inline]
-    fn draw<F: Fn(&mut Frame)>(&self, bounds: Size, draw_fn: F) -> Geometry {
-        self.cache.draw(bounds, draw_fn)
-    }
+    // #[inline]
+    // fn draw<F: Fn(&mut Frame)>(&self, bounds: Size, draw_fn: F) -> Geometry {
+    //     //self.cache.draw(bounds, draw_fn)
+    // }
 
     fn build_chart<DB: DrawingBackend>(&self, _state: &Self::State, mut chart: ChartBuilder<DB>) {
         use plotters::{prelude::*, style::Color};
@@ -120,26 +127,18 @@ impl Chart<Message> for BalanceChart {
         let newest_time = self
             .data_points
             .front()
-            .unwrap_or(&(
-                chrono::DateTime::from_utc(
-                    chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
-                    chrono::Utc,
-                ),
-                0.0,
-            ))
+            .unwrap_or(&(chrono::Utc::now(), 0.0))
             .0;
 
-        let oldest_time = self
+        let mut oldest_time = self
             .data_points
             .back()
-            .unwrap_or(&(
-                chrono::DateTime::from_utc(
-                    chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
-                    chrono::Utc,
-                ),
-                0.0,
-            ))
+            .unwrap_or(&(chrono::Utc::now() - chrono::Duration::days(7) , 0.0))
             .0;
+
+        if newest_time == oldest_time {
+            oldest_time = chrono::Utc::now() - chrono::Duration::days(7); 
+        }
 
         // TODO y spec max value
         let mut chart = chart
@@ -148,9 +147,13 @@ impl Chart<Message> for BalanceChart {
             //.margin(DEFAULT_PADDING as u32)
             .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..500.0_f64)
             .expect("failed to build chart");
-    
-        let color =  self.theme.palette.bright.primary;
-        let color = RGBColor((color.r * 255.0) as u8, (color.g  * 255.0) as u8, (color.b * 255.0) as u8);
+
+        let color = self.theme.palette.bright.primary;
+        let color = RGBColor(
+            (color.r * 255.0) as u8,
+            (color.g * 255.0) as u8,
+            (color.b * 255.0) as u8,
+        );
 
         chart
             .configure_mesh()

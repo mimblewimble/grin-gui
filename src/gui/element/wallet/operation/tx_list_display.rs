@@ -43,7 +43,7 @@ pub struct StateContainer {
     tx_header_state: HeaderState,
     pub expanded_type: ExpandType,
     mode: Mode,
-    pub chart: Option<super::chart::BalanceChart>,
+    pub balance_data: Vec<(chrono::DateTime<chrono::Utc>, f64)>,
 }
 
 impl Default for StateContainer {
@@ -53,7 +53,7 @@ impl Default for StateContainer {
             tx_header_state: Default::default(),
             expanded_type: ExpandType::None,
             mode: Mode::NotInit,
-            chart: None,
+            balance_data: vec![],
         }
     }
 }
@@ -91,10 +91,10 @@ pub fn handle_message<'a>(
                 let mut query_args = RetrieveTxQueryArgs::default();
 
                 match newMode {
-                    Mode::NotInit => {},
+                    Mode::NotInit => {}
                     Mode::Recent => {
                         query_args.exclude_cancelled = Some(true);
-                    },
+                    }
                     Mode::Outstanding => {
                         query_args.exclude_cancelled = Some(true);
                         query_args.include_outstanding_only = Some(true);
@@ -148,55 +148,24 @@ pub fn handle_message<'a>(
                 }
             }
 
-            // loop through the data and sum up the amounts to with dates
-            // assume assorted for now
-            if datetime_sums.len() > 0 {
+            // fill in sum data for days without transactions
+            if !datetime_sums.is_empty() {
                 let mut dt = datetime_sums[0].0;
                 let mut sum = 0;
                 let now = chrono::Utc::now();
 
-                let mut data = vec![];
-                while dt.date() < now.date() {
-                    let datetime_sum = datetime_sums
+                while dt.date_naive() < now.date_naive() {
+                    let txns = datetime_sums
                         .iter()
-                        .enumerate()
-                        .filter(|(idx, (date, _))| date.date() == dt.date());
+                        .filter(|(date, _)| date.date_naive() == dt.date_naive());
 
-                    let mut found = false;
-                    for (idx, (date, amount)) in datetime_sum {
-                        found = true;
-                        sum = amount.to_owned();
-                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                    sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+                    let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
 
-                        data.push((date.to_owned(), dec_sum));
-                    }
-
-                    if !found {
-                        let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
-                        data.push((dt, dec_sum));
-                    }
+                    state.balance_data.push((dt.to_owned(), dec_sum));
 
                     dt = dt + chrono::Duration::days(1);
                 }
-
-                debug!("data: {:?}", data);
-
-                let theme_name = grin_gui
-                    .config
-                    .theme
-                    .clone()
-                    .unwrap_or("Alliance".to_string());
-                let theme = grin_gui_core::theme::Theme::all()
-                    .iter()
-                    .find(|t| t.0 == theme_name)
-                    .unwrap()
-                    .1
-                    .clone();
-
-                state.chart = Some(super::chart::BalanceChart::new(
-                    theme,
-                    data.into_iter().rev(),
-                ));
             }
         }
         LocalViewInteraction::TxListUpdateFailure(err) => {
@@ -303,14 +272,13 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         state.tx_header_state.previous_sort_direction,
     );
 
-    let table_header_container = Container::new(table_header_row)
-        .padding(iced::Padding::from([
-            0,               // top
-            DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
-            0,               // bottom
-            0,               // left
-        ]));
-        //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
+    let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
+        0,               // top
+        DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
+        0,               // bottom
+        0,               // left
+    ]));
+    //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
 
     // A scrollable list containing rows.
     // Each row holds data about a single tx.
@@ -361,9 +329,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         content = content.push(tx_data_cell);
     }
 
-    let mut tx_list_scrollable = Scrollable::new(content).style(
-        grin_gui_core::theme::ScrollableStyle::Primary,
-    );
+    let mut tx_list_scrollable =
+        Scrollable::new(content).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     // Bottom space below the scrollable.
     let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
@@ -383,7 +350,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let scrollable =
         Scrollable::new(main_column).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
-    let table_colummn = Column::new().push(table_header_container).push(scrollable).push(tx_list_content);
+    let table_colummn = Column::new()
+        .push(table_header_container)
+        .push(scrollable)
+        .push(tx_list_content);
     let table_container = Container::new(table_colummn)
         //.style(grin_gui_core::theme::ContainerStyle::PanelBordered)
         .height(Length::Fill)

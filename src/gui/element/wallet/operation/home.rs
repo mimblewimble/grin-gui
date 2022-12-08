@@ -1,4 +1,7 @@
-use super::tx_list::{self, ExpandType};
+use super::{
+    chart::BalanceChart,
+    tx_list::{self, ExpandType},
+};
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
@@ -42,6 +45,7 @@ pub struct StateContainer {
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
+    chart: BalanceChart,
 }
 
 impl Default for StateContainer {
@@ -54,6 +58,7 @@ impl Default for StateContainer {
             wallet_status: Default::default(),
             last_summary_update: Default::default(),
             tx_header_state: Default::default(),
+            chart: Default::default(),
         }
     }
 }
@@ -468,8 +473,18 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(wallet_info_card_container)
         .height(Length::Units(120));
 
-    if let Some(chart) = state.tx_list_display_state.chart.as_ref() {
-        first_row_container = first_row_container.push(chart.view(0));
+    //if let Some(chart) = state.tx_list_display_state.chart.as_ref() {
+    if state.tx_list_display_state.balance_data.len() > 0 {
+        let theme_name = config.theme.clone().unwrap_or("Alliance".to_string());
+        let theme = grin_gui_core::theme::Theme::all()
+            .iter()
+            .find(|t| t.0 == theme_name)
+            .unwrap()
+            .1
+            .clone();
+
+        let data = state.tx_list_display_state.balance_data.clone();
+        first_row_container = first_row_container.push(BalanceChart::new(theme, data.into_iter().rev()));
     }
 
     // Status container bar at bottom of screen
