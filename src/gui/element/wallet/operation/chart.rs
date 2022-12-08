@@ -40,7 +40,6 @@ const FONT_BOLD: Font = Font::External {
 pub struct BalanceChart {
     cache: Cache,
     data_points: VecDeque<(DateTime<Utc>, f64)>,
-    limit: Duration,
     theme: Theme,
 }
 
@@ -52,7 +51,6 @@ impl BalanceChart {
         Self {
             cache: Cache::new(),
             data_points,
-            limit: Duration::from_secs(PLOT_SECONDS as u64),
             theme,
         }
     }

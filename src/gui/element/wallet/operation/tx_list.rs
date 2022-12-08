@@ -1,21 +1,23 @@
 use std::borrow::Borrow;
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
+    super::super::super::{BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
     crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+        TextInput,
+    },
     grin_gui_core::{
-        config::Config, node::amount_to_hr_string, theme::{ColorPalette, ButtonStyle, ContainerStyle}, wallet::TxLogEntry,
+        config::Config,
+        node::amount_to_hr_string,
+        theme::{ButtonStyle, ColorPalette, ContainerStyle},
+        wallet::TxLogEntry,
     },
     grin_gui_widgets::widget::header,
+    iced::widget::{button, pick_list, scrollable, text_input, Space},
     iced::{alignment, Alignment, Command, Length},
-    grin_gui_core::theme::{
-        Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput, Header, TableRow
-    },
-    iced::widget::{
-        button, pick_list, scrollable, text_input, Space,
-    },
     serde::{Deserialize, Serialize},
     std::collections::HashMap,
     strfmt::strfmt,
@@ -178,12 +180,9 @@ pub struct TxLogEntryWrap {
 
 impl TxLogEntryWrap {
     pub fn new(tx: TxLogEntry) -> Self {
-        Self {
-            tx,
-        }
+        Self { tx }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct TxList {
@@ -342,49 +341,49 @@ impl Default for HeaderState {
                 },
                 ColumnState {
                     key: ColumnKey::NumOutputs,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 11,
                 },
                 ColumnState {
                     key: ColumnKey::AmountCredited,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 12,
                 },
                 ColumnState {
                     key: ColumnKey::AmountDebited,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 13,
                 },
                 ColumnState {
                     key: ColumnKey::Fee,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 14,
                 },
                 ColumnState {
                     key: ColumnKey::PaymentProof,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 15,
                 },
                 ColumnState {
                     key: ColumnKey::Kernel,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 16,
                 },
                 ColumnState {
                     key: ColumnKey::TxData,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: true,
                     order: 17,
@@ -625,126 +624,126 @@ impl Default for TxListHeaderState {
             columns: vec![
                 TxListColumnState {
                     key: ColumnKey::Id,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(20),
                     hidden: false,
                     order: 0,
                 },
                 TxListColumnState {
                     key: ColumnKey::NetDifference,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 1,
                 },
                 TxListColumnState {
                     key: ColumnKey::CreationTime,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 2,
                 },
                 TxListColumnState {
                     key: ColumnKey::Status,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 3,
                 },
                 TxListColumnState {
                     key: ColumnKey::ConfirmationTime,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 4,
                 },
                 TxListColumnState {
                     key: ColumnKey::Type,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(150),
                     hidden: true,
                     order: 5,
                 },
                 TxListColumnState {
                     key: ColumnKey::SharedTransactionId,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(110),
                     hidden: false,
                     order: 6,
                 },
                 TxListColumnState {
                     key: ColumnKey::TTLCutoff,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: true,
                     order: 7,
                 },
                 TxListColumnState {
                     key: ColumnKey::Height,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(105),
                     hidden: false,
                     order: 8,
                 },
                 TxListColumnState {
                     key: ColumnKey::IsConfirmed,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: false,
                     order: 9,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumInputs,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 10,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumOutputs,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 11,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountCredited,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 12,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountDebited,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 13,
                 },
                 TxListColumnState {
                     key: ColumnKey::Fee,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 14,
                 },
                 TxListColumnState {
                     key: ColumnKey::PaymentProof,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 15,
                 },
                 TxListColumnState {
                     key: ColumnKey::Kernel,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 16,
                 },
                 TxListColumnState {
                     key: ColumnKey::TxData,
-                  //  btn_state: Default::default(),
+                    //  btn_state: Default::default(),
                     width: Length::Units(85),
                     hidden: true,
                     order: 17,
@@ -765,92 +764,74 @@ impl Default for TxListColumnSettings {
                 TxListColumnSettingState {
                     key: ColumnKey::Id,
                     order: 0,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NetDifference,
                     order: 1,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::CreationTime,
                     order: 2,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Status,
                     order: 3,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::ConfirmationTime,
                     order: 4,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Type,
                     order: 5,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::SharedTransactionId,
                     order: 6,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::TTLCutoff,
                     order: 7,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Height,
                     order: 8,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::IsConfirmed,
                     order: 9,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NumInputs,
                     order: 10,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::NumOutputs,
                     order: 11,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::AmountCredited,
                     order: 12,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::AmountDebited,
                     order: 13,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Fee,
                     order: 14,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::PaymentProof,
                     order: 15,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::Kernel,
                     order: 16,
-
                 },
                 TxListColumnSettingState {
                     key: ColumnKey::TxData,
                     order: 17,
-
                 },
             ],
         }
@@ -860,7 +841,6 @@ impl Default for TxListColumnSettings {
 pub struct TxListColumnSettingState {
     pub key: ColumnKey,
     pub order: usize,
- 
 }
 
 pub struct CatalogSearchState {
@@ -977,6 +957,15 @@ pub fn titles_row_header<'a>(
     })*/
 }
 
+//TODO: Move somewhere else
+pub fn create_tx_display_status(log_entry: &TxLogEntry) -> String {
+    if log_entry.confirmed {
+        localized_string("tx-confirmed")
+    } else {
+        localized_string("tx-unconfirmed")
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn data_row_container<'a, 'b>(
     tx_log_entry_wrap: &'a TxLogEntryWrap,
@@ -993,7 +982,10 @@ pub fn data_row_container<'a, 'b>(
     let mut row_containers = vec![];
 
     let id = tx_log_entry_wrap.tx.id.to_string();
-    let mut tx_type = format!("{}", tx_log_entry_wrap.tx.tx_type.to_string().replace("\n", ""));
+    let mut tx_type = format!(
+        "{}",
+        tx_log_entry_wrap.tx.tx_type.to_string().replace("\n", "")
+    );
     let shared_tx_id = match tx_log_entry_wrap.tx.tx_slate_id {
         Some(t) => t.to_string(),
         None => "None".to_string(),
@@ -1008,17 +1000,23 @@ pub fn data_row_container<'a, 'b>(
     let creation_time = tx_log_entry_wrap.tx.creation_ts.to_string();
     let confirmation_time = tx_log_entry_wrap.tx.creation_ts.to_string();
     let net_diff = if tx_log_entry_wrap.tx.amount_credited >= tx_log_entry_wrap.tx.amount_debited {
-        amount_to_hr_string(tx_log_entry_wrap.tx.amount_credited - tx_log_entry_wrap.tx.amount_debited, true)
+        amount_to_hr_string(
+            tx_log_entry_wrap.tx.amount_credited - tx_log_entry_wrap.tx.amount_debited,
+            true,
+        )
     } else {
         format!(
             "-{}",
-            amount_to_hr_string(tx_log_entry_wrap.tx.amount_debited - tx_log_entry_wrap.tx.amount_credited, true)
+            amount_to_hr_string(
+                tx_log_entry_wrap.tx.amount_debited - tx_log_entry_wrap.tx.amount_credited,
+                true
+            )
         )
     };
     //TODO this will show the latest status
     // Unconfirmed - Created time
     // Confirmed
-    let status = "Unconfirmed - Created 2000/01/10";
+    let status = create_tx_display_status(&tx_log_entry_wrap.tx);
 
     /*let version = tx
         .version()
@@ -1513,6 +1511,8 @@ pub fn data_row_container<'a, 'b>(
     if is_tx_expanded {
         match expand_type {
             ExpandType::Details(_) => {
+                let button_width = Length::Units(BUTTON_WIDTH);
+
                 // ID
                 let id_title_text =
                     Text::new(format!("{}: ", localized_string("tx-id"))).size(DEFAULT_FONT_SIZE);
@@ -1564,17 +1564,59 @@ pub fn data_row_container<'a, 'b>(
                 let space = Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING * 2));
                 let bottom_space = Space::new(Length::Units(0), Length::Units(4));
 
-                let mut tx_cancel_button = Button::new(
-                    Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
-                )
-                .style(ButtonStyle::Default);
+                let confirmed = tx_cloned.tx.confirmed;
 
-                tx_cancel_button =
-                    tx_cancel_button.on_press(Interaction::WalletOperationHomeViewInteraction(
-                        super::home::LocalViewInteraction::CancelTx(tx_log_entry_wrap.tx.id),
+                let tx_details_container = Container::new(
+                    Text::new(localized_string("tx-details")).size(DEFAULT_FONT_SIZE),
+                )
+                .width(button_width)
+                .align_y(alignment::Vertical::Center)
+                .align_x(alignment::Horizontal::Center);
+
+                let mut tx_details_button = Button::new(tx_details_container)
+                    .width(Length::Units(BUTTON_WIDTH))
+                    .style(grin_gui_core::theme::ButtonStyle::Primary)
+                    .on_press(Interaction::WalletOperationHomeViewInteraction(
+                        super::home::LocalViewInteraction::TxDetails(tx_cloned),
                     ));
 
-                let tx_cancel_button: Element<Interaction> = tx_cancel_button.into();
+                let tx_details_button: Element<Interaction> = tx_details_button.into();
+
+                let tx_details_wrap =
+                    Container::new(tx_details_button.map(Message::Interaction)).padding(1);
+                let tx_details_wrap = Container::new(tx_details_wrap)
+                    .style(grin_gui_core::theme::ContainerStyle::Segmented)
+                    .padding(1);
+
+                let mut action_button_row = Row::new()
+                    .push(tx_details_wrap)
+                    .push(Space::with_width(Length::Units(DEFAULT_PADDING)));
+
+                if !confirmed {
+                    let tx_button_cancel_container = Container::new(
+                        Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
+                    )
+                    .width(button_width)
+                    .align_y(alignment::Vertical::Center)
+                    .align_x(alignment::Horizontal::Center);
+
+                    let mut tx_cancel_button = Button::new(tx_button_cancel_container)
+                        .width(Length::Units(BUTTON_WIDTH))
+                        .style(grin_gui_core::theme::ButtonStyle::Primary)
+                        .on_press(Interaction::WalletOperationHomeViewInteraction(
+                            super::home::LocalViewInteraction::CancelTx(tx_log_entry_wrap.tx.id)
+                        ));
+
+                    let tx_cancel_button: Element<Interaction> = tx_cancel_button.into();
+
+                    let tx_cancel_wrap =
+                        Container::new(tx_cancel_button.map(Message::Interaction)).padding(1);
+                    let tx_cancel_wrap = Container::new(tx_cancel_wrap)
+                        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+                        .padding(1);
+
+                    action_button_row = action_button_row.push(tx_cancel_wrap)
+                }
 
                 /*
                 let notes_title_text =
@@ -1734,19 +1776,19 @@ pub fn data_row_container<'a, 'b>(
                     .push(uuid_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(type_row)
-                    .push(Space::new(Length::Units(0), Length::Units(5)))
-                    .push(tx_cancel_button.map(Message::Interaction))
-                    .push(Space::new(Length::Units(0), Length::Units(3)))
-                    /* .push(notes_title_container)
-                    .push(Space::new(Length::Units(0), Length::Units(3)))
-                    .push(notes_text)
-                    .push(Space::new(Length::Units(0), Length::Units(15)))
-                    .push(release_channel_title_container)
-                    .push(Space::new(Length::Units(0), Length::Units(3)))
-                    .push(test_row)
-                    .push(space)
-                    .push(button_row)*/
-                    .push(bottom_space);
+                    .push(Space::new(Length::Units(0), Length::Units(9)))
+                    .push(action_button_row);
+                //.push(Space::new(Length::Units(0), Length::Units(3)))
+                /* .push(notes_title_container)
+                .push(Space::new(Length::Units(0), Length::Units(3)))
+                .push(notes_text)
+                .push(Space::new(Length::Units(0), Length::Units(15)))
+                .push(release_channel_title_container)
+                .push(Space::new(Length::Units(0), Length::Units(3)))
+                .push(test_row)
+                .push(space)
+                .push(button_row)*/
+                //.push(bottom_space);
                 let details_container = Container::new(column)
                     .width(Length::Fill)
                     .padding(20)
@@ -1760,7 +1802,6 @@ pub fn data_row_container<'a, 'b>(
                          Length::Units(0),
                     ))
                     .spacing(1);
-
                 tx_column = tx_column
                     .push(Space::new(Length::FillPortion(1), Length::Units(1)))
                     .push(row);
@@ -1796,7 +1837,11 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.home_state;
+    let state = &mut grin_gui
+        .wallet_state
+        .operation_state
+        .home_state
+        .tx_list_display_state;
     match message {
         LocalViewInteraction::Expand(expand_type) => match &expand_type {
             ExpandType::Details(tx_wrap) => {

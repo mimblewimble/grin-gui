@@ -21,7 +21,7 @@ use dirs;
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
-    InitTxArgs, Slate, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
+    InitTxArgs, Slate, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo, RetrieveTxQueryArgs
 };
 
 use crate::error::GrinWalletInterfaceError;
@@ -363,10 +363,11 @@ where
 
     pub async fn get_txs(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        query_args: Option<RetrieveTxQueryArgs>,
     ) -> Result<(bool, Vec<TxLogEntry>), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
-            let res = o.retrieve_txs(None, false, None, None)?;
+            let res = o.retrieve_txs(None, true, None, None, query_args)?;
             /*for tx in &mut res.1 {
                 if tx.amount_credited == 0 && tx.amount_debited == 0 {
                     let saved_tx = o.get_stored_tx(None, Some(tx.id), None);
