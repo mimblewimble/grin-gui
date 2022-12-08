@@ -36,7 +36,6 @@ use {
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
     pub tx_list_display_state: tx_list_display::StateContainer,
-    pub expanded_type: ExpandType,
 
     wallet_info: Option<WalletInfo>,
     wallet_txs: TxList,
@@ -52,7 +51,6 @@ impl Default for StateContainer {
             action_menu_state: Default::default(),
             tx_list_display_state: Default::default(),
             // back_button_state: Default::default(),
-            expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
@@ -74,6 +72,7 @@ pub enum LocalViewInteraction {
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
     CancelTx(u32),
+    TxDetails(TxLogEntryWrap),
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>)
 }
@@ -229,6 +228,10 @@ pub fn handle_message<'a>(
                 .operation_state
                 .apply_tx_state
                 .address_value = address;
+        }
+        LocalViewInteraction::TxDetails(tx_log_entry_wrap) => {
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");
+            log::debug!("TBD {}", tx_log_entry_wrap.tx.id);
         }
         LocalViewInteraction::CancelTx(id) => {
             debug!("Cancel Tx: {}", id);

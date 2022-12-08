@@ -41,7 +41,7 @@ use {
 pub struct StateContainer {
     wallet_txs: TxList,
     tx_header_state: HeaderState,
-    expanded_type: ExpandType,
+    pub expanded_type: ExpandType,
     mode: Mode,
 }
 
@@ -159,7 +159,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         ]));
 
     let latest_container =
-        Container::new(Text::new(localized_string("tx-latest")).size(DEFAULT_FONT_SIZE))
+        Container::new(Text::new(localized_string("tx-recent")).size(DEFAULT_FONT_SIZE))
             .width(button_width)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
@@ -180,7 +180,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .padding(1);
 
     let outstanding_container =
-        Container::new(Text::new(localized_string("outstanding")).size(DEFAULT_FONT_SIZE))
+        Container::new(Text::new(localized_string("tx-outstanding")).size(DEFAULT_FONT_SIZE))
             .width(button_width)
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
@@ -239,12 +239,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let table_header_container = Container::new(table_header_row)
         .padding(iced::Padding::from([
-            9,               // top
+            0,               // top
             DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
-            9,               // bottom
-            9,               // left
-        ]))
-        .style(grin_gui_core::theme::ContainerStyle::PanelForeground);
+            0,               // bottom
+            0,               // left
+        ]));
+        //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
 
     // A scrollable list containing rows.
     // Each row holds data about a single tx.
@@ -321,8 +321,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let table_container = Container::new(table_colummn)
         //.style(grin_gui_core::theme::ContainerStyle::PanelBordered)
         .height(Length::Fill)
-        .width(Length::Fill)
-        .padding(1);
+        .width(Length::Fill);
 
     let row = Row::new().push(
         Column::new()
