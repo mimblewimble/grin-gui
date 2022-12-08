@@ -2,13 +2,13 @@ use super::tx_list::{self, ExpandType};
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
-    wallet::{TxLogEntry, TxLogEntryType},
+    wallet::{TxLogEntry, TxLogEntryType, RetrieveTxQueryArgs},
 };
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
 
-use super::action_menu;
+use super::{action_menu, tx_list_display};
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 use grin_gui_widgets::widget::header;
 
@@ -35,7 +35,7 @@ use {
 
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
-    pub expanded_type: ExpandType,
+    pub tx_list_display_state: tx_list_display::StateContainer,
 
     wallet_info: Option<WalletInfo>,
     wallet_txs: TxList,
@@ -49,8 +49,8 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             action_menu_state: Default::default(),
+            tx_list_display_state: Default::default(),
             // back_button_state: Default::default(),
-            expanded_type: ExpandType::None,
             wallet_info: Default::default(),
             wallet_txs: Default::default(),
             wallet_status: Default::default(),
@@ -72,6 +72,7 @@ pub enum LocalViewInteraction {
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
     CancelTx(u32),
+    TxDetails(TxLogEntryWrap),
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>)
 }
@@ -105,12 +106,18 @@ pub fn handle_tick<'a>(
     {
         state.last_summary_update = chrono::Local::now();
 
+        let mut query_args = RetrieveTxQueryArgs::default();
+
+        query_args.exclude_cancelled = Some(true);
+        query_args.include_outstanding_only = Some(true);
+
         let w = grin_gui.wallet_interface.clone();
 
         let fut =
-            move || WalletInterface::get_wallet_info(w.clone()).join(WalletInterface::get_txs(w));
+            move || WalletInterface::get_wallet_info(w.clone());//.join(WalletInterface::get_txs(w, Some(query_args)));
 
-        return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
+        //return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
+        return Ok(Command::perform(fut(), |(wallet_info_res)| {
             if wallet_info_res.is_err() {
                 let e = wallet_info_res
                     .context("Failed to retrieve wallet info status")
@@ -119,18 +126,19 @@ pub fn handle_tick<'a>(
                     LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
                 ));
             }
-            if txs_res.is_err() {
+            /*if txs_res.is_err() {
                 let e = txs_res
                     .context("Failed to retrieve wallet tx status")
                     .unwrap_err();
                 return Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
                     LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
                 ));
-            }
+            }*/
             let (node_success, wallet_info) = wallet_info_res.unwrap();
-            let (_, txs) = txs_res.unwrap();
+            //let (_, txs) = txs_res.unwrap();
             Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
+                //LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
+                LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, vec![]),
             ))
         }));
     }
@@ -220,6 +228,10 @@ pub fn handle_message<'a>(
                 .operation_state
                 .apply_tx_state
                 .address_value = address;
+        }
+        LocalViewInteraction::TxDetails(tx_log_entry_wrap) => {
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");
+            log::debug!("TBD {}", tx_log_entry_wrap.tx.id);
         }
         LocalViewInteraction::CancelTx(id) => {
             debug!("Cancel Tx: {}", id);
@@ -491,110 +503,20 @@ pub fn data_container<'a>(
 
     let status_row = Row::new()
         .push(status_container)
-        .height(Length::Units(25))
+        //.height(Length::Units(25))
         .align_items(Alignment::Center)
         .spacing(25);
 
-    // Temp Test Data
-    use grin_gui_core::node::Identifier;
-    /*let tx_list = TxList {
-        txs: vec![
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 0),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 1),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 2),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 3),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 4),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 5),
-            TxLogEntry::new(Identifier::zero(), TxLogEntryType::ConfirmedCoinbase, 6),
-        ],
-    };*/
+    // Buttons to perform operations go here, but empty container for now
+    let tx_list_display =
+        tx_list_display::data_container(config, &state.tx_list_display_state);
 
-    let column_config = state.tx_header_state.column_config();
-
-    // Tx row titles is a row of titles above the tx scrollable.
-    // This is to add titles above each section of the tx row, to let
-    // the user easily identify what the value is.
-    let tx_row_titles = super::tx_list::titles_row_header(
-        &state.wallet_txs,
-        &state.tx_header_state.state,
-        &state.tx_header_state.columns,
-        state.tx_header_state.previous_column_key,
-        state.tx_header_state.previous_sort_direction,
-    );
-
-    // A scrollable list containing rows.
-    // Each row holds data about a single tx.
-    let mut content = Column::new().spacing(1);
-    //.height(Length::Fill)
-    //.style(grin_gui_core::theme::ScrollableStyles::Primary);
-
-    let mut has_txs = false;
-
-    // Loops though the txs.
-    for (idx, tx_wrap) in state.wallet_txs.txs.iter().enumerate() {
-        has_txs = true;
-        // If hiding ignored addons, we will skip it.
-        /*if addon.state == AddonState::Ignored && self.config.hide_ignored_addons {
-            continue;
-        }*/
-
-        // Skip addon if we are filter from query and addon doesn't have fuzzy score
-        /*if query.is_some() && addon.fuzzy_score.is_none() {
-            continue;
-        }*/
-
-        // Checks if the current tx is expanded.
-        let is_tx_expanded = match &state.expanded_type {
-            ExpandType::Details(a) => a.tx.id == tx_wrap.tx.id,
-            ExpandType::None => false,
-        };
-
-        let is_odd = if config.alternating_row_colors {
-            Some(idx % 2 != 0)
-        } else {
-            None
-        };
-
-        // A container cell which has all data about the current tx.
-        // If the tx is expanded, then this is also included in this container.
-        let tx_data_cell = tx_list::data_row_container(
-            tx_wrap,
-            is_tx_expanded,
-            &state.expanded_type,
-            config,
-            &column_config,
-            is_odd,
-            &None,
-        );
-
-        // Adds the addon data cell to the scrollable.
-        content = content.push(tx_data_cell);
-    }
-
-    let mut tx_list_scrollable = Scrollable::new(content).style(
-        grin_gui_core::theme::ScrollableStyle::Primary,
-    );
-
-    // Bottom space below the scrollable.
-    let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
-
-    // This column gathers all the tx list elements together.
-    let mut tx_list_content = Column::new();
-
-    // Adds the rest of the elements to the content column.
-    if has_txs {
-        //TODO: Header widget is crashing specatularly on windows after iced-rs 0.5.0 update
-        // disable header column until we figure out why and how to fix
-        tx_list_content = tx_list_content.push(tx_row_titles).push(tx_list_scrollable);
-        //tx_list_content = tx_list_content.push(tx_list_scrollable);
-    }
-
-    // Overall Home screen layout column
+   // Overall Home screen layout column
     let column = Column::new()
         .push(header_container)
         .push(first_row_container)
-        .push(tx_list_content)
-        .push(Space::new(Length::Units(0), Length::Fill))
+        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(tx_list_display)
         .push(status_row)
         .padding(10);
         //.align_items(Alignment::Center);

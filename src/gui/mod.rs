@@ -428,6 +428,7 @@ pub enum Interaction {
     WalletOperationOpenViewInteraction(element::wallet::operation::open::LocalViewInteraction),
     WalletOperationHomeViewInteraction(element::wallet::operation::home::LocalViewInteraction),
     WalletOperationTxListInteraction(element::wallet::operation::tx_list::LocalViewInteraction),
+    WalletOperationHomeTxListDisplayInteraction(element::wallet::operation::tx_list_display::LocalViewInteraction),
     WalletOperationHomeActionMenuViewInteraction(element::wallet::operation::action_menu::LocalViewInteraction),
     WalletOperationCreateTxViewInteraction(element::wallet::operation::create_tx::LocalViewInteraction),
     WalletOperationApplyTxViewInteraction(element::wallet::operation::apply_tx::LocalViewInteraction),
