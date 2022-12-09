@@ -1,6 +1,5 @@
 extern crate iced;
 extern crate plotters;
-extern crate sysinfo;
 
 use crate::gui::{element::DEFAULT_PADDING, Message};
 use chrono::{DateTime, Utc};
@@ -22,7 +21,6 @@ use plotters_backend::DrawingBackend;
 use plotters_iced::{Chart, ChartWidget};
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
-use sysinfo::{CpuExt, CpuRefreshKind, RefreshKind, System, SystemExt};
 
 const PLOT_SECONDS: usize = 60; //1 min
 const TITLE_FONT_SIZE: u16 = 22;

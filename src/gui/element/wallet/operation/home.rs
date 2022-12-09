@@ -119,7 +119,7 @@ pub fn handle_tick<'a>(
         let fut = move || WalletInterface::get_wallet_info(w.clone()); //.join(WalletInterface::get_txs(w, Some(query_args)));
 
         //return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
-        return Ok(Command::perform(fut(), |(wallet_info_res)| {
+        return Ok(Command::perform(fut(), |wallet_info_res| {
             if wallet_info_res.is_err() {
                 let e = wallet_info_res
                     .context("Failed to retrieve wallet info status")

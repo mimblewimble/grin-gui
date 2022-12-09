@@ -87,11 +87,11 @@ pub fn handle_message<'a>(
         .tx_list_display_state;
 
     match message {
-        LocalViewInteraction::SelectMode(newMode) => {
-            if newMode != state.mode {
+        LocalViewInteraction::SelectMode(new_mode) => {
+            if new_mode != state.mode {
                 let mut query_args = RetrieveTxQueryArgs::default();
 
-                match newMode {
+                match new_mode {
                     Mode::NotInit => {}
                     Mode::Recent => {
                         query_args.exclude_cancelled = Some(true);
@@ -105,7 +105,7 @@ pub fn handle_message<'a>(
                 let w = grin_gui.wallet_interface.clone();
 
                 let fut = move || WalletInterface::get_txs(w, Some(query_args));
-                return Ok(Command::perform(fut(), |(tx_list_res)| {
+                return Ok(Command::perform(fut(), |tx_list_res| {
                     if tx_list_res.is_err() {
                         let e = tx_list_res
                             .context("Failed to retrieve transaction list")
@@ -125,7 +125,7 @@ pub fn handle_message<'a>(
                     ))
                 }));
             }
-            state.mode = newMode
+            state.mode = new_mode
         }
         LocalViewInteraction::TxListUpdateSuccess(node_success, txs) => {
             debug!("Update Tx List Summary: {}", node_success);

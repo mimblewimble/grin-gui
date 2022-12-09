@@ -23,9 +23,7 @@ iced_aw = { git = "https://github.com/iced-rs/iced_aw"}
 plotters-iced = "0.4"
 plotters="0.3"
 plotters-backend = "0.3"
-sysinfo = { version = "0.26", default_features = false }
 rand = "0.8.3"
-
 
 async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }
