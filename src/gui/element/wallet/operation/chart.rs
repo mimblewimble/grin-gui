@@ -53,15 +53,14 @@ impl Default for BalanceChart {
 }
 
 impl BalanceChart {
+    /// Create a new chart widget
+    /// `data` is an iterator of `(DateTime<Utc>, f64)` tuples in descending order - newest datetime first
     pub fn new(
         theme: Theme,
         data: impl Iterator<Item = (DateTime<Utc>, f64)>,
     ) -> Element<'static, Message> {
         let data_points: VecDeque<_> = data.collect();
-        let chart = BalanceChart {
-            data_points,
-            theme,
-        };
+        let chart = BalanceChart { data_points, theme };
 
         Container::new(
             Column::new()
@@ -133,11 +132,19 @@ impl Chart<Message> for BalanceChart {
         let mut oldest_time = self
             .data_points
             .back()
-            .unwrap_or(&(chrono::Utc::now() - chrono::Duration::days(7) , 0.0))
+            .unwrap_or(&(chrono::Utc::now() - chrono::Duration::days(7), 0.0))
             .0;
 
         if newest_time == oldest_time {
-            oldest_time = chrono::Utc::now() - chrono::Duration::days(7); 
+            oldest_time = chrono::Utc::now() - chrono::Duration::days(7);
+        }
+
+        // get largest amount from data points
+        let mut largest_amount = 0.0;
+        for (_, amount) in self.data_points.iter() {
+            if *amount > largest_amount {
+                largest_amount = *amount;
+            }
         }
 
         // TODO y spec max value
@@ -145,7 +152,7 @@ impl Chart<Message> for BalanceChart {
             .x_label_area_size(6)
             .y_label_area_size(0)
             //.margin(DEFAULT_PADDING as u32)
-            .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..500.0_f64)
+            .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..(largest_amount * 1.1))
             .expect("failed to build chart");
 
         let color = self.theme.palette.bright.primary;

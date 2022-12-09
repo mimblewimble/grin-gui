@@ -473,8 +473,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(wallet_info_card_container)
         .height(Length::Units(120));
 
-    //if let Some(chart) = state.tx_list_display_state.chart.as_ref() {
-    if state.tx_list_display_state.balance_data.len() > 0 {
+    // if there is transaction data, display the balance chart
+    if !state.tx_list_display_state.balance_data.is_empty() {
         let theme_name = config.theme.clone().unwrap_or("Alliance".to_string());
         let theme = grin_gui_core::theme::Theme::all()
             .iter()

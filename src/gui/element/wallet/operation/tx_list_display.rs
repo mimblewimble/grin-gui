@@ -1,6 +1,7 @@
 use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
+use chrono::DurationRound;
 use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
@@ -136,30 +137,31 @@ pub fn handle_message<'a>(
             state.wallet_txs = TxList { txs: tx_wrap_list };
 
             let mut datetime_sums = vec![];
-            let mut wallet_sum: u64 = 0;
             for (idx, tx) in txs.iter().enumerate() {
                 if tx.confirmed {
-                    let datetime = tx.confirmation_ts.unwrap();
+                    // trunc transaction date to day
+                    let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
                     let credits = tx.amount_credited;
                     let debits = tx.amount_debited;
 
-                    wallet_sum = wallet_sum + credits - debits;
-                    datetime_sums.push((datetime, wallet_sum));
+                    datetime_sums.push((datetime, credits - debits));
                 }
             }
 
             // fill in sum data for days without transactions
             if !datetime_sums.is_empty() {
-                let mut dt = datetime_sums[0].0;
                 let mut sum = 0;
-                let now = chrono::Utc::now();
+                let mut dt = datetime_sums.first().unwrap().0;
+                let today = chrono::Utc::now().duration_trunc(chrono::Duration::days(1)).unwrap();
 
-                while dt.date_naive() < now.date_naive() {
+                while dt <= today {
                     let txns = datetime_sums
                         .iter()
-                        .filter(|(date, _)| date.date_naive() == dt.date_naive());
+                        .filter(|(date, _)| *date == dt);
 
                     sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+
+                    // TODO import grin base
                     let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
 
                     state.balance_data.push((dt.to_owned(), dec_sum));
