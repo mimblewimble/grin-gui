@@ -2,10 +2,10 @@ use super::{
     chart::BalanceChart,
     tx_list::{self, ExpandType},
 };
-use async_std::prelude::FutureExt;
-use chrono::{DateTime, TimeZone, Utc};
+use async_std::{prelude::FutureExt, task::current};
+use chrono::{DateTime, DurationRound, TimeZone, Utc};
 use grin_gui_core::{
-    config::Config,
+    config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
 use iced::Point;
@@ -89,6 +89,29 @@ pub enum LocalViewInteraction {
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
     MouseEvent(iced::mouse::Event, f32),
     MouseExit,
+    UpdatePrices,
+}
+
+fn update_prices(state: &mut StateContainer, currency: Currency) -> Result<()> {
+    // pull price history from coingecko
+    // TODO this url should not be hardcoded
+    let price_history_url = format!("https://api.coingecko.com/api/v3/coins/grin/market_chart?vs_currency={}&days=11430&interval=daily", currency.shortname());
+    let mut res = reqwest::blocking::get(price_history_url)?;
+    let mut body = String::new();
+    res.read_to_string(&mut body)?;
+
+    //debug!("price history data: {:#?}", body);
+    let history = serde_json::from_str::<PriceHistory>(&body).unwrap();
+
+    let mut prices = std::collections::HashMap::new();
+    for price in history.prices {
+        let date_time = Utc.timestamp_millis_opt(price.time as i64).unwrap();
+        prices.insert(date_time, price.price);
+    }
+
+    // update the price hashmap in the state
+    state.price_history = prices;
+    Ok(())
 }
 
 // Okay to modify state and access wallet here
@@ -116,29 +139,13 @@ pub fn handle_tick<'a>(
         }
     }
 
+    let currency = grin_gui.config.currency.unwrap();
     // calls to API should be limited to once per minute
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
+        && currency != Currency::GRIN
     {
-        // pull price history from coingecko
-        // TODO read from config
-        let price_history_url = "https://api.coingecko.com/api/v3/coins/grin/market_chart?vs_currency=usd&days=11430&interval=daily";
-        let mut res = reqwest::blocking::get(price_history_url)?;
-        let mut body = String::new();
-        res.read_to_string(&mut body)?;
-
-        debug!("price history data: {:#?}", body);
-        let history = serde_json::from_str::<PriceHistory>(&body).unwrap();
-
-        let mut prices = std::collections::HashMap::new();
-        for price in history.prices {
-            let date_time = Utc.timestamp_millis_opt(price.time as i64).unwrap();
-            prices.insert(date_time, price.price);
-        }
-
-        // update the price hashmap in the state
-        state.price_history = prices;
-
+        update_prices(state, currency)?;
     }
 
     if time - state.last_summary_update
@@ -213,6 +220,10 @@ pub fn handle_message<'a>(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
+        LocalViewInteraction::UpdatePrices => {
+            let currency = grin_gui.config.currency.unwrap();
+            update_prices(state, currency)?;
+        }
         LocalViewInteraction::MouseEvent(event, percent) => {
             state.current_position = Some(percent);
         }
@@ -347,12 +358,29 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         ),
     };
 
-    let wallet_name = config.wallets[config.current_wallet_index.unwrap()]
-        .display_name
-        .clone();
+    let wallet_name = if let Some(index) = config.current_wallet_index {
+        config.wallets[index].display_name.clone()
+    } else {
+        "wallet".to_owned()
+    };
+
+    let currency = config.currency.unwrap();
+    let balance= if currency == Currency::GRIN {
+        amount_spendable_string.clone()
+    } else if let Some(info) = state.wallet_info.as_ref() {
+        let today = Utc::now()
+            .duration_trunc(chrono::Duration::days(1))
+            .unwrap();
+        let price = state.price_history.get(&today).unwrap_or(&0.0);
+        // TODO GRIN base here
+        let amount_spendable = info.amount_currently_spendable / 1_000_000_000;
+        (amount_spendable as f64 * price).to_string()
+    } else {
+        waiting_string.to_owned()
+    };
 
     // Title row
-    let title = Text::new(amount_spendable_string.clone()).size(DEFAULT_HEADER_FONT_SIZE);
+    let title = Text::new(balance).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container =
         Container::new(title).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
@@ -526,19 +554,21 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .1
             .clone();
 
-        let grin_balance_data = state.tx_list_display_state.balance_data.clone();
+        let mut balance_data = state.tx_list_display_state.balance_data.clone();
 
-        let priced_data = grin_balance_data
-            .iter()
-            .map(|(date, balance)| {
-                let price = state.price_history.get(date).unwrap_or(&0.0);
-                (date.clone(), balance * price)
-            })
-            .collect::<Vec<_>>();
+        if !state.price_history.is_empty() && currency != Currency::GRIN {
+            balance_data = balance_data
+                .iter()
+                .map(|(date, balance)| {
+                    let price = state.price_history.get(date).unwrap_or(&0.0);
+                    (date.clone(), balance * price)
+                })
+                .collect::<Vec<_>>();
+        } 
 
         first_row_container = first_row_container.push(BalanceChart::new(
             theme,
-            priced_data.into_iter().rev(),
+            balance_data.into_iter().rev(),
             state.current_position,
         ));
     }
