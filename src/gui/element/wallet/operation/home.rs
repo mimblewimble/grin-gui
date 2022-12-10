@@ -3,10 +3,14 @@ use super::{
     tx_list::{self, ExpandType},
 };
 use async_std::prelude::FutureExt;
+use chrono::{DateTime, Utc, TimeZone};
 use grin_gui_core::{
     config::Config,
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
+use iced::Point;
+use serde::{Deserialize, Serialize};
+
 use iced_aw::Card;
 use iced_native::Widget;
 use std::path::PathBuf;
@@ -36,6 +40,24 @@ use {
     std::sync::{Arc, RwLock},
 };
 
+#[derive(Deserialize, Serialize, Debug)]
+struct Price {
+    time: u64,
+    price: f64,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct PriceHistory {
+    prices: Vec<Price>,
+}
+
+use std::cell::RefCell;
+use plotters::{
+    coord::{types::RangedCoordf32, ReverseCoordTranslate},
+    prelude::*,
+};
+
+#[derive(Default)]
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
     pub tx_list_display_state: tx_list_display::StateContainer,
@@ -45,23 +67,25 @@ pub struct StateContainer {
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
-    chart: BalanceChart,
+
+    current_position: Option<f32>,
 }
 
-impl Default for StateContainer {
-    fn default() -> Self {
-        Self {
-            action_menu_state: Default::default(),
-            tx_list_display_state: Default::default(),
-            wallet_info: Default::default(),
-            wallet_txs: Default::default(),
-            wallet_status: Default::default(),
-            last_summary_update: Default::default(),
-            tx_header_state: Default::default(),
-            chart: Default::default(),
-        }
-    }
-}
+// impl Default for StateContainer {
+//     fn default() -> Self {
+//         Self {
+//             action_menu_state: Default::default(),
+//             tx_list_display_state: Default::default(),
+//             wallet_info: Default::default(),
+//             wallet_txs: Default::default(),
+//             wallet_status: Default::default(),
+//             last_summary_update: Default::default(),
+//             tx_header_state: Default::default(),
+//             spec: Default::default(),
+//             current_position: None,
+//         }
+//     }
+// }
 
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
@@ -77,6 +101,7 @@ pub enum LocalViewInteraction {
     TxDetails(TxLogEntryWrap),
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
+    MouseEvent(iced::mouse::Event, f32),
 }
 
 // Okay to modify state and access wallet here
@@ -176,6 +201,9 @@ pub fn handle_message<'a>(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
+        LocalViewInteraction::MouseEvent(event, percent) => {
+            state.current_position = Some(percent);
+        } 
         LocalViewInteraction::Back => {
             let wallet_interface = grin_gui.wallet_interface.clone();
             let fut = WalletInterface::close_wallet(wallet_interface);
@@ -483,8 +511,27 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .1
             .clone();
 
-        let data = state.tx_list_display_state.balance_data.clone();
-        first_row_container = first_row_container.push(BalanceChart::new(theme, data.into_iter().rev()));
+        let mut data = state.tx_list_display_state.balance_data.clone();
+
+        // read data from data directory
+        // TODO get this from api?
+        let prices = std::fs::read_to_string("data/grin_usd.json").unwrap();
+        let history = serde_json::from_str::<PriceHistory>(&prices).unwrap();
+        
+        let mut prices =  std::collections::HashMap::new();
+        for price in history.prices {
+            let date_time = Utc.timestamp_millis_opt(price.time as i64).unwrap();
+            prices.insert(date_time, price.price);
+        }
+
+        let mapped_data = data.iter().map( |(date, balance)| {
+            // TODO update date
+            let price = prices.get(date).unwrap_or(&0.0);
+            (date.clone(),  balance * price)
+        }).collect::<Vec<_>>();
+
+        //first_row_container = first_row_container.push(BalanceChart::new(theme, data.into_iter().rev()));
+        first_row_container = first_row_container.push(BalanceChart::new(theme, mapped_data.into_iter().rev(), state.current_position));
     }
 
     // Status container bar at bottom of screen

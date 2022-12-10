@@ -9,7 +9,7 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 
@@ -42,8 +42,9 @@ use {
 pub struct StateContainer {
     wallet_txs: TxList,
     tx_header_state: HeaderState,
-    pub expanded_type: ExpandType,
     mode: Mode,
+
+    pub expanded_type: ExpandType,
     pub balance_data: Vec<(chrono::DateTime<chrono::Utc>, f64)>,
 }
 
@@ -140,7 +141,8 @@ pub fn handle_message<'a>(
             for (idx, tx) in txs.iter().enumerate() {
                 if tx.confirmed {
                     // trunc transaction date to day
-                    let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
+                    //let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
+                    let datetime = chrono::DateTime::from_str("2019-01-20T00:00:00Z").unwrap();
                     let credits = tx.amount_credited;
                     let debits = tx.amount_debited;
 

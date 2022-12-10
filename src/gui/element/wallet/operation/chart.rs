@@ -11,15 +11,18 @@ use iced::{
     alignment::{Horizontal, Vertical},
     executor,
     widget::{
-        canvas::{Cache, Frame, Geometry},
+        canvas::{self, event, Cache, Cursor, Frame, Geometry},
         Space,
     },
-    Alignment, Application, Command, Font, Length, Settings, Size, Subscription,
+    Alignment, Command, Font, Length, Point, Settings, Size, Subscription,
 };
-use plotters::prelude::ChartBuilder;
+use plotters::{
+    coord::{types::RangedCoordf32, ReverseCoordTranslate},
+    prelude::*,
+};
 use plotters_backend::DrawingBackend;
 use plotters_iced::{Chart, ChartWidget};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, borrow::Borrow};
 use std::time::{Duration, Instant};
 
 const PLOT_SECONDS: usize = 60; //1 min
@@ -36,19 +39,22 @@ const FONT_BOLD: Font = Font::External {
     bytes: include_bytes!("../../../../../fonts/notosans-bold.ttf"),
 };
 
+#[derive(Default)]
 pub struct BalanceChart {
     data_points: VecDeque<(DateTime<Utc>, f64)>,
+    current_position: Option<f32>,
     theme: Theme,
 }
 
-impl Default for BalanceChart {
-    fn default() -> Self {
-        Self {
-            data_points: VecDeque::default(),
-            theme: Theme::default(),
-        }
-    }
-}
+// impl Default for BalanceChart {
+//     fn default() -> Self {
+//         Self {
+//             data_points: VecDeque::default(),
+//             theme: Theme::default(),
+//             current_position: None,
+//         }
+//     }
+// }
 
 impl BalanceChart {
     /// Create a new chart widget
@@ -56,9 +62,14 @@ impl BalanceChart {
     pub fn new(
         theme: Theme,
         data: impl Iterator<Item = (DateTime<Utc>, f64)>,
+        current_position: Option<f32>,
     ) -> Element<'static, Message> {
         let data_points: VecDeque<_> = data.collect();
-        let chart = BalanceChart { data_points, theme };
+        let chart = BalanceChart {
+            data_points,
+            theme,
+            current_position,
+        };
 
         Container::new(
             Column::new()
@@ -100,15 +111,38 @@ impl BalanceChart {
 
 impl Chart<Message> for BalanceChart {
     type State = ();
-    // fn update(
-    //     &mut self,
-    //     event: Event,
-    //     bounds: Rectangle,
-    //     cursor: Cursor,
-    // ) -> (event::Status, Option<Message>) {
-    //     self.cache.clear();
-    //     (event::Status::Ignored, None)
-    // }
+
+    fn update(
+        &self,
+        _state: &mut Self::State,
+        event: canvas::Event,
+        bounds: iced::Rectangle,
+        cursor: canvas::Cursor,
+    ) -> (iced_native::event::Status, Option<Message>) {
+        if let Cursor::Available(point) = cursor {
+            match event {
+                canvas::Event::Mouse(evt) if bounds.contains(point) => {
+                    let p_origin = bounds.position();
+                    let p = point - p_origin;
+                    let percent = p.x / bounds.width;
+                    return (
+                        iced_native::event::Status::Captured,
+                        Some(Message::Interaction(
+                            crate::gui::Interaction::WalletOperationHomeViewInteraction(
+                                super::home::LocalViewInteraction::MouseEvent(
+                                    evt,
+                                    percent,
+                                    //Point::new(p.x, p.y),
+                                ),
+                            ),
+                        )),
+                    );
+                }
+                _ => {}
+            }
+        }
+        (event::Status::Ignored, None)
+    }
 
     // #[inline]
     // fn draw<F: Fn(&mut Frame)>(&self, bounds: Size, draw_fn: F) -> Geometry {
@@ -187,5 +221,19 @@ impl Chart<Message> for BalanceChart {
                 .border_style(ShapeStyle::from(color).stroke_width(2)),
             )
             .expect("failed to draw chart data");
+
+        if let Some(current_p) = self.current_position {
+            let len = self.data_points.len(); 
+            let index = (len as f32 * current_p).floor() as usize;
+            let (time, amount) = self.data_points[len - index];
+
+            chart
+                .draw_series(std::iter::once(Circle::new(
+                    (time, amount),
+                    5_i32,
+                    color.filled(),
+                )))
+                .expect("Failed to draw hover point");
+        }
     }
 }
