@@ -3,7 +3,7 @@ use super::{
     tx_list::{self, ExpandType},
 };
 use async_std::prelude::FutureExt;
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, TimeZone, Utc};
 use grin_gui_core::{
     config::Config,
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
@@ -13,7 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use iced_aw::Card;
 use iced_native::Widget;
-use std::path::PathBuf;
+use std::io::Read;
+use std::{collections::HashMap, path::PathBuf};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 use super::{action_menu, tx_list_display};
@@ -51,11 +52,11 @@ struct PriceHistory {
     prices: Vec<Price>,
 }
 
-use std::cell::RefCell;
 use plotters::{
     coord::{types::RangedCoordf32, ReverseCoordTranslate},
     prelude::*,
 };
+use std::cell::RefCell;
 
 #[derive(Default)]
 pub struct StateContainer {
@@ -69,23 +70,8 @@ pub struct StateContainer {
     tx_header_state: HeaderState,
 
     current_position: Option<f32>,
+    price_history: HashMap<DateTime<Utc>, f64>,
 }
-
-// impl Default for StateContainer {
-//     fn default() -> Self {
-//         Self {
-//             action_menu_state: Default::default(),
-//             tx_list_display_state: Default::default(),
-//             wallet_info: Default::default(),
-//             wallet_txs: Default::default(),
-//             wallet_status: Default::default(),
-//             last_summary_update: Default::default(),
-//             tx_header_state: Default::default(),
-//             spec: Default::default(),
-//             current_position: None,
-//         }
-//     }
-// }
 
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
@@ -128,6 +114,31 @@ pub fn handle_tick<'a>(
             StatusMessage::ScanningComplete(s) => format!("{}", s),
             StatusMessage::UpdateWarning(s) => format!("{}", s),
         }
+    }
+
+    // calls to API should be limited to once per minute
+    if time - state.last_summary_update
+        > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
+    {
+        // pull price history from coingecko
+        // TODO read from config
+        let price_history_url = "https://api.coingecko.com/api/v3/coins/grin/market_chart?vs_currency=usd&days=11430&interval=daily";
+        let mut res = reqwest::blocking::get(price_history_url)?;
+        let mut body = String::new();
+        res.read_to_string(&mut body)?;
+
+        debug!("price history data: {:#?}", body);
+        let history = serde_json::from_str::<PriceHistory>(&body).unwrap();
+
+        let mut prices = std::collections::HashMap::new();
+        for price in history.prices {
+            let date_time = Utc.timestamp_millis_opt(price.time as i64).unwrap();
+            prices.insert(date_time, price.price);
+        }
+
+        // update the price hashmap in the state
+        state.price_history = prices;
+
     }
 
     if time - state.last_summary_update
@@ -204,10 +215,10 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::MouseEvent(event, percent) => {
             state.current_position = Some(percent);
-        } 
+        }
         LocalViewInteraction::MouseExit => {
             state.current_position = None;
-        } 
+        }
         LocalViewInteraction::Back => {
             let wallet_interface = grin_gui.wallet_interface.clone();
             let fut = WalletInterface::close_wallet(wallet_interface);
@@ -506,7 +517,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .height(Length::Units(120));
 
     // if there is transaction data, display the balance chart
-    if !state.tx_list_display_state.balance_data.is_empty() {
+    if !state.tx_list_display_state.balance_data.is_empty() && !state.price_history.is_empty() {
         let theme_name = config.theme.clone().unwrap_or("Alliance".to_string());
         let theme = grin_gui_core::theme::Theme::all()
             .iter()
@@ -515,27 +526,21 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .1
             .clone();
 
-        let mut data = state.tx_list_display_state.balance_data.clone();
+        let grin_balance_data = state.tx_list_display_state.balance_data.clone();
 
-        // read data from data directory
-        // TODO get this from api?
-        let prices = std::fs::read_to_string("data/grin_usd.json").unwrap();
-        let history = serde_json::from_str::<PriceHistory>(&prices).unwrap();
-        
-        let mut prices =  std::collections::HashMap::new();
-        for price in history.prices {
-            let date_time = Utc.timestamp_millis_opt(price.time as i64).unwrap();
-            prices.insert(date_time, price.price);
-        }
+        let priced_data = grin_balance_data
+            .iter()
+            .map(|(date, balance)| {
+                let price = state.price_history.get(date).unwrap_or(&0.0);
+                (date.clone(), balance * price)
+            })
+            .collect::<Vec<_>>();
 
-        let mapped_data = data.iter().map( |(date, balance)| {
-            // TODO update date
-            let price = prices.get(date).unwrap_or(&0.0);
-            (date.clone(),  balance * price)
-        }).collect::<Vec<_>>();
-
-        //first_row_container = first_row_container.push(BalanceChart::new(theme, data.into_iter().rev()));
-        first_row_container = first_row_container.push(BalanceChart::new(theme, mapped_data.into_iter().rev(), state.current_position));
+        first_row_container = first_row_container.push(BalanceChart::new(
+            theme,
+            priced_data.into_iter().rev(),
+            state.current_position,
+        ));
     }
 
     // Status container bar at bottom of screen

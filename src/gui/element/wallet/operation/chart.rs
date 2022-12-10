@@ -235,7 +235,7 @@ impl Chart<Message> for BalanceChart {
             let approx_index = len as f32 * current_p;
             let index = len.saturating_sub(approx_index.floor() as usize);
             let (time, amount) = self.data_points[index];
-            debug!("index: {}, time: {}, amount: {}", index, time, amount);
+            //debug!("index: {}, time: {}, amount: {}", index, time, amount);
 
             chart
                 .draw_series(std::iter::once(Circle::new(
