@@ -22,8 +22,8 @@ use plotters::{
 };
 use plotters_backend::DrawingBackend;
 use plotters_iced::{Chart, ChartWidget};
-use std::{collections::VecDeque, borrow::Borrow};
 use std::time::{Duration, Instant};
+use std::{borrow::Borrow, collections::VecDeque};
 
 const PLOT_SECONDS: usize = 60; //1 min
 const TITLE_FONT_SIZE: u16 = 22;
@@ -130,15 +130,23 @@ impl Chart<Message> for BalanceChart {
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::MouseEvent(
-                                    evt,
-                                    percent,
+                                    evt, percent,
                                     //Point::new(p.x, p.y),
                                 ),
                             ),
                         )),
                     );
                 }
-                _ => {}
+                _ => {
+                    return (
+                        iced_native::event::Status::Captured,
+                        Some(Message::Interaction(
+                            crate::gui::Interaction::WalletOperationHomeViewInteraction(
+                                super::home::LocalViewInteraction::MouseExit,
+                            ),
+                        )),
+                    );
+                }
             }
         }
         (event::Status::Ignored, None)
@@ -223,9 +231,11 @@ impl Chart<Message> for BalanceChart {
             .expect("failed to draw chart data");
 
         if let Some(current_p) = self.current_position {
-            let len = self.data_points.len(); 
-            let index = (len as f32 * current_p).floor() as usize;
-            let (time, amount) = self.data_points[len - index];
+            let len = self.data_points.len() - 1;
+            let approx_index = len as f32 * current_p;
+            let index = len.saturating_sub(approx_index.floor() as usize);
+            let (time, amount) = self.data_points[index];
+            debug!("index: {}, time: {}, amount: {}", index, time, amount);
 
             chart
                 .draw_series(std::iter::once(Circle::new(
@@ -234,6 +244,12 @@ impl Chart<Message> for BalanceChart {
                     color.filled(),
                 )))
                 .expect("Failed to draw hover point");
+
+            // let element = Text::new(
+            //         text: format!("{}", amount),
+            //         points: (time, amount),
+            //         style: ("sans-serif", 15).into_font().color(&color.mix(0.7)),
+            //     );
         }
     }
 }

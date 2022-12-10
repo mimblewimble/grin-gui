@@ -102,6 +102,7 @@ pub enum LocalViewInteraction {
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
     MouseEvent(iced::mouse::Event, f32),
+    MouseExit,
 }
 
 // Okay to modify state and access wallet here
@@ -203,6 +204,9 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::MouseEvent(event, percent) => {
             state.current_position = Some(percent);
+        } 
+        LocalViewInteraction::MouseExit => {
+            state.current_position = None;
         } 
         LocalViewInteraction::Back => {
             let wallet_interface = grin_gui.wallet_interface.clone();
