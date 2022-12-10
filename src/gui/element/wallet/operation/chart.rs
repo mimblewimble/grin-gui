@@ -245,11 +245,14 @@ impl Chart<Message> for BalanceChart {
                 )))
                 .expect("Failed to draw hover point");
 
-            // let element = Text::new(
-            //         text: format!("{}", amount),
-            //         points: (time, amount),
-            //         style: ("sans-serif", 15).into_font().color(&color.mix(0.7)),
-            //     );
+            chart
+                .draw_series(std::iter::once(Text::new(
+                    format!("{}", amount),
+                    (time, amount + 1000.0),
+                    ("sans-serif", 20).into_font().color(&plotters::style::colors::
+                        WHITE.mix(1.0)),
+                )))
+                .expect("Failed to draw text");
         }
     }
 }
