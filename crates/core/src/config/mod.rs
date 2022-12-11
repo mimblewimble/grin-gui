@@ -224,6 +224,14 @@ impl Currency {
 			Currency::USD => "usd".to_owned(),
 		}
 	}
+
+    pub fn symbol(&self) -> String {
+		match *self {
+			Currency::BTC => "₿".to_owned(),
+			Currency::GRIN => "".to_owned(),
+			Currency::USD => "$".to_owned(),
+		}
+	}
 }
 
 /// Returns a Config.
