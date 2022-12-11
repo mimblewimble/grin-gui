@@ -24,7 +24,7 @@ pub struct Config {
     pub theme: Option<String>,
 
     /// User preferred currency
-    pub currency: Option<Currency>,
+    pub currency: Currency,
 
     #[serde(default)]
     pub tx_column_config: ColumnConfig,

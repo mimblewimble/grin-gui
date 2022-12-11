@@ -1,3 +1,4 @@
+use futures::future;
 use grin_gui_core::config::Currency;
 
 use {
@@ -114,10 +115,12 @@ pub fn handle_message(
                 "settings::general::LocalViewInteraction::CurrencySelected({:?})",
                 &currency
             );
-            grin_gui.config.currency = Some(currency);
+
+            grin_gui.config.currency = currency;
             let _ = grin_gui.config.save();
 
-            return Ok(Command::perform(std::future::ready(1), |r| {
+            return Ok(Command::perform(future::ready(()), |r| {
+                // update the prices
                 Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
                     crate::gui::element::wallet::operation::home::LocalViewInteraction::UpdatePrices,
                 ))
@@ -279,7 +282,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         let title = Container::new(Text::new(localized_string("currency")).size(DEFAULT_FONT_SIZE))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let pick_list = PickList::new(&Currency::ALL[..], config.currency, |c| {
+        let pick_list = PickList::new(&Currency::ALL[..], Some(config.currency), |c| {
             Message::Interaction(Interaction::GeneralSettingsViewInteraction(
                 LocalViewInteraction::CurrencySelected(c),
             ))

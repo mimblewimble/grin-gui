@@ -148,8 +148,7 @@ pub fn handle_tick<'a>(
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
     {
-        let currency = grin_gui.config.currency.unwrap();
-        update_prices(state, currency)?;
+        update_prices(state, grin_gui.config.currency)?;
     }
 
     if time - state.last_summary_update
@@ -225,8 +224,7 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.home_state;
     match message {
         LocalViewInteraction::UpdatePrices => {
-            let currency = grin_gui.config.currency.unwrap();
-            update_prices(state, currency)?;
+            update_prices(state, grin_gui.config.currency)?;
         }
         LocalViewInteraction::MouseIndex(index) => {
             state.cursor_index = Some(index);
@@ -368,7 +366,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         "wallet".to_owned()
     };
 
-    let currency = config.currency.unwrap();
+    let currency = config.currency;
     let balance = if currency == Currency::GRIN {
         amount_spendable_string.clone()
     } else if let Some(info) = state.wallet_info.as_ref() {
@@ -558,17 +556,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .height(Length::Units(120));
 
     // if there is transaction data, display the balance chart
-    if !state.tx_list_display_state.balance_data.is_empty() && !state.price_history.is_empty() {
-        let theme_name = config.theme.clone().unwrap_or("Alliance".to_string());
-        let theme = grin_gui_core::theme::Theme::all()
-            .iter()
-            .find(|t| t.0 == theme_name)
-            .unwrap()
-            .1
-            .clone();
+    let mut balance_data = state.tx_list_display_state.balance_data.clone(); 
+    if !balance_data.is_empty() {
 
-        let mut balance_data = state.tx_list_display_state.balance_data.clone();
-
+        // if there is price history data, convert the balance data to the currency
         if !state.price_history.is_empty() && currency != Currency::GRIN {
             balance_data = balance_data
                 .iter()
@@ -578,6 +569,14 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
                 })
                 .collect::<Vec<_>>();
         }
+
+        let theme_name = config.theme.clone().unwrap_or("Alliance".to_string());
+        let theme = grin_gui_core::theme::Theme::all()
+            .iter()
+            .find(|t| t.0 == theme_name)
+            .unwrap()
+            .1
+            .clone();
 
         first_row_container = first_row_container.push(BalanceChart::new(
             theme,
