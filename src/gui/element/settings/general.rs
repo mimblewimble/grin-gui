@@ -117,14 +117,11 @@ pub fn handle_message(
             grin_gui.config.currency = Some(currency);
             let _ = grin_gui.config.save();
 
-            // only update prices if currency is not grin
-            if currency != Currency::GRIN {
-                return Ok(Command::perform(std::future::ready(1), |r| {
-                    Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+            return Ok(Command::perform(std::future::ready(1), |r| {
+                Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
                     crate::gui::element::wallet::operation::home::LocalViewInteraction::UpdatePrices,
                 ))
-                }));
-            }
+            }));
         }
         LocalViewInteraction::ThemeSelected(theme_name) => {
             log::debug!(

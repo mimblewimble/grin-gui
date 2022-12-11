@@ -1,3 +1,5 @@
+use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
+use super::{action_menu, tx_list_display};
 use super::{
     chart::BalanceChart,
     tx_list::{self, ExpandType},
@@ -8,17 +10,18 @@ use grin_gui_core::{
     config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
+use grin_gui_widgets::widget::header;
 use iced::Point;
-use serde::{Deserialize, Serialize};
-
 use iced_aw::Card;
 use iced_native::Widget;
+use plotters::{
+    coord::{types::RangedCoordf32, ReverseCoordTranslate},
+    prelude::*,
+};
+use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use std::io::Read;
 use std::{collections::HashMap, path::PathBuf};
-
-use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
-use super::{action_menu, tx_list_display};
-use grin_gui_widgets::widget::header;
 
 use {
     super::super::super::{
@@ -40,23 +43,6 @@ use {
     iced::{alignment, Alignment, Command, Length},
     std::sync::{Arc, RwLock},
 };
-
-#[derive(Deserialize, Serialize, Debug)]
-struct Price {
-    time: u64,
-    price: f64,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct PriceHistory {
-    prices: Vec<Price>,
-}
-
-use plotters::{
-    coord::{types::RangedCoordf32, ReverseCoordTranslate},
-    prelude::*,
-};
-use std::cell::RefCell;
 
 #[derive(Default)]
 pub struct StateContainer {
@@ -87,12 +73,31 @@ pub enum LocalViewInteraction {
     TxDetails(TxLogEntryWrap),
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
+
+    // chart stuff
     MouseIndex(usize),
     MouseExit,
     UpdatePrices,
 }
 
+/// update the historical price data
 fn update_prices(state: &mut StateContainer, currency: Currency) -> Result<()> {
+    // if we are using grin, we don't need to update the price history
+    if currency == Currency::GRIN {
+        return Ok(());
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    struct Price {
+        time: u64,
+        price: f64,
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    struct PriceHistory {
+        prices: Vec<Price>,
+    }
+
     // pull price history from coingecko
     // TODO this url should not be hardcoded
     let price_history_url = format!("https://api.coingecko.com/api/v3/coins/grin/market_chart?vs_currency={}&days=11430&interval=daily", currency.shortname());
@@ -139,12 +144,11 @@ pub fn handle_tick<'a>(
         }
     }
 
-    let currency = grin_gui.config.currency.unwrap();
     // calls to API should be limited to once per minute
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
-        && currency != Currency::GRIN
     {
+        let currency = grin_gui.config.currency.unwrap();
         update_prices(state, currency)?;
     }
 
