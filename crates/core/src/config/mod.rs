@@ -236,8 +236,8 @@ impl Currency {
     pub fn precision(&self) -> usize {
 		match *self {
 			Currency::BTC => 8,
-			Currency::GRIN => 10,
-			Currency::USD => 2,
+			Currency::GRIN => 9,
+			Currency::USD => 4,
 		}
 	}
 }

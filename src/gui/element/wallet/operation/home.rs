@@ -566,7 +566,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
                 .iter()
                 .map(|(date, balance)| {
                     let price = state.price_history.get(date).unwrap_or(&0.0);
-                    (date.clone(), balance * price)
+                    let precision = i32::pow(10, currency.precision() as u32) as f64;
+                    let adjusted_price = f64::trunc(balance * price * precision) / precision;
+                    (date.clone(), adjusted_price)
                 })
                 .collect::<Vec<_>>();
         }
