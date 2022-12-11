@@ -69,7 +69,7 @@ pub struct StateContainer {
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
 
-    current_position: Option<f32>,
+    cursor_index: Option<usize>,
     price_history: HashMap<DateTime<Utc>, f64>,
 }
 
@@ -87,7 +87,7 @@ pub enum LocalViewInteraction {
     TxDetails(TxLogEntryWrap),
     TxCancelledOk(u32),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
-    MouseEvent(iced::mouse::Event, f32),
+    MouseIndex(usize),
     MouseExit,
     UpdatePrices,
 }
@@ -224,11 +224,11 @@ pub fn handle_message<'a>(
             let currency = grin_gui.config.currency.unwrap();
             update_prices(state, currency)?;
         }
-        LocalViewInteraction::MouseEvent(event, percent) => {
-            state.current_position = Some(percent);
+        LocalViewInteraction::MouseIndex(index) => {
+            state.cursor_index = Some(index);
         }
         LocalViewInteraction::MouseExit => {
-            state.current_position = None;
+            state.cursor_index = None;
         }
         LocalViewInteraction::Back => {
             let wallet_interface = grin_gui.wallet_interface.clone();
@@ -365,13 +365,22 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     };
 
     let currency = config.currency.unwrap();
-    let balance= if currency == Currency::GRIN {
+    let balance = if currency == Currency::GRIN {
         amount_spendable_string.clone()
     } else if let Some(info) = state.wallet_info.as_ref() {
         let today = Utc::now()
             .duration_trunc(chrono::Duration::days(1))
             .unwrap();
-        let price = state.price_history.get(&today).unwrap_or(&0.0);
+
+        // grap latest price if we don't have one for today
+        let price = match state.price_history.get(&today) {
+            Some(price) => *price,
+            None => {
+                let prev = today - chrono::Duration::days(1);
+                *state.price_history.get(&prev).unwrap()
+            }
+        };
+
         // TODO GRIN base here
         let amount_spendable = info.amount_currently_spendable / 1_000_000_000;
         (amount_spendable as f64 * price).to_string()
@@ -564,12 +573,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
                     (date.clone(), balance * price)
                 })
                 .collect::<Vec<_>>();
-        } 
+        }
 
         first_row_container = first_row_container.push(BalanceChart::new(
             theme,
             balance_data.into_iter().rev(),
-            state.current_position,
+            state.cursor_index,
         ));
     }
 

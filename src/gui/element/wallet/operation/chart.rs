@@ -25,9 +25,8 @@ use plotters_iced::{Chart, ChartWidget};
 use std::time::{Duration, Instant};
 use std::{borrow::Borrow, collections::VecDeque};
 
-const PLOT_SECONDS: usize = 60; //1 min
-const TITLE_FONT_SIZE: u16 = 22;
-const SAMPLE_EVERY: Duration = Duration::from_millis(1000);
+const CHART_CAPTION_HEAD: u16 = 20;
+const CHART_CAPTION_SUB: u16 = 12;
 
 const FONT_REGULAR: Font = Font::External {
     name: "sans-serif-regular",
@@ -42,19 +41,9 @@ const FONT_BOLD: Font = Font::External {
 #[derive(Default)]
 pub struct BalanceChart {
     data_points: VecDeque<(DateTime<Utc>, f64)>,
-    current_position: Option<f32>,
+    cursor_index: Option<usize>,
     theme: Theme,
 }
-
-// impl Default for BalanceChart {
-//     fn default() -> Self {
-//         Self {
-//             data_points: VecDeque::default(),
-//             theme: Theme::default(),
-//             current_position: None,
-//         }
-//     }
-// }
 
 impl BalanceChart {
     /// Create a new chart widget
@@ -62,13 +51,13 @@ impl BalanceChart {
     pub fn new(
         theme: Theme,
         data: impl Iterator<Item = (DateTime<Utc>, f64)>,
-        current_position: Option<f32>,
+        cursor_index: Option<usize>,
     ) -> Element<'static, Message> {
         let data_points: VecDeque<_> = data.collect();
         let chart = BalanceChart {
             data_points,
             theme,
-            current_position,
+            cursor_index,
         };
 
         Container::new(
@@ -93,19 +82,7 @@ impl BalanceChart {
     }
 
     pub fn push_data(&mut self, time: DateTime<Utc>, value: f64) {
-        let cur_ms = time.timestamp_millis();
         self.data_points.push_front((time, value));
-        // loop {
-        //     if let Some((time, _)) = self.data_points.back() {
-        //         let diff = Duration::from_millis((cur_ms - time.timestamp_millis()) as u64);
-        //         if diff > self.limit {
-        //             self.data_points.pop_back();
-        //             continue;
-        //         }
-        //     }
-        //     break;
-        // }
-        //self.cache.clear();
     }
 }
 
@@ -121,18 +98,20 @@ impl Chart<Message> for BalanceChart {
     ) -> (iced_native::event::Status, Option<Message>) {
         if let Cursor::Available(point) = cursor {
             match event {
-                canvas::Event::Mouse(evt) if bounds.contains(point) => {
+                canvas::Event::Mouse(_evt) if bounds.contains(point) => {
                     let p_origin = bounds.position();
                     let p = point - p_origin;
                     let percent = p.x / bounds.width;
+
+                    let len = self.data_points.len() - 1;
+                    let approx_index = len as f32 * percent;
+                    let index = len.saturating_sub(approx_index.floor() as usize);
+
                     return (
                         iced_native::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
-                                super::home::LocalViewInteraction::MouseEvent(
-                                    evt, percent,
-                                    //Point::new(p.x, p.y),
-                                ),
+                                super::home::LocalViewInteraction::MouseIndex(index),
                             ),
                         )),
                     );
@@ -151,11 +130,6 @@ impl Chart<Message> for BalanceChart {
         }
         (event::Status::Ignored, None)
     }
-
-    // #[inline]
-    // fn draw<F: Fn(&mut Frame)>(&self, bounds: Size, draw_fn: F) -> Geometry {
-    //     //self.cache.draw(bounds, draw_fn)
-    // }
 
     fn build_chart<DB: DrawingBackend>(&self, _state: &Self::State, mut chart: ChartBuilder<DB>) {
         use plotters::{prelude::*, style::Color};
@@ -180,39 +154,45 @@ impl Chart<Message> for BalanceChart {
         }
 
         // get largest amount from data points
-        let mut largest_amount = 0.0;
+        let mut max_value = 0.0;
         for (_, amount) in self.data_points.iter() {
-            if *amount > largest_amount {
-                largest_amount = *amount;
+            if *amount > max_value {
+                max_value = *amount;
             }
         }
+        // we add 10% to the max value to make sure the chart is not cut off
+        max_value = max_value * 1.1;
 
-        // TODO y spec max value
         let mut chart = chart
             .x_label_area_size(6)
             .y_label_area_size(0)
-            //.margin(DEFAULT_PADDING as u32)
-            .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..(largest_amount * 1.1))
+            .build_cartesian_2d(oldest_time..newest_time, 0.0_f64..max_value)
             .expect("failed to build chart");
 
-        let color = self.theme.palette.bright.primary;
-        let color = RGBColor(
-            (color.r * 255.0) as u8,
-            (color.g * 255.0) as u8,
-            (color.b * 255.0) as u8,
+        let chart_color = self.theme.palette.bright.primary;
+        let chart_color = RGBColor(
+            (chart_color.r * 255.0) as u8,
+            (chart_color.g * 255.0) as u8,
+            (chart_color.b * 255.0) as u8,
+        );
+
+        let background_color = self.theme.palette.base.background;
+        let background_color = RGBColor(
+            (background_color.r * 255.0) as u8,
+            (background_color.g * 255.0) as u8,
+            (background_color.b * 255.0) as u8,
         );
 
         chart
             .configure_mesh()
-            //.bold_line_style(plotters::style::colors::BLUE.mix(0.0001))
-            //.light_line_style(plotters::style::colors::BLUE.mix(0.005))
-            //.axis_style(ShapeStyle::from(plotters::style::colors::BLUE.mix(0.45)).stroke_width(1))
-            //.y_labels(4)
+            .bold_line_style(background_color)
+            .light_line_style(background_color)
+            .axis_style(background_color)
             .x_labels(4)
             .x_label_style(
                 ("sans-serif", 15)
                     .into_font()
-                    .color(&color.mix(0.7))
+                    .color(&chart_color.mix(0.7))
                     .transform(FontTransform::Rotate90),
             )
             .x_label_formatter(&|x| format!("{}", x.format("%b %d, %Y")))
@@ -224,33 +204,45 @@ impl Chart<Message> for BalanceChart {
                 AreaSeries::new(
                     self.data_points.iter().map(|x| (x.0, x.1 as f64)),
                     0.0,
-                    color.mix(0.075),
+                    chart_color.mix(0.075),
                 )
-                .border_style(ShapeStyle::from(color).stroke_width(2)),
+                .border_style(ShapeStyle::from(chart_color).stroke_width(2)),
             )
             .expect("failed to draw chart data");
 
-        if let Some(current_p) = self.current_position {
-            let len = self.data_points.len() - 1;
-            let approx_index = len as f32 * current_p;
-            let index = len.saturating_sub(approx_index.floor() as usize);
-            let (time, amount) = self.data_points[index];
+        if let Some(cursor) = self.cursor_index {
+            let (time, amount) = self.data_points[cursor];
             //debug!("index: {}, time: {}, amount: {}", index, time, amount);
 
+            // draws a circle at (date, balance) point of the chart
             chart
                 .draw_series(std::iter::once(Circle::new(
                     (time, amount),
                     5_i32,
-                    color.filled(),
+                    chart_color.filled(),
                 )))
                 .expect("Failed to draw hover point");
 
+            // TODO this color should be black when the theme is light 
+            // balance at date
             chart
                 .draw_series(std::iter::once(Text::new(
                     format!("{}", amount),
-                    (time, amount + 1000.0),
-                    ("sans-serif", 20).into_font().color(&plotters::style::colors::
-                        WHITE.mix(1.0)),
+                    (time, max_value),
+                    ("sans-serif", CHART_CAPTION_HEAD)
+                        .into_font()
+                        .color(&plotters::style::colors::WHITE.mix(1.0)),
+                )))
+                .expect("Failed to draw text");
+
+            // date
+            chart
+                .draw_series(std::iter::once(Text::new(
+                    format!("{}", time.format("%b %d, %Y")),
+                    (time, max_value * 0.84),
+                    ("sans-serif", CHART_CAPTION_SUB)
+                        .into_font()
+                        .color(&plotters::style::colors::WHITE.mix(0.7)),
                 )))
                 .expect("Failed to draw text");
         }
