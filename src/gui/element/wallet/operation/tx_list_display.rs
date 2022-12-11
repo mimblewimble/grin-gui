@@ -163,8 +163,7 @@ pub fn handle_message<'a>(
 
                     sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
 
-                    // TODO import grin base
-                    let dec_sum = (sum as f64 / 1_000_000_000 as f64) as f64;
+                    let dec_sum = (sum as f64 / grin_gui_core::GRIN_BASE as f64) as f64;
 
                     state.balance_data.push((dt.to_owned(), dec_sum));
 

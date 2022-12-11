@@ -383,10 +383,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             }
         };
 
-        // TODO GRIN base here
-        let amount_spendable = info.amount_currently_spendable / 1_000_000_000;
+        let amount_spendable = info.amount_currently_spendable / grin_gui_core::GRIN_BASE;
         let price_adjusted = amount_spendable as f64 * price;
-        format!("{}{}", currency.symbol(), price_adjusted)
+        let trunc = format!("{:.1$}", price_adjusted, currency.precision());
+        format!("{}{}", currency.symbol(), trunc)
     } else {
         waiting_string.to_owned()
     };

@@ -232,6 +232,14 @@ impl Currency {
 			Currency::USD => "$".to_owned(),
 		}
 	}
+
+    pub fn precision(&self) -> usize {
+		match *self {
+			Currency::BTC => 8,
+			Currency::GRIN => 10,
+			Currency::USD => 2,
+		}
+	}
 }
 
 /// Returns a Config.
