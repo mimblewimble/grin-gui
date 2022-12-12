@@ -200,7 +200,7 @@ where
                 width: bounds.width - appearance.offset_right as f32,
                 height: custom_bounds.height,
             },
-            border_radius: appearance.border_radius,
+            border_radius: appearance.border_radius.into(),
             border_width: appearance.border_width,
             border_color: appearance.border_color,
         };
@@ -301,13 +301,13 @@ where
     }
 
     fn overlay<'b>(
-        &'b self,
+        &'b mut self,
         tree: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'b, Message, Renderer>> {
         self.content
-            .as_widget()
+            .as_widget_mut()
             .overlay(tree, layout.children().next().unwrap(), renderer)
     }
 }
