@@ -944,8 +944,10 @@ pub fn titles_row_header<'a>(
     Header::new(
         header_state.clone(),
         row_titles,
-        Some(Length::Units(DEFAULT_PADDING)),
-        Some(Length::Units(DEFAULT_PADDING + 5)),
+        // Some(Length::Units(DEFAULT_PADDING)),
+        // Some(Length::Units(DEFAULT_PADDING + 5)),
+        None,
+        None,
     )
     .spacing(1)
     .height(Length::Units(25))
@@ -1493,7 +1495,8 @@ pub fn data_row_container<'a, 'b>(
     let left_spacer = Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0));
     let right_spacer = Space::new(Length::Units(DEFAULT_PADDING + 5), Length::Units(0));
 
-    let mut row = Row::new().push(left_spacer).spacing(1);
+    //let mut row = Row::new().push(left_spacer).spacing(1);
+    let mut row = Row::new().spacing(1);
 
     // Sort columns and push them into row
     row_containers.sort_by(|a, b| a.0.cmp(&b.0));
@@ -1795,8 +1798,8 @@ pub fn data_row_container<'a, 'b>(
                     .push(left_spacer)
                     .push(details_container)
                     .push(Space::new(
-                        Length::Units(DEFAULT_PADDING + 5),
-                        Length::Units(0),
+                         Length::Units(DEFAULT_PADDING + 5),
+                         Length::Units(0),
                     ))
                     .spacing(1);
                 tx_column = tx_column

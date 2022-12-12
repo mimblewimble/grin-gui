@@ -22,3 +22,4 @@ extern crate log;
 
 // Re-exports
 pub use grin_util::logger::{LoggingConfig, LogEntry};
+pub use grin_core::consensus::GRIN_BASE;

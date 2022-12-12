@@ -27,6 +27,7 @@
     "columns": "Columns",
     "copy-to-clipboard": "Copy to Clipboard",
     "completed": "Completed",
+    "currency": "Currency",
     "create-wallet": "New Wallet",
     "delete": "Delete",
     "delete-saved-variables": "Delete SavedVariables when deleting addons",

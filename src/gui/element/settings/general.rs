@@ -1,3 +1,6 @@
+use futures::future;
+use grin_gui_core::config::Currency;
+
 use {
     super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING},
     crate::gui::{GrinGui, Interaction, Message},
@@ -84,6 +87,7 @@ impl Default for ScaleState {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     ThemeSelected(String),
+    CurrencySelected(Currency),
     LanguageSelected(Language),
     ScaleUp,
     ScaleDown,
@@ -106,6 +110,22 @@ pub fn handle_message(
 ) -> Result<Command<Message>> {
     let state = &mut grin_gui.general_settings_state;
     match message {
+        LocalViewInteraction::CurrencySelected(currency) => {
+            log::debug!(
+                "settings::general::LocalViewInteraction::CurrencySelected({:?})",
+                &currency
+            );
+
+            grin_gui.config.currency = currency;
+            let _ = grin_gui.config.save();
+
+            return Ok(Command::perform(future::ready(()), |r| {
+                // update the prices
+                Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                    crate::gui::element::wallet::operation::home::LocalViewInteraction::UpdatePrices,
+                ))
+            }));
+        }
         LocalViewInteraction::ThemeSelected(theme_name) => {
             log::debug!(
                 "settings::general::LocalViewInteraction::ThemeSelected({:?})",
@@ -241,6 +261,30 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         let pick_list = PickList::new(&Language::ALL[..], Some(config.language), |l| {
             Message::Interaction(Interaction::GeneralSettingsViewInteraction(
                 LocalViewInteraction::LanguageSelected(l),
+            ))
+        })
+        .text_size(14)
+        .width(Length::Units(120))
+        .style(grin_gui_core::theme::PickListStyle::Primary);
+
+        let container = Container::new(pick_list)
+            .center_y()
+            .width(Length::Units(120))
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+        Column::new()
+            .push(title)
+            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(container)
+    };
+
+    let currency_container = {
+        let title = Container::new(Text::new(localized_string("currency")).size(DEFAULT_FONT_SIZE))
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+        let pick_list = PickList::new(&Currency::ALL[..], Some(config.currency), |c| {
+            Message::Interaction(Interaction::GeneralSettingsViewInteraction(
+                LocalViewInteraction::CurrencySelected(c),
             ))
         })
         .text_size(14)
@@ -469,6 +513,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let mut column = Column::new()
         .spacing(1)
         .push(language_container)
+        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(currency_container)
         .push(Space::new(Length::Units(0), Length::Units(10)))
         .push(theme_scale_row)
         .push(Space::new(Length::Units(0), Length::Units(10)))

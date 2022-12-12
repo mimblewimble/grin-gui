@@ -20,7 +20,11 @@ pub struct Config {
     /// Current wallet
     pub current_wallet_index: Option<usize>,
 
+    /// Current theme of GUI
     pub theme: Option<String>,
+
+    /// User preferred currency
+    pub currency: Currency,
 
     #[serde(default)]
     pub tx_column_config: ColumnConfig,
@@ -180,6 +184,62 @@ impl Default for Language {
     fn default() -> Language {
         Language::English
     }
+}
+
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord)]
+pub enum Currency {
+    #[default] 
+    GRIN,
+    BTC,
+    USD,
+}
+
+impl std::fmt::Display for Currency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Currency::BTC => "Bitcoin",
+                Currency::USD => "US Dollar",
+                Currency::GRIN => "Grin",
+            }
+        )
+    }
+}
+
+impl Currency {
+    // Alphabetically sorted based on their local name (@see `impl Display`).
+    pub const ALL: [Currency; 3] = [
+        Currency::BTC,
+        Currency::GRIN,
+        Currency::USD,
+    ];
+
+    pub fn shortname(&self) -> String {
+		match *self {
+			Currency::BTC => "btc".to_owned(),
+			Currency::GRIN => "grin".to_owned(),
+			Currency::USD => "usd".to_owned(),
+		}
+	}
+
+    pub fn symbol(&self) -> String {
+		match *self {
+			Currency::BTC => "₿".to_owned(),
+			Currency::GRIN => "".to_owned(),
+			Currency::USD => "$".to_owned(),
+		}
+	}
+
+    pub fn precision(&self) -> usize {
+		match *self {
+			Currency::BTC => 8,
+			Currency::GRIN => 9,
+			Currency::USD => 4,
+		}
+	}
 }
 
 /// Returns a Config.

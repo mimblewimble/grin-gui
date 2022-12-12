@@ -1,6 +1,7 @@
 use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
+use chrono::DurationRound;
 use grin_gui_core::{
     config::Config,
     wallet::{TxLogEntry, TxLogEntryType},
@@ -8,7 +9,7 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 
@@ -41,8 +42,10 @@ use {
 pub struct StateContainer {
     wallet_txs: TxList,
     tx_header_state: HeaderState,
-    pub expanded_type: ExpandType,
     mode: Mode,
+
+    pub expanded_type: ExpandType,
+    pub balance_data: Vec<(chrono::DateTime<chrono::Utc>, f64)>,
 }
 
 impl Default for StateContainer {
@@ -52,6 +55,7 @@ impl Default for StateContainer {
             tx_header_state: Default::default(),
             expanded_type: ExpandType::None,
             mode: Mode::NotInit,
+            balance_data: vec![],
         }
     }
 }
@@ -84,15 +88,15 @@ pub fn handle_message<'a>(
         .tx_list_display_state;
 
     match message {
-        LocalViewInteraction::SelectMode(newMode) => {
-            if newMode != state.mode {
+        LocalViewInteraction::SelectMode(new_mode) => {
+            if new_mode != state.mode {
                 let mut query_args = RetrieveTxQueryArgs::default();
 
-                match newMode {
-                    Mode::NotInit => {},
+                match new_mode {
+                    Mode::NotInit => {}
                     Mode::Recent => {
                         query_args.exclude_cancelled = Some(true);
-                    },
+                    }
                     Mode::Outstanding => {
                         query_args.exclude_cancelled = Some(true);
                         query_args.include_outstanding_only = Some(true);
@@ -102,7 +106,7 @@ pub fn handle_message<'a>(
                 let w = grin_gui.wallet_interface.clone();
 
                 let fut = move || WalletInterface::get_txs(w, Some(query_args));
-                return Ok(Command::perform(fut(), |(tx_list_res)| {
+                return Ok(Command::perform(fut(), |tx_list_res| {
                     if tx_list_res.is_err() {
                         let e = tx_list_res
                             .context("Failed to retrieve transaction list")
@@ -122,7 +126,7 @@ pub fn handle_message<'a>(
                     ))
                 }));
             }
-            state.mode = newMode
+            state.mode = new_mode
         }
         LocalViewInteraction::TxListUpdateSuccess(node_success, txs) => {
             debug!("Update Tx List Summary: {}", node_success);
@@ -132,6 +136,40 @@ pub fn handle_message<'a>(
                 .map(|tx| TxLogEntryWrap::new(tx.clone()))
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
+
+            let mut datetime_sums = vec![];
+            for (idx, tx) in txs.iter().enumerate() {
+                if tx.confirmed {
+                    // trunc transaction date to day
+                    //let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
+                    let datetime = chrono::DateTime::from_str("2019-01-20T00:00:00Z").unwrap();
+                    let credits = tx.amount_credited;
+                    let debits = tx.amount_debited;
+
+                    datetime_sums.push((datetime, credits - debits));
+                }
+            }
+
+            // fill in sum data for days without transactions
+            if !datetime_sums.is_empty() {
+                let mut sum = 0;
+                let mut dt = datetime_sums.first().unwrap().0;
+                let today = chrono::Utc::now().duration_trunc(chrono::Duration::days(1)).unwrap();
+
+                while dt <= today {
+                    let txns = datetime_sums
+                        .iter()
+                        .filter(|(date, _)| *date == dt);
+
+                    sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+
+                    let dec_sum = (sum as f64 / grin_gui_core::GRIN_BASE as f64) as f64;
+
+                    state.balance_data.push((dt.to_owned(), dec_sum));
+
+                    dt = dt + chrono::Duration::days(1);
+                }
+            }
         }
         LocalViewInteraction::TxListUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -237,14 +275,13 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         state.tx_header_state.previous_sort_direction,
     );
 
-    let table_header_container = Container::new(table_header_row)
-        .padding(iced::Padding::from([
-            0,               // top
-            DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
-            0,               // bottom
-            0,               // left
-        ]));
-        //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
+    let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
+        0,               // top
+        DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
+        0,               // bottom
+        0,               // left
+    ]));
+    //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
 
     // A scrollable list containing rows.
     // Each row holds data about a single tx.
@@ -295,9 +332,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         content = content.push(tx_data_cell);
     }
 
-    let mut tx_list_scrollable = Scrollable::new(content).style(
-        grin_gui_core::theme::ScrollableStyle::Primary,
-    );
+    let mut tx_list_scrollable =
+        Scrollable::new(content).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     // Bottom space below the scrollable.
     let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
@@ -317,7 +353,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let scrollable =
         Scrollable::new(main_column).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
-    let table_colummn = Column::new().push(table_header_container).push(scrollable).push(tx_list_content);
+    let table_colummn = Column::new()
+        .push(table_header_container)
+        .push(scrollable)
+        .push(tx_list_content);
     let table_container = Container::new(table_colummn)
         //.style(grin_gui_core::theme::ContainerStyle::PanelBordered)
         .height(Length::Fill)
