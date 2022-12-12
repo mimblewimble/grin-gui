@@ -14,10 +14,10 @@ wgpu = ["iced_wgpu"]
 opengl = ["iced_glow"]
 
 [dependencies]
-iced = { version = "0.5.2", default-features = false }
-iced_native = { version = "0.6.1" }
-iced_graphics = { version = "0.4.0" }
+iced = { version = "0.6", default-features = false, features = ["default"] }
+iced_native = { version = "0.7" }
+iced_graphics = { version = "0.5.0" }
 iced_core = { version = "0.6.1" }
 iced_wgpu = { version = "0.6.1", optional = true }
 iced_glow = { version = "0.4.1", optional = true }
-iced_style = "0.5.0"
+iced_style = "0.5"
