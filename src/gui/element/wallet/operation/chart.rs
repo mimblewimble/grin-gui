@@ -176,6 +176,13 @@ impl Chart<Message> for BalanceChart {
             (chart_color.b * 255.0) as u8,
         );
 
+        let date_color = self.theme.palette.bright.secondary;
+        let date_color = RGBColor(
+            (date_color.r * 255.0) as u8,
+            (date_color.g * 255.0) as u8,
+            (date_color.b * 255.0) as u8,
+        );
+
         let background_color = self.theme.palette.base.background;
         let background_color = RGBColor(
             (background_color.r * 255.0) as u8,
@@ -192,7 +199,7 @@ impl Chart<Message> for BalanceChart {
             .x_label_style(
                 ("sans-serif", 15)
                     .into_font()
-                    .color(&chart_color.mix(0.7))
+                    .color(&date_color)
                     .transform(FontTransform::Rotate90),
             )
             .x_label_formatter(&|x| format!("{}", x.format("%b %d, %Y")))
@@ -223,8 +230,10 @@ impl Chart<Message> for BalanceChart {
                 )))
                 .expect("Failed to draw hover point");
 
-            // TODO this color should be black when the theme is light 
-            // balance at date
+            // TODO these colors should be black when the theme is light. Solution A: we can either expand the 
+            // color_palette struct to include a text color. Solution B: we can extend the ice-plotter lib to send the style down draw so we can 
+            // tap into the system default text color like we have everywhere else. Solution C: meh, just hardcode it for now, white suffices on most 
+            // backgrounds. 
             chart
                 .draw_series(std::iter::once(Text::new(
                     format!("{}", amount),
@@ -242,7 +251,7 @@ impl Chart<Message> for BalanceChart {
                     (time, max_value * 0.84),
                     ("sans-serif", CHART_CAPTION_SUB)
                         .into_font()
-                        .color(&plotters::style::colors::WHITE.mix(0.7)),
+                        .color(&plotters::style::colors::WHITE.mix(0.5)),
                 )))
                 .expect("Failed to draw text");
         }
