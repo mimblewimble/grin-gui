@@ -176,7 +176,6 @@ impl Chart<Message> for BalanceChart {
             (chart_color.b * 255.0) as u8,
         );
 
-        // let date_color = self.theme.palette.bright.secondary;
         let date_color = self.theme.palette.normal.surface;
         let date_color = RGBColor(
             (date_color.r * 255.0) as u8,
