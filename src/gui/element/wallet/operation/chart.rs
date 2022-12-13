@@ -176,7 +176,7 @@ impl Chart<Message> for BalanceChart {
             (chart_color.b * 255.0) as u8,
         );
 
-        let date_color = self.theme.palette.bright.secondary;
+        let date_color = self.theme.palette.normal.surface;
         let date_color = RGBColor(
             (date_color.r * 255.0) as u8,
             (date_color.g * 255.0) as u8,
@@ -188,6 +188,13 @@ impl Chart<Message> for BalanceChart {
             (background_color.r * 255.0) as u8,
             (background_color.g * 255.0) as u8,
             (background_color.b * 255.0) as u8,
+        );
+
+        let text_color = self.theme.palette.bright.surface;
+        let text_color = RGBColor(
+            (text_color.r * 255.0) as u8,
+            (text_color.g * 255.0) as u8,
+            (text_color.b * 255.0) as u8,
         );
 
         chart
@@ -230,28 +237,25 @@ impl Chart<Message> for BalanceChart {
                 )))
                 .expect("Failed to draw hover point");
 
-            // TODO these colors should be black when the theme is light. Solution A: we can either expand the 
-            // color_palette struct to include a text color. Solution B: we can extend the ice-plotter lib to send the style down draw so we can 
-            // tap into the system default text color like we have everywhere else. Solution C: meh, just hardcode it for now, white suffices on most 
-            // backgrounds. 
+            // draw balance above the point
             chart
                 .draw_series(std::iter::once(Text::new(
                     format!("{}", amount),
                     (time, max_value),
                     ("sans-serif", CHART_CAPTION_HEAD)
                         .into_font()
-                        .color(&plotters::style::colors::WHITE.mix(1.0)),
+                        .color(&text_color.mix(1.0))
                 )))
                 .expect("Failed to draw text");
 
-            // date
+            // date below balance with a slight faded color
             chart
                 .draw_series(std::iter::once(Text::new(
                     format!("{}", time.format("%b %d, %Y")),
                     (time, max_value * 0.84),
                     ("sans-serif", CHART_CAPTION_SUB)
                         .into_font()
-                        .color(&plotters::style::colors::WHITE.mix(0.5)),
+                        .color(&text_color.mix(0.7))
                 )))
                 .expect("Failed to draw text");
         }

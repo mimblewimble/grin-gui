@@ -9,7 +9,7 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
-use std::{path::PathBuf, str::FromStr};
+use std::{borrow::Borrow, path::PathBuf, str::FromStr};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
 
@@ -40,11 +40,15 @@ use {
 };
 
 pub struct StateContainer {
+    // maintains a list of all confirmed transactions sorted by date
+    confirmed_txns: Vec<TxLogEntry>,
     wallet_txs: TxList,
     tx_header_state: HeaderState,
     mode: Mode,
 
     pub expanded_type: ExpandType,
+
+    // balance history for wallet as (date, grin_balance)
     pub balance_data: Vec<(chrono::DateTime<chrono::Utc>, f64)>,
 }
 
@@ -56,6 +60,7 @@ impl Default for StateContainer {
             expanded_type: ExpandType::None,
             mode: Mode::NotInit,
             balance_data: vec![],
+            confirmed_txns: vec![],
         }
     }
 }
@@ -137,37 +142,69 @@ pub fn handle_message<'a>(
                 .collect();
             state.wallet_txs = TxList { txs: tx_wrap_list };
 
-            let mut datetime_sums = vec![];
-            for (idx, tx) in txs.iter().enumerate() {
-                if tx.confirmed {
-                    // trunc transaction date to day
-                    //let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
-                    let datetime = chrono::DateTime::from_str("2019-01-20T00:00:00Z").unwrap();
-                    let credits = tx.amount_credited;
-                    let debits = tx.amount_debited;
+            let confirmed_txns: Vec<&TxLogEntry> = txs.iter().filter(|tx| tx.confirmed).collect();
 
-                    datetime_sums.push((datetime, credits - debits));
-                }
-            }
+            if !confirmed_txns.is_empty() {
+                // added new confirmed transactions to state confirmed set?
+                let mut added = false;
 
-            // fill in sum data for days without transactions
-            if !datetime_sums.is_empty() {
-                let mut sum = 0;
-                let mut dt = datetime_sums.first().unwrap().0;
-                let today = chrono::Utc::now().duration_trunc(chrono::Duration::days(1)).unwrap();
-
-                while dt <= today {
-                    let txns = datetime_sums
+                for tx in confirmed_txns.iter() {
+                    // if tx is not in state confirmed transactions, add it
+                    if state
+                        .confirmed_txns
                         .iter()
-                        .filter(|(date, _)| *date == dt);
+                        .find(|t| t.id == tx.id)
+                        .is_none()
+                    {
+                        // push to state confirmed transactions
+                        state.confirmed_txns.push(tx.clone().to_owned());
+                        added = true;
+                        debug!("Confirmed Tx: {:?}", tx);
+                    }
+                }
 
-                    sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+                if added {
+                    // sort state transactions by date
+                    state.confirmed_txns.sort_by(|a, b| {
+                        a.confirmation_ts.unwrap().cmp(&b.confirmation_ts.unwrap())
+                    });
 
-                    let dec_sum = (sum as f64 / grin_gui_core::GRIN_BASE as f64) as f64;
+                    let mut datetime_sums = vec![];
+                    for tx in state.confirmed_txns.iter() {
+                        // trunc transaction date to day
+                        //let datetime = tx.confirmation_ts.unwrap().duration_trunc(chrono::Duration::days(1)).unwrap();
+                        // this should be the date time above but for dev purposes lets backdate it
+                        let datetime = chrono::DateTime::from_str("2019-01-20T00:00:00Z").unwrap();
+                        let credits = tx.amount_credited;
+                        let debits = tx.amount_debited;
 
-                    state.balance_data.push((dt.to_owned(), dec_sum));
+                        datetime_sums.push((datetime, credits - debits));
+                    }
 
-                    dt = dt + chrono::Duration::days(1);
+                    let mut sum = 0;
+                    let mut dt = datetime_sums.first().unwrap().0;
+                    let today = chrono::Utc::now()
+                        .duration_trunc(chrono::Duration::days(1))
+                        .unwrap();
+
+                    // fill in sum data for days without transactions
+                    let mut balance_history = vec![];
+                    while dt <= today {
+                        // get all transactions for this date
+                        let txns = datetime_sums.iter().filter(|(date, _)| *date == dt);
+
+                        // sum up balance amount
+                        sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+
+                        // convert to grin units
+                        let grin_sum = (sum as f64 / grin_gui_core::GRIN_BASE as f64) as f64;
+                        balance_history.push((dt.to_owned(), grin_sum));
+
+                        dt = dt + chrono::Duration::days(1);
+                    }
+
+                    // finally we update state with the newly constructed balance history
+                    state.balance_data = balance_history;
                 }
             }
         }
