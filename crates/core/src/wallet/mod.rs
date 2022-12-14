@@ -238,7 +238,7 @@ where
 
         let w = wallet_interface.read().unwrap();
 
-        let recover_length = recovery_phrase.clone().map(|f| f.len()).unwrap_or(0);
+        let recover_length = recovery_phrase.clone().map(|f| f.len()).unwrap_or(32);
         let recover_phrase = recovery_phrase.map(|f| ZeroingString::from(f));
 
         let args = InitArgs {
