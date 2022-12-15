@@ -44,7 +44,7 @@ pub struct StateContainer {
     confirmed_txns: Vec<TxLogEntry>,
     wallet_txs: TxList,
     tx_header_state: HeaderState,
-    mode: Mode,
+    pub mode: Mode,
 
     pub expanded_type: ExpandType,
 
@@ -94,44 +94,43 @@ pub fn handle_message<'a>(
 
     match message {
         LocalViewInteraction::SelectMode(new_mode) => {
-            if new_mode != state.mode {
-                let mut query_args = RetrieveTxQueryArgs::default();
+            let mut query_args = RetrieveTxQueryArgs::default();
 
-                match new_mode {
-                    Mode::NotInit => {}
-                    Mode::Recent => {
-                        query_args.exclude_cancelled = Some(true);
-                    }
-                    Mode::Outstanding => {
-                        query_args.exclude_cancelled = Some(true);
-                        query_args.include_outstanding_only = Some(true);
-                    }
+            match new_mode {
+                Mode::NotInit => {}
+                Mode::Recent => {
+                    query_args.exclude_cancelled = Some(true);
                 }
-
-                let w = grin_gui.wallet_interface.clone();
-
-                let fut = move || WalletInterface::get_txs(w, Some(query_args));
-                return Ok(Command::perform(fut(), |tx_list_res| {
-                    if tx_list_res.is_err() {
-                        let e = tx_list_res
-                            .context("Failed to retrieve transaction list")
-                            .unwrap_err();
-                        return Message::Interaction(
-                            Interaction::WalletOperationHomeTxListDisplayInteraction(
-                                LocalViewInteraction::TxListUpdateFailure(Arc::new(RwLock::new(
-                                    Some(e),
-                                ))),
-                            ),
-                        );
-                    }
-                    let (node_success, txs) = tx_list_res.unwrap();
-                    Message::Interaction(Interaction::WalletOperationHomeTxListDisplayInteraction(
-                        //LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
-                        LocalViewInteraction::TxListUpdateSuccess(node_success, txs),
-                    ))
-                }));
+                Mode::Outstanding => {
+                    query_args.exclude_cancelled = Some(true);
+                    query_args.include_outstanding_only = Some(true);
+                }
             }
-            state.mode = new_mode
+
+            state.mode = new_mode;
+
+            let w = grin_gui.wallet_interface.clone();
+
+            let fut = move || WalletInterface::get_txs(w, Some(query_args));
+            return Ok(Command::perform(fut(), |tx_list_res| {
+                if tx_list_res.is_err() {
+                    let e = tx_list_res
+                        .context("Failed to retrieve transaction list")
+                        .unwrap_err();
+                    return Message::Interaction(
+                        Interaction::WalletOperationHomeTxListDisplayInteraction(
+                            LocalViewInteraction::TxListUpdateFailure(Arc::new(RwLock::new(Some(
+                                e,
+                            )))),
+                        ),
+                    );
+                }
+                let (node_success, txs) = tx_list_res.unwrap();
+                Message::Interaction(Interaction::WalletOperationHomeTxListDisplayInteraction(
+                    //LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
+                    LocalViewInteraction::TxListUpdateSuccess(node_success, txs),
+                ))
+            }));
         }
         LocalViewInteraction::TxListUpdateSuccess(node_success, txs) => {
             debug!("Update Tx List Summary: {}", node_success);

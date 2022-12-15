@@ -1,5 +1,7 @@
 use std::borrow::Borrow;
 
+use iced_native::Widget;
+
 use {
     super::super::super::{BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
     crate::gui::{GrinGui, Interaction, Message},
@@ -975,9 +977,9 @@ pub fn data_row_container<'a, 'b>(
     column_config: &'b [(ColumnKey, Length, bool)],
     is_odd: Option<bool>,
     pending_confirmation: &Option<Confirm>,
-) -> TableRow<'a, Message> {
+) -> Container<'a, Message> {
     let default_height = Length::Units(26);
-    let default_row_height = 26;
+    let mut default_row_height = 26;
 
     let mut row_containers = vec![];
 
@@ -1507,6 +1509,7 @@ pub fn data_row_container<'a, 'b>(
     row = row.push(right_spacer);
 
     let mut tx_column = Column::new().push(row);
+    let mut action_button_row = Row::new();
 
     if is_tx_expanded {
         match expand_type {
@@ -1573,14 +1576,13 @@ pub fn data_row_container<'a, 'b>(
                 .align_y(alignment::Vertical::Center)
                 .align_x(alignment::Horizontal::Center);
 
-                let mut tx_details_button = Button::new(tx_details_container)
+                let tx_details_button: Element<Interaction> = Button::new(tx_details_container)
                     .width(Length::Units(BUTTON_WIDTH))
                     .style(grin_gui_core::theme::ButtonStyle::Primary)
                     .on_press(Interaction::WalletOperationHomeViewInteraction(
                         super::home::LocalViewInteraction::TxDetails(tx_cloned),
-                    ));
-
-                let tx_details_button: Element<Interaction> = tx_details_button.into();
+                    ))
+                    .into();
 
                 let tx_details_wrap =
                     Container::new(tx_details_button.map(Message::Interaction)).padding(1);
@@ -1588,7 +1590,11 @@ pub fn data_row_container<'a, 'b>(
                     .style(grin_gui_core::theme::ContainerStyle::Segmented)
                     .padding(1);
 
-                let mut action_button_row = Row::new()
+                action_button_row = Row::new()
+                    .push(Space::new(
+                        Length::Units(DEFAULT_PADDING * 3),
+                        Length::Units(0),
+                    ))
                     .push(tx_details_wrap)
                     .push(Space::with_width(Length::Units(DEFAULT_PADDING)));
 
@@ -1600,14 +1606,16 @@ pub fn data_row_container<'a, 'b>(
                     .align_y(alignment::Vertical::Center)
                     .align_x(alignment::Horizontal::Center);
 
-                    let mut tx_cancel_button = Button::new(tx_button_cancel_container)
-                        .width(Length::Units(BUTTON_WIDTH))
-                        .style(grin_gui_core::theme::ButtonStyle::Primary)
-                        .on_press(Interaction::WalletOperationHomeViewInteraction(
-                            super::home::LocalViewInteraction::CancelTx(tx_log_entry_wrap.tx.id)
-                        ));
-
-                    let tx_cancel_button: Element<Interaction> = tx_cancel_button.into();
+                    let tx_cancel_button: Element<Interaction> =
+                        Button::new(tx_button_cancel_container)
+                            .width(Length::Units(BUTTON_WIDTH))
+                            .style(grin_gui_core::theme::ButtonStyle::Primary)
+                            .on_press(Interaction::WalletOperationHomeViewInteraction(
+                                super::home::LocalViewInteraction::CancelTx(
+                                    tx_log_entry_wrap.tx.id,
+                                ),
+                            ))
+                            .into();
 
                     let tx_cancel_wrap =
                         Container::new(tx_cancel_button.map(Message::Interaction)).padding(1);
@@ -1775,9 +1783,7 @@ pub fn data_row_container<'a, 'b>(
                     .push(Space::new(Length::Units(0), Length::Units(3)))
                     .push(uuid_row)
                     .push(Space::new(Length::Units(0), Length::Units(3)))
-                    .push(type_row)
-                    .push(Space::new(Length::Units(0), Length::Units(9)))
-                    .push(action_button_row);
+                    .push(type_row);
                 //.push(Space::new(Length::Units(0), Length::Units(3)))
                 /* .push(notes_title_container)
                 .push(Space::new(Length::Units(0), Length::Units(3)))
@@ -1798,8 +1804,8 @@ pub fn data_row_container<'a, 'b>(
                     .push(left_spacer)
                     .push(details_container)
                     .push(Space::new(
-                         Length::Units(DEFAULT_PADDING + 5),
-                         Length::Units(0),
+                        Length::Units(DEFAULT_PADDING + 5),
+                        Length::Units(0),
                     ))
                     .spacing(1);
                 tx_column = tx_column
@@ -1825,7 +1831,19 @@ pub fn data_row_container<'a, 'b>(
         table_row = table_row.style(grin_gui_core::theme::TableRowStyle::Default)
     }
 
-    table_row
+    // Due to what feels like an iced-rs bug, don't put buttons within the actual row as they appear
+    // to clear their state between the press down and up event if included within the row itself
+    // Some kind of fix to the table row widget might rectify this
+    let mut return_column = Column::new().push(table_row).push(action_button_row);
+
+    if is_tx_expanded {
+        return_column =
+            return_column.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING * 2)));
+    }
+
+    let return_container = Container::new(return_column);
+
+    return_container
 }
 
 #[derive(Debug, Clone)]

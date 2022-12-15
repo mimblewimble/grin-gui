@@ -318,8 +318,20 @@ pub fn handle_message<'a>(
             }));
         }
         LocalViewInteraction::TxCancelledOk(id) => {
-            //TODO: Message
-            debug!("TX cancelled okay: {}", id);
+            // Trigger event to reload transaction list
+            let mode = grin_gui
+                .wallet_state
+                .operation_state
+                .home_state
+                .tx_list_display_state
+                .mode
+                .clone();
+            let fut = move || async {};
+            return Ok(Command::perform(fut(), |r| {
+                Message::Interaction(Interaction::WalletOperationHomeTxListDisplayInteraction(
+                    super::home::tx_list_display::LocalViewInteraction::SelectMode(mode),
+                ))
+            }));
         }
         LocalViewInteraction::TxCancelError(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -557,9 +569,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .height(Length::Units(120));
 
     // if there is transaction data, display the balance chart
-    let mut balance_data = state.tx_list_display_state.balance_data.clone(); 
+    let mut balance_data = state.tx_list_display_state.balance_data.clone();
     if !balance_data.is_empty() {
-
         // if there is price history data, convert the balance data to the currency
         if !state.price_history.is_empty() && currency != Currency::GRIN {
             balance_data = balance_data

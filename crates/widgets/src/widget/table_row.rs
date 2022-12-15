@@ -46,17 +46,14 @@ where
             inner_row_height: u32::MAX,
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
-            style:  Default::default(),
+            style: Default::default(),
             content: content.into(),
             on_press: None,
         }
     }
 
     /// Sets the style of the [`TableRow`].
-    pub fn style(
-        mut self,
-        style: impl Into<<Renderer::Theme as StyleSheet>::Style>,
-    ) -> Self {
+    pub fn style(mut self, style: impl Into<<Renderer::Theme as StyleSheet>::Style>) -> Self {
         self.style = style.into();
         self
     }
@@ -130,8 +127,7 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer>
-    for TableRow<'a, Message, Renderer>
+impl<'a, Message, Renderer> Widget<Message, Renderer> for TableRow<'a, Message, Renderer>
 where
     Renderer: 'a + iced_native::Renderer,
     Renderer::Theme: StyleSheet,
@@ -177,7 +173,7 @@ where
     ) {
         let bounds = layout.bounds();
         let mut custom_bounds = layout.bounds();
-        let tree = Tree::new(&self.content); 
+        let tree = Tree::new(&self.content);
 
         // inner_row_height set?
         if self.inner_row_height != u32::MAX {
@@ -231,15 +227,31 @@ where
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
-        
         let bounds = layout.bounds();
         let is_mouse_over = bounds.contains(cursor_position);
 
-        if is_mouse_over {
+        let mut mouse_interaction = if is_mouse_over {
             mouse::Interaction::Pointer
         } else {
             mouse::Interaction::default()
+        };
+
+        let children = layout.children();
+
+        for layout in children {
+            let is_mouse_over = layout.bounds().contains(cursor_position);
+            let new_mouse_interaction = if is_mouse_over {
+                mouse::Interaction::Pointer
+            } else {
+                mouse::Interaction::default()
+            };
+
+            if new_mouse_interaction > mouse_interaction {
+                mouse_interaction = new_mouse_interaction;
+            }
         }
+
+        mouse_interaction
     }
 
     /*fn hash_layout(&self, state: &mut Hasher) {
@@ -266,8 +278,7 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
-        let mut tree = Tree::new(&self.content); 
-
+        let mut tree = Tree::new(&self.content);
         let status_from_content = self.content.as_widget_mut().on_event(
             &mut tree,
             event.clone(),
@@ -295,7 +306,7 @@ where
                     }
                 }
                 status_from_content
-            }
+            },
             _ => status_from_content,
         }
     }
@@ -312,9 +323,7 @@ where
     }
 }
 
-
-impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>>
-    for Element<'a, Message, Renderer>
+impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
     Renderer: 'a + iced_native::Renderer,
     Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
