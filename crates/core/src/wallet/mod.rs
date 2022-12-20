@@ -21,12 +21,14 @@ use dirs;
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
-    InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, StatusMessage, TxLogEntry,
-    TxLogEntryType, WalletInfo,
+    InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlatepackAddress,
+    StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
 };
 
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
+
+use std::convert::TryFrom;
 
 /// Wallet configuration file name
 pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
@@ -350,6 +352,23 @@ where
         }
     }
 
+    pub fn encrypt_slatepack(
+        api: &Owner<L, C, keychain::ExtKeychain>,
+        dest: &str,
+        unenc_slate: &Slate,
+    ) -> Result<String, GrinWalletInterfaceError> {
+        let address = match SlatepackAddress::try_from(dest) {
+            Ok(a) => Some(a),
+            Err(_) => None,
+        };
+        // encrypt for recipient by default
+        let recipients = match address.clone() {
+            Some(a) => vec![a],
+            None => vec![],
+        };
+        Ok(api.create_slatepack_message(None, &unenc_slate, Some(0), recipients)?)
+    }
+
     pub async fn get_wallet_info(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
     ) -> Result<(bool, WalletInfo), GrinWalletInterfaceError> {
@@ -402,12 +421,13 @@ where
     pub async fn create_tx(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         init_args: InitTxArgs,
-    ) -> Result<Slate, GrinWalletInterfaceError> {
+        dest_slatepack_address: String,
+    ) -> Result<String, GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let slate = { o.init_send_tx(None, init_args)? };
             o.tx_lock_outputs(None, &slate)?;
-            return Ok(slate);
+            return WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
