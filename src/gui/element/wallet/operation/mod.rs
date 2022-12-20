@@ -3,6 +3,7 @@ pub mod action_menu;
 pub mod home;
 pub mod tx_list;
 pub mod create_tx;
+pub mod create_tx_success;
 pub mod apply_tx;
 pub mod chart;
 pub mod tx_list_display;
@@ -23,6 +24,7 @@ pub struct StateContainer {
     pub open_state: open::StateContainer,
     pub home_state: home::StateContainer,
     pub create_tx_state: create_tx::StateContainer,
+    pub create_tx_success_state: create_tx_success::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
     has_wallet_open_check_failed_one_time: bool,
@@ -33,6 +35,7 @@ pub enum Mode {
     Open,
     Home,
     CreateTx,
+    CreateTxSuccess,
     ApplyTx
 }
 
@@ -43,6 +46,7 @@ impl Default for StateContainer {
             open_state: Default::default(),
             home_state: Default::default(),
             create_tx_state: Default::default(),
+            create_tx_success_state: Default::default(),
             apply_tx_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
         }
@@ -88,7 +92,10 @@ pub fn data_container<'a>(
         Mode::CreateTx => {
             create_tx::data_container(config, &state.create_tx_state)
         }
-        Mode::ApplyTx => {
+        Mode::CreateTxSuccess => {
+            create_tx_success::data_container(config, &state.create_tx_success_state)
+        }
+         Mode::ApplyTx => {
             apply_tx::data_container(config, &state.apply_tx_state)
         }
     };

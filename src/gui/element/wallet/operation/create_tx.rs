@@ -39,7 +39,7 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             recipient_address_value: Default::default(),
-            amount_value: Default::default(),
+            amount_value: Default::default()
         }
     }
 }
@@ -109,6 +109,10 @@ pub fn handle_message<'a>(
         },
         LocalViewInteraction::TxCreatedOk(slate) => {
             log::debug!("{:?}", slate);
+            grin_gui.wallet_state.operation_state.create_tx_success_state.encrypted_slate = slate.to_string();
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
+ 
         }
         LocalViewInteraction::TxCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();

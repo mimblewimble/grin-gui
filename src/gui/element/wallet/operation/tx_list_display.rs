@@ -27,7 +27,7 @@ use {
         TextInput,
     },
     grin_gui_core::wallet::{
-        InitTxArgs, RetrieveTxQueryArgs, Slate, StatusMessage, WalletInfo, WalletInterface,
+        InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, StatusMessage, WalletInfo, WalletInterface,
     },
     grin_gui_core::{
         node::amount_to_hr_string,
@@ -95,6 +95,8 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::SelectMode(new_mode) => {
             let mut query_args = RetrieveTxQueryArgs::default();
+
+            query_args.sort_order = Some(RetrieveTxQuerySortOrder::Desc);
 
             match new_mode {
                 Mode::NotInit => {}
