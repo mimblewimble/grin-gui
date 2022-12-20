@@ -217,6 +217,8 @@
     "tx-id": "Internal ID",
     "tx-type": "Type",
     "tx-shared-id": "Shared ID",
+    "tx-create-submit": "Create",
+    "tx-create-success": "Transaction Created",
     "info-confirmed-total": "Confirmed Total",
     "info-amount-spendable": "Amount Spendable",
     "info-awaiting-confirmation": "Awaiting Confirmation",
@@ -240,5 +242,7 @@
     "tx-outstanding": "Outstanding",
     "tx-list": "Transactions",
     "tx-recent": "Most Recent",
-    "tx-details": "Details"
+    "tx-details": "Details",
+    "tx-create-success-title": "Encrypted Transaction",
+    "tx-create-success-desc": "Copy/Paste this encrypted transaction to the recipient via a channel of your choosing"
 }

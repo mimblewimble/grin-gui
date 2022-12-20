@@ -176,7 +176,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(l)) => {
             return element::wallet::operation::create_tx::handle_message(grin_gui, l);
         }
-        // Wallet -> Operation -> Home -> Action
+        // Wallet -> Operation -> CreateTxSuccess
+        Message::Interaction(Interaction::WalletOperationCreateTxSuccessViewInteraction(l)) => {
+            return element::wallet::operation::create_tx_success::handle_message(grin_gui, l);
+        }
+         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(l)) => {
             return element::wallet::operation::apply_tx::handle_message(grin_gui, l);
         }
