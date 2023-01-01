@@ -14,7 +14,7 @@ debug = ["iced/debug"]
 grin-gui-core = { version = "0.1.0", path = "crates/core", features=['gui'] }
 grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 
-iced = { version = "0.6", features = ["canvas", "tokio"] }
+iced = { version = "0.6", features = ["canvas", "tokio", "default_system_font"] }
 iced_futures = { version = "0.5", features = ["async-std"] }
 iced_style = {version = "0.5"}
 iced_native = { version = "0.7" }
