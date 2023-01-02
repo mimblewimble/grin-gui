@@ -174,15 +174,15 @@ pub fn data_container<'a>(
         0,               // left
     ]));
 
-    let name_header = Text::new(localized_string("name")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let name_header = Text::new(localized_string("name")).size(DEFAULT_FONT_SIZE);
     let name_header_container =
         Container::new(name_header).style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
-    let chain_header = Text::new(localized_string("type")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let chain_header = Text::new(localized_string("type")).size(DEFAULT_FONT_SIZE);
     let chain_header_container =
         Container::new(chain_header).style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 
-    let directory_header = Text::new(localized_string("folder")).size(DEFAULT_SUB_HEADER_FONT_SIZE);
+    let directory_header = Text::new(localized_string("directory")).size(DEFAULT_FONT_SIZE);
     let directory_header_container = Container::new(directory_header)
         .style(grin_gui_core::theme::ContainerStyle::BrightForeground);
 

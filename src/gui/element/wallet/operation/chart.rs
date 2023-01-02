@@ -42,6 +42,7 @@ const FONT_BOLD: Font = Font::External {
 pub struct BalanceChart {
     data_points: VecDeque<(DateTime<Utc>, f64)>,
     cursor_index: Option<usize>,
+    caption_index: Option<usize>,
     theme: Theme,
 }
 
@@ -52,12 +53,14 @@ impl BalanceChart {
         theme: Theme,
         data: impl Iterator<Item = (DateTime<Utc>, f64)>,
         cursor_index: Option<usize>,
+        caption_index: Option<usize>,
     ) -> Element<'static, Message> {
         let data_points: VecDeque<_> = data.collect();
         let chart = BalanceChart {
             data_points,
             theme,
             cursor_index,
+            caption_index,
         };
 
         Container::new(
@@ -104,14 +107,29 @@ impl Chart<Message> for BalanceChart {
                     let percent = p.x / bounds.width;
 
                     let len = self.data_points.len() - 1;
+
                     let approx_index = len as f32 * percent;
-                    let index = len.saturating_sub(approx_index.floor() as usize);
+                    let cursor_index = len.saturating_sub(approx_index.floor() as usize);
+                    let mut caption_index = cursor_index;
+
+                    // TODO the caption width 55 here should be dynamic based on the width of the caption text
+                    // USD value is 55px wide
+                    // BTC value is ??px wide 
+                    // Grin value is ??px wide 
+                    let caption_width = 55.0;
+
+                    // caption index is cursor index until the caption reaches the edge of the chart
+                    if p.x / (bounds.width - caption_width) >= 1.0 {
+                        let tail = caption_width / bounds.width;
+                        let approx_tail = len as f32 * tail;
+                        caption_index = approx_tail.floor() as usize;
+                    }
 
                     return (
                         iced_native::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
-                                super::home::LocalViewInteraction::MouseIndex(index),
+                                super::home::LocalViewInteraction::MouseIndex(cursor_index, caption_index),
                             ),
                         )),
                     );
@@ -225,13 +243,15 @@ impl Chart<Message> for BalanceChart {
             .expect("failed to draw chart data");
 
         if let Some(cursor) = self.cursor_index {
-            let (time, amount) = self.data_points[cursor];
+            let caption_index = self.caption_index.unwrap();
+            let (time1, amount) = self.data_points[cursor];
+            let (time2, _) = self.data_points[caption_index];
             //debug!("index: {}, time: {}, amount: {}", index, time, amount);
 
             // draws a circle at (date, balance) point of the chart
             chart
                 .draw_series(std::iter::once(Circle::new(
-                    (time, amount),
+                    (time1, amount),
                     5_i32,
                     chart_color.filled(),
                 )))
@@ -241,21 +261,21 @@ impl Chart<Message> for BalanceChart {
             chart
                 .draw_series(std::iter::once(Text::new(
                     format!("{}", amount),
-                    (time, max_value),
+                    (time2, max_value),
                     ("sans-serif", CHART_CAPTION_HEAD)
                         .into_font()
-                        .color(&text_color.mix(1.0))
+                        .color(&text_color.mix(1.0)),
                 )))
                 .expect("Failed to draw text");
 
             // date below balance with a slight faded color
             chart
                 .draw_series(std::iter::once(Text::new(
-                    format!("{}", time.format("%b %d, %Y")),
-                    (time, max_value * 0.84),
+                    format!("{}", time1.format("%b %d, %Y")),
+                    (time2, max_value * 0.84),
                     ("sans-serif", CHART_CAPTION_SUB)
                         .into_font()
-                        .color(&text_color.mix(0.7))
+                        .color(&text_color.mix(0.7)),
                 )))
                 .expect("Failed to draw text");
         }

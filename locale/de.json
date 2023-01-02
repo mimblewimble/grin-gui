@@ -32,6 +32,7 @@
     "delete": "Löschen",
     "delete-saved-variables": "Lösche gespeicherte Einstellungen wenn Addons gelöscht werden",
     "description": "Beschreibung",
+    "directory": "Directory",
     "downloading": "Lädt herunter",
     "error-detail": "Error Detail",
     "failed": "Fehlgeschlagen",

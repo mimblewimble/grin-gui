@@ -56,6 +56,7 @@ pub struct StateContainer {
     tx_header_state: HeaderState,
 
     cursor_index: Option<usize>,
+    caption_index: Option<usize>,
     price_history: HashMap<DateTime<Utc>, f64>,
 }
 
@@ -75,7 +76,7 @@ pub enum LocalViewInteraction {
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
 
     // chart stuff
-    MouseIndex(usize),
+    MouseIndex(usize, usize),
     MouseExit,
     UpdatePrices,
 }
@@ -226,11 +227,13 @@ pub fn handle_message<'a>(
         LocalViewInteraction::UpdatePrices => {
             update_prices(state, grin_gui.config.currency)?;
         }
-        LocalViewInteraction::MouseIndex(index) => {
-            state.cursor_index = Some(index);
+        LocalViewInteraction::MouseIndex(index1, index2) => {
+            state.cursor_index = Some(index1);
+            state.caption_index = Some(index2);
         }
         LocalViewInteraction::MouseExit => {
             state.cursor_index = None;
+            state.caption_index = None;
         }
         LocalViewInteraction::Back => {
             let wallet_interface = grin_gui.wallet_interface.clone();
@@ -596,6 +599,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             theme,
             balance_data.into_iter().rev(),
             state.cursor_index,
+            state.caption_index,
         ));
     }
 
