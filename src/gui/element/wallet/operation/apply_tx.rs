@@ -13,18 +13,22 @@ use std::path::PathBuf;
 use super::tx_list::{HeaderState, TxList};
 
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, SMALLER_FONT_SIZE, DEFAULT_PADDING},
+    super::super::super::{
+        BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
+        SMALLER_FONT_SIZE,
+    },
     crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+        TextInput,
+    },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
-    iced::widget::{
-        button, pick_list, scrollable, text_input,Checkbox, Space,
-    },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
@@ -34,6 +38,8 @@ pub struct StateContainer {
     // pub copy_address_button_state: button::State,
     // pub address_state: text_input::State,
     pub address_value: String,
+    // Value read from clipboard
+    pub read_slatepack_from_clipboard: String,
 }
 
 impl Default for StateContainer {
@@ -43,6 +49,7 @@ impl Default for StateContainer {
             // copy_address_button_state: Default::default(),
             // address_state: Default::default(),
             address_value: Default::default(),
+            read_slatepack_from_clipboard: Default::default(),
         }
     }
 }
@@ -54,6 +61,9 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     Address(String),
+    ApplyTransaction(String),
+    ReadFromClipboardSuccess(String),
+    ReadFromClipboardFailure,
 }
 
 pub fn handle_message<'a>(
@@ -71,46 +81,44 @@ pub fn handle_message<'a>(
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
         }
-        LocalViewInteraction::Address(_) => {
-
+        LocalViewInteraction::ReadFromClipboardSuccess(value) => {
+            debug!("Read from clipboard: {}", value);
         }
+        LocalViewInteraction::ReadFromClipboardFailure => {
+            error!("Failed to read from clipboard");
+        }
+        LocalViewInteraction::Address(_) => {}
+        LocalViewInteraction::ApplyTransaction(_) => {}
     }
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    config: &'a Config,
-    state: &'a StateContainer,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
+    let unit_spacing = 15;
+
     // Title row
     let title = Text::new(localized_string("apply-tx"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
-    let title_container =
-        Container::new(title).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let title_container = Container::new(title)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
+        .padding(iced::Padding::from([
+            2, // top
+            0, // right
+            2, // bottom
+            5, // left
+        ]));
 
-    let back_button_label_container =
-        Container::new(Text::new(localized_string("back")).size(DEFAULT_FONT_SIZE))
-            .height(Length::Units(20))
-            .align_y(alignment::Vertical::Bottom)
-            .align_x(alignment::Horizontal::Center);
+    // push more items on to header here: e.g. other buttons, things that belong on the header
+    let header_row = Row::new().push(title_container);
 
-    let back_button: Element<Interaction> =
-        Button::new( back_button_label_container)
-            .style(grin_gui_core::theme::ButtonStyle::NormalText)
-            .on_press(Interaction::WalletOperationApplyTxViewInteraction(
-                LocalViewInteraction::Back,
-            ))
-            .into();
-
-    let title_row = Row::new()
-        .push(title_container)
-        .push(back_button.map(Message::Interaction))
-        //.push(Space::new(Length::Fill, Length::Units(0)))
-        .align_items(Alignment::Center)
-        .padding(6)
-        .spacing(20);
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        0,               // left
+    ]));
 
     let address_name = Text::new(localized_string("slatepack-address-name"))
         .size(DEFAULT_FONT_SIZE)
@@ -119,7 +127,7 @@ pub fn data_container<'a>(
     let address_name_container =
         Container::new(address_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let address_input = TextInput::new( "", &state.address_value, |s| {
+    let address_input = TextInput::new("", &state.address_value, |s| {
         Interaction::WalletOperationApplyTxViewInteraction(LocalViewInteraction::Address(s))
     })
     .size(DEFAULT_FONT_SIZE)
@@ -136,16 +144,14 @@ pub fn data_container<'a>(
             .horizontal_alignment(alignment::Horizontal::Center),
     )
     .style(grin_gui_core::theme::ButtonStyle::NormalText)
-    .on_press(Interaction::WriteToClipboard(
-        state.address_value.clone(),
-    ));
+    .on_press(Interaction::WriteToClipboard(state.address_value.clone()));
 
     let copy_address_button: Element<Interaction> = copy_address_button.into();
 
     let address_row = Row::new()
-    .push(address_input)
-    .push(copy_address_button)
-    .spacing(DEFAULT_PADDING);
+        .push(address_input)
+        .push(copy_address_button)
+        .spacing(DEFAULT_PADDING);
 
     let address_row: Element<Interaction> = address_row.into();
 
@@ -153,20 +159,137 @@ pub fn data_container<'a>(
         .size(SMALLER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let address_instruction_container =
-        Container::new(address_instruction_container).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let address_instruction_container = Container::new(address_instruction_container)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
+    let slatepack_paste_name = Text::new(localized_string("paste-transaction-here"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
+
+    let slatepack_paste_name_container =
+        Container::new(slatepack_paste_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+    let slatepack_text_area = Text::new("SLATEPACK TEXT GO HERE").size(DEFAULT_FONT_SIZE)
+    .width(Length::Units(400));
+
+    let paste_slatepack_button = Button::new(
+        // &mut state.copy_address_button_state,
+        Text::new(localized_string("paste-from-clipboard"))
+            .size(SMALLER_FONT_SIZE)
+            .horizontal_alignment(alignment::Horizontal::Center),
+    )
+    .style(grin_gui_core::theme::ButtonStyle::NormalText)
+    .on_press(Interaction::ReadSlatepackFromClipboard);
+
+    let paste_slatepack_button: Element<Interaction> = paste_slatepack_button.into();
+
+    let paste_slatepack_row = Row::new()
+        .push(slatepack_text_area)
+        .push(paste_slatepack_button.map(Message::Interaction))
+        .spacing(DEFAULT_PADDING);
+
+    let slatepack_area = Column::new()
+        .push(slatepack_paste_name_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(paste_slatepack_row);
+
+    let slatepack_area_container = Container::new(slatepack_area);
+
+    let button_height = Length::Units(BUTTON_HEIGHT);
+    let button_width = Length::Units(BUTTON_WIDTH);
+
+    let submit_button_label_container =
+        Container::new(Text::new(localized_string("tx-create-submit")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
+            .center_x()
+            .center_y()
+            .align_x(alignment::Horizontal::Center);
+
+    let mut submit_button = Button::new(submit_button_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Primary);
+    let submit_button =
+        submit_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
+            LocalViewInteraction::ApplyTransaction("_".into()),
+        ));
+
+    let submit_button: Element<Interaction> = submit_button.into();
+
+    let cancel_button_label_container =
+        Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
+            .center_x()
+            .center_y()
+            .align_x(alignment::Horizontal::Center);
+
+    let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletOperationApplyTxViewInteraction(
+            LocalViewInteraction::Back,
+        ))
+        .into();
+
+    let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
+    let submit_container = Container::new(submit_container)
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+        .padding(1);
+
+    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
+    let cancel_container = Container::new(cancel_container)
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+        .padding(1);
+
+    let button_row = Row::new()
+        .push(submit_container)
+        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(cancel_container);
 
     let column = Column::new()
-        .push(title_row)
         .push(address_name_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(address_instruction_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(address_row.map(Message::Interaction))
-        .spacing(DEFAULT_PADDING)
-        .align_items(Alignment::Start);
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(slatepack_area_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(button_row)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(
+            Length::Units(0),
+            Length::Units(unit_spacing + 10),
+        ));
 
-    Container::new(column)
-        .center_y()
-        .center_x()
+    let form_container = Container::new(column)
         .width(Length::Fill)
+        .padding(iced::Padding::from([
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
+        ]));
+ 
+    // form container should be scrollable in tiny windows
+    let scrollable = Scrollable::new(form_container)
+        .height(Length::Fill)
+        .style(grin_gui_core::theme::ScrollableStyle::Primary);
+
+    let content = Container::new(scrollable)
+        .width(Length::Fill)
+        .height(Length::Shrink)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+    let wrapper_column = Column::new()
+        .height(Length::Fill)
+        .push(header_container)
+        .push(content);
+
+    // Returns the final container.
+    Container::new(wrapper_column).padding(iced::Padding::from([
+        DEFAULT_PADDING, // top
+        DEFAULT_PADDING, // right
+        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING, // left
+    ]))
 }

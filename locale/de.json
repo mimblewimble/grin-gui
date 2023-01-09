@@ -219,7 +219,7 @@
     "wallet-create-tx": "Send",
     "wallet-apply-tx": "Receive",
     "wallet-home": "Wallet - Set Name Here TBD",
-    "apply-tx": "Progress Transaction",
+    "apply-tx": "Apply Transaction",
     "create-tx": "Start Transaction",
     "slatepack-address-name": "This Wallet's Slatepack Address",
     "address-instruction": "Provide this address to others to allow them to send you funds",

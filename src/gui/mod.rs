@@ -412,7 +412,7 @@ pub enum Interaction {
     CloseErrorModal,
     /// Clipboard copy
     WriteToClipboard(String),
-    ReadFromClipboard(String),
+    ReadSlatepackFromClipboard,
     /// View interactions
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
