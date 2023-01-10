@@ -194,6 +194,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             return element::wallet::operation::apply_tx::handle_message(grin_gui, l);
         }
         // Wallet -> Operation -> Home -> Action
+        Message::Interaction(Interaction::WalletOperationApplyTxConfirmViewInteraction(l)) => {
+            return element::wallet::operation::apply_tx_confirm::handle_message(grin_gui, l);
+        }
+         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationHomeActionMenuViewInteraction(l)) => {
             return element::wallet::operation::action_menu::handle_message(grin_gui, l);
         }

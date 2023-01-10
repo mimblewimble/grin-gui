@@ -86,7 +86,10 @@ pub fn handle_message<'a>(
                     state.slatepack_read_result = localized_string("tx-slatepack-read-failure")
                 }
                 Ok(s) => {
-                    debug!("{}", s);
+                    debug!("{}", s.0);
+                    grin_gui.wallet_state.operation_state.apply_tx_confirm_state.slatepack_parsed = Some(s);
+                    grin_gui.wallet_state.operation_state.mode =
+                        crate::gui::element::wallet::operation::Mode::ApplyTxConfirm;
                 }
             }
         }

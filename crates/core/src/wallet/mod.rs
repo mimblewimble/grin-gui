@@ -373,11 +373,12 @@ where
     pub fn decrypt_slatepace(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slatepack: String,
-    ) -> Result<Slatepack, GrinWalletInterfaceError> {
+    ) -> Result<(Slatepack, Slate), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
-            let res = o.decode_slatepack_message(None, slatepack, vec![0])?;
-            return Ok(res)
+            let sp= o.decode_slatepack_message(None, slatepack.clone(), vec![0])?;
+            let slate = o.slate_from_slatepack_message(None, slatepack, vec![0])?;
+            return Ok((sp, slate))
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
