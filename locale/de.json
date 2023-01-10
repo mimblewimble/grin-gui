@@ -235,6 +235,10 @@
     "tx-list": "Transactions",
     "tx-outstanding": "Outstanding",
     "tx-recent": "Most Recent",
-    "tx-details": "Details"
+    "tx-details": "Details",
+    "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
+    "tx-slatepack-read-result-default": "Ensure the clipboard contains the encrypted slatepack contents and press 'Continue'",
+    "tx-slatepack-read-failure": "Clipboard does not contain a slatepack that can be decrypted by this wallet",
+    "tx-continue": "Continue"
 
 }

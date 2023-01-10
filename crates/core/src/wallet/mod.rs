@@ -21,7 +21,7 @@ use dirs;
 pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
-    InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlatepackAddress,
+    InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlatepackAddress, Slatepack,
     StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
 };
 
@@ -369,6 +369,20 @@ where
         Ok(api.create_slatepack_message(None, &unenc_slate, Some(0), recipients)?)
     }
 
+    /// Attempt to decode and decrypt a given slatepack
+    pub fn decrypt_slatepace(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        slatepack: String,
+    ) -> Result<Slatepack, GrinWalletInterfaceError> {
+        let w = wallet_interface.read().unwrap();
+        if let Some(o) = &w.owner_api {
+            let res = o.decode_slatepack_message(None, slatepack, vec![0])?;
+            return Ok(res)
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+ 
     pub async fn get_wallet_info(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
     ) -> Result<(bool, WalletInfo), GrinWalletInterfaceError> {

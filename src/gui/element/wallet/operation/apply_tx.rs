@@ -38,8 +38,8 @@ pub struct StateContainer {
     // pub copy_address_button_state: button::State,
     // pub address_state: text_input::State,
     pub address_value: String,
-    // Value read from clipboard
-    pub read_slatepack_from_clipboard: String,
+    // Slatepack read result
+    pub slatepack_read_result: String,
 }
 
 impl Default for StateContainer {
@@ -49,7 +49,7 @@ impl Default for StateContainer {
             // copy_address_button_state: Default::default(),
             // address_state: Default::default(),
             address_value: Default::default(),
-            read_slatepack_from_clipboard: Default::default(),
+            slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
         }
     }
 }
@@ -70,11 +70,7 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    /*let state = &mut grin_gui
-    .wallet_state
-    .operation_state
-    .home_state
-    .action_menu_state;*/
+    let state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxViewInteraction(Back)");
@@ -83,6 +79,16 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
             debug!("Read from clipboard: {}", value);
+            let w = grin_gui.wallet_interface.clone();
+            let decode_res = WalletInterface::decrypt_slatepace(w, value);
+            match decode_res {
+                Err(e) => {
+                    state.slatepack_read_result = localized_string("tx-slatepack-read-failure")
+                }
+                Ok(s) => {
+                    debug!("{}", s);
+                }
+            }
         }
         LocalViewInteraction::ReadFromClipboardFailure => {
             error!("Failed to read from clipboard");
@@ -162,30 +168,31 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let address_instruction_container = Container::new(address_instruction_container)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let slatepack_paste_name = Text::new(localized_string("paste-transaction-here"))
+    let slatepack_paste_name = Text::new(localized_string("tx-slatepack-paste-transaction-here"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let slatepack_paste_name_container =
-        Container::new(slatepack_paste_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let slatepack_paste_name_container = Container::new(slatepack_paste_name)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let slatepack_text_area = Text::new("SLATEPACK TEXT GO HERE").size(DEFAULT_FONT_SIZE)
-    .width(Length::Units(400));
+    let slatepack_text_area = Text::new(state.slatepack_read_result.clone())
+        .size(DEFAULT_FONT_SIZE)
+        .width(Length::Units(400));
 
-    let paste_slatepack_button = Button::new(
+    /*let paste_slatepack_button = Button::new(
         // &mut state.copy_address_button_state,
-        Text::new(localized_string("paste-from-clipboard"))
+        Text::new(localized_string("tx-slatepack-paste-from-clipboard"))
             .size(SMALLER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Center),
     )
     .style(grin_gui_core::theme::ButtonStyle::NormalText)
     .on_press(Interaction::ReadSlatepackFromClipboard);
 
-    let paste_slatepack_button: Element<Interaction> = paste_slatepack_button.into();
+    let paste_slatepack_button: Element<Interaction> = paste_slatepack_button.into();*/
 
     let paste_slatepack_row = Row::new()
         .push(slatepack_text_area)
-        .push(paste_slatepack_button.map(Message::Interaction))
+        //.push(paste_slatepack_button.map(Message::Interaction))
         .spacing(DEFAULT_PADDING);
 
     let slatepack_area = Column::new()
@@ -199,7 +206,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let button_width = Length::Units(BUTTON_WIDTH);
 
     let submit_button_label_container =
-        Container::new(Text::new(localized_string("tx-create-submit")).size(DEFAULT_FONT_SIZE))
+        Container::new(Text::new(localized_string("tx-continue")).size(DEFAULT_FONT_SIZE))
             .width(button_width)
             .height(button_height)
             .center_x()
@@ -207,11 +214,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(submit_button_label_container)
-        .style(grin_gui_core::theme::ButtonStyle::Primary);
-    let submit_button =
-        submit_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
-            LocalViewInteraction::ApplyTransaction("_".into()),
-        ));
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::ReadSlatepackFromClipboard);
+    /*let submit_button = submit_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
+        LocalViewInteraction::ApplyTransaction("_".into()),
+    ));*/
 
     let submit_button: Element<Interaction> = submit_button.into();
 
@@ -269,7 +276,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             0, // bottom
             5, // left
         ]));
- 
+
     // form container should be scrollable in tiny windows
     let scrollable = Scrollable::new(form_container)
         .height(Length::Fill)

@@ -244,5 +244,11 @@
     "tx-recent": "Most Recent",
     "tx-details": "Details",
     "tx-create-success-title": "Encrypted Transaction",
-    "tx-create-success-desc": "Copy/Paste this encrypted transaction to the recipient via a channel of your choosing"
+    "tx-create-success-desc": "Copy/Paste this encrypted transaction to the recipient via a channel of your choosing",
+    "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
+    "tx-slatepack-read-result-default": "Ensure the clipboard contains the encrypted slatepack contents and press 'Continue'",
+    "tx-slatepack-read-failure": "Clipboard does not contain a slatepack that can be decrypted by this wallet",
+    "tx-continue": "Continue"
+
+
 }
