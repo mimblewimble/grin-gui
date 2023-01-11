@@ -80,7 +80,7 @@ pub fn handle_message<'a>(
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
             debug!("Read from clipboard: {}", value);
             let w = grin_gui.wallet_interface.clone();
-            let decode_res = WalletInterface::decrypt_slatepace(w, value);
+            let decode_res = WalletInterface::decrypt_slatepack(w, value);
             match decode_res {
                 Err(e) => {
                     state.slatepack_read_result = localized_string("tx-slatepack-read-failure")

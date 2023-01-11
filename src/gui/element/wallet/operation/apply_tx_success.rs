@@ -83,8 +83,7 @@ pub fn data_container<'a>(
         Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let encrypted_slate_card = Card::new(
-        Text::new(localized_string("tx-create-success-title"))
-            .size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(localized_string("tx-create-success-title")).size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(&state.encrypted_slate).size(DEFAULT_FONT_SIZE),
     )
     .foot(
@@ -123,7 +122,7 @@ pub fn data_container<'a>(
 
     let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationCreateTxSuccessViewInteraction(
+        .on_press(Interaction::WalletOperationApplyTxSuccessViewInteraction(
             LocalViewInteraction::Submit,
         ))
         .into();

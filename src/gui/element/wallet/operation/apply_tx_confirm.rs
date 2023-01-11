@@ -64,6 +64,8 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     Accept,
+    TxAcceptSuccess(String),
+    TxAcceptFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 pub fn handle_message<'a>(
@@ -78,9 +80,74 @@ pub fn handle_message<'a>(
                 crate::gui::element::wallet::operation::Mode::Home;
         }
         LocalViewInteraction::Accept => {
+            grin_gui.error.take();
+
             log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Accept)");
+            if state.slatepack_parsed.is_none() {
+                log::debug!("you should never see this - dev make sure slatepack is not None");
+                return Ok(Command::none());
+            }
+
+            let (slatepack, slate) = state.slatepack_parsed.as_ref().unwrap();
+
+            let sp_sending_address = match &slatepack.sender {
+                None => "None".to_string(),
+                Some(s) => s.to_string(),
+            };
+
+            let w = grin_gui.wallet_interface.clone();
+            let out_slate = slate.clone();
+
+            // TODO: More states to consider here
+            let fut = match slate.state {
+                SlateState::Standard1 => Some(move || WalletInterface::receive_tx_from_s1(
+                    w,
+                    out_slate,
+                    sp_sending_address,
+                )),
+                _ => None,
+            };
+
+            match fut {
+                Some(ff) => {
+                    return Ok(Command::perform(ff(), |r| {
+                        match r.context("Failed to Progress Transaction") {
+                            Ok(ret) => Message::Interaction(
+                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                    LocalViewInteraction::TxAcceptSuccess(ret),
+                                ),
+                            ),
+                            Err(e) => Message::Interaction(
+                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                    LocalViewInteraction::TxAcceptFailure(Arc::new(RwLock::new(
+                                        Some(e),
+                                    ))),
+                                ),
+                            ),
+                        }
+                    }))
+                }
+                None => {
+                    log::error!("Slate state not yet supported");
+                    return Ok(Command::none());
+                }
+            }
+        }
+        LocalViewInteraction::TxAcceptSuccess(slate) => {
+            log::debug!("{:?}", slate);
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_success_state
+                .encrypted_slate = slate.to_string();
             grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::Home;
+                crate::gui::element::wallet::operation::Mode::ApplyTxSuccess;
+        }
+        LocalViewInteraction::TxAcceptFailure(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
         }
     }
     Ok(Command::none())
@@ -216,8 +283,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     if hide_continue {
         submit_button = submit_button.style(grin_gui_core::theme::ButtonStyle::NormalText);
     } else {
-        submit_button = submit_button.style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationApplyTxConfirmViewInteraction(LocalViewInteraction::Accept));
+        submit_button = submit_button
+            .style(grin_gui_core::theme::ButtonStyle::Primary)
+            .on_press(Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                LocalViewInteraction::Accept,
+            ));
     }
 
     let submit_button: Element<Interaction> = submit_button.into();

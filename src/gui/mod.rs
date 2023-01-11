@@ -434,6 +434,7 @@ pub enum Interaction {
     WalletOperationCreateTxSuccessViewInteraction(element::wallet::operation::create_tx_success::LocalViewInteraction),
     WalletOperationApplyTxViewInteraction(element::wallet::operation::apply_tx::LocalViewInteraction),
     WalletOperationApplyTxConfirmViewInteraction(element::wallet::operation::apply_tx_confirm::LocalViewInteraction),
+    WalletOperationApplyTxSuccessViewInteraction(element::wallet::operation::apply_tx_success::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),

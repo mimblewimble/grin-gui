@@ -244,5 +244,4 @@
     "tx-sender-name": "Sender",
     "apply-tx-amount": "Incoming amount",
     "tx-state": "Transaction Stage (this will be presented better)"
-
 }

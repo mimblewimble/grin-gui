@@ -1,23 +1,24 @@
-pub mod open;
 pub mod action_menu;
-pub mod home;
-pub mod tx_list;
-pub mod create_tx;
-pub mod create_tx_success;
 pub mod apply_tx;
 pub mod apply_tx_confirm;
+pub mod apply_tx_success;
 pub mod chart;
+pub mod create_tx;
+pub mod create_tx_success;
+pub mod home;
+pub mod open;
+pub mod tx_list;
 pub mod tx_list_display;
 
 use {
     crate::gui::{GrinGui, Message},
     crate::Result,
-    grin_gui_core::theme::ColorPalette,
     grin_gui_core::config::Config,
-    iced::{Command, Length},
+    grin_gui_core::theme::ColorPalette,
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
     },
+    iced::{Command, Length},
 };
 
 pub struct StateContainer {
@@ -28,6 +29,7 @@ pub struct StateContainer {
     pub create_tx_success_state: create_tx_success::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
     pub apply_tx_confirm_state: apply_tx_confirm::StateContainer,
+    pub apply_tx_success_state: apply_tx_success::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
     has_wallet_open_check_failed_one_time: bool,
 }
@@ -39,7 +41,8 @@ pub enum Mode {
     CreateTx,
     CreateTxSuccess,
     ApplyTx,
-    ApplyTxConfirm
+    ApplyTxConfirm,
+    ApplyTxSuccess
 }
 
 impl Default for StateContainer {
@@ -52,6 +55,7 @@ impl Default for StateContainer {
             create_tx_success_state: Default::default(),
             apply_tx_state: Default::default(),
             apply_tx_confirm_state: Default::default(),
+            apply_tx_success_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
         }
     }
@@ -72,7 +76,6 @@ impl StateContainer {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {}
 
@@ -80,35 +83,27 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    state: &'a StateContainer,
-    config:&'a Config
-) -> Container<'a, Message> {
+pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Container<'a, Message> {
     let content = match state.mode {
         Mode::Open => open::data_container(&state.open_state, config),
-        Mode::Home => {
-            home::data_container(config, &state.home_state)
-        }
-        Mode::CreateTx => {
-            create_tx::data_container(config, &state.create_tx_state)
-        }
+        Mode::Home => home::data_container(config, &state.home_state),
+        Mode::CreateTx => create_tx::data_container(config, &state.create_tx_state),
         Mode::CreateTxSuccess => {
             create_tx_success::data_container(config, &state.create_tx_success_state)
         }
-         Mode::ApplyTx => {
-            apply_tx::data_container(config, &state.apply_tx_state)
-        }
-         Mode::ApplyTxConfirm => {
+        Mode::ApplyTx => apply_tx::data_container(config, &state.apply_tx_state),
+        Mode::ApplyTxConfirm => {
             apply_tx_confirm::data_container(config, &state.apply_tx_confirm_state)
+        }
+        Mode::ApplyTxSuccess => {
+            apply_tx_success::data_container(config, &state.apply_tx_success_state)
         }
     };
 
-    let column = Column::new()
-        .push(content);
+    let column = Column::new().push(content);
 
     Container::new(column)
         .center_y()
