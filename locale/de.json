@@ -242,6 +242,7 @@
     "tx-continue": "Continue",
     "apply-tx-confirm": "Confirm Transaction Details",
     "tx-sender-name": "Sender",
-    "apply-tx-amount": "Incoming amount"
+    "apply-tx-amount": "Incoming amount",
+    "tx-state": "Transaction Stage (this will be presented better)"
 
 }

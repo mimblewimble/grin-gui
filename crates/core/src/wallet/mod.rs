@@ -22,7 +22,7 @@ pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
     InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlatepackAddress, Slatepack,
-    StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
+    StatusMessage, SlateState, TxLogEntry, TxLogEntryType, WalletInfo,
 };
 
 use crate::error::GrinWalletInterfaceError;

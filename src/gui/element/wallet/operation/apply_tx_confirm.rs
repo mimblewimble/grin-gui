@@ -3,7 +3,7 @@ use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
-    wallet::{Slate, Slatepack, TxLogEntry, TxLogEntryType},
+    wallet::{Slate, SlateState, Slatepack, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -63,10 +63,7 @@ pub enum Action {}
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Back,
-    Address(String),
-    ApplyTransaction(String),
-    ReadFromClipboardSuccess(String),
-    ReadFromClipboardFailure,
+    Accept,
 }
 
 pub fn handle_message<'a>(
@@ -76,17 +73,15 @@ pub fn handle_message<'a>(
     let state = &mut grin_gui.wallet_state.operation_state.apply_tx_confirm_state;
     match message {
         LocalViewInteraction::Back => {
-            log::debug!("Interaction::WalletOperationApplyTxViewInteraction(Back)");
+            log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Cancel)");
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
         }
-        LocalViewInteraction::ReadFromClipboardSuccess(value) => {
+        LocalViewInteraction::Accept => {
+            log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Accept)");
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::Home;
         }
-        LocalViewInteraction::ReadFromClipboardFailure => {
-            error!("Failed to read from clipboard");
-        }
-        LocalViewInteraction::Address(_) => {}
-        LocalViewInteraction::ApplyTransaction(_) => {}
     }
     Ok(Command::none())
 }
@@ -110,7 +105,22 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let amount = amount_to_hr_string(slate.amount, false);
 
+    let mut state_text = slate.state.to_string();
+
     // TODO: What's displayed here should change based on the slate state
+    let state_text_append = match slate.state {
+        SlateState::Standard1 => "You are the recipient - Standard workflow",
+        SlateState::Standard2 => {
+            "You are the payee, and are finalizing the transaction - Standard workflow"
+        }
+        SlateState::Standard3 => "This transaction is finalised - Standard workflow",
+        _ => "Support still in development",
+    };
+
+    state_text = format!("{} - {}", state_text, state_text_append);
+
+    let hide_continue =
+        slate.state != SlateState::Standard1 && slate.state != SlateState::Standard2;
 
     // Title row
     let title = Text::new(localized_string("apply-tx-confirm"))
@@ -136,30 +146,48 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         0,               // left
     ]));
 
-    let sender_name_label = Text::new(format!("{}: ", localized_string("tx-sender-name")))
+    /// TX State (i.e. Stage)
+    let state_label = Text::new(format!("{}: ", localized_string("tx-state")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let sender_name_label_container = Container::new(sender_name_label)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let state_label_container =
+        Container::new(state_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let sender_name = Text::new(sp_sending_address).size(DEFAULT_FONT_SIZE);
+    let state = Text::new(state_text).size(DEFAULT_FONT_SIZE);
     //.width(Length::Units(400))
     //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
-    let sender_name_container =
-        Container::new(sender_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let state_container =
+        Container::new(state).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let sender_name_row = Row::new()
-        .push(sender_name_label_container)
-        .push(sender_name_container);
+    let state_row = Row::new().push(state_label_container).push(state_container);
+
+    /// Sender address
+    let sender_address_label = Text::new(format!("{}: ", localized_string("tx-sender-name")))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
+
+    let sender_address_label_container = Container::new(sender_address_label)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+    let sender_address = Text::new(sp_sending_address).size(DEFAULT_FONT_SIZE);
+    //.width(Length::Units(400))
+    //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+
+    let sender_address_container = Container::new(sender_address)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+    let sender_address_row = Row::new()
+        .push(sender_address_label_container)
+        .push(sender_address_container);
 
     let amount_label = Text::new(format!("{}: ", localized_string("apply-tx-amount")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let amount_label_container = Container::new(amount_label)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let amount_label_container =
+        Container::new(amount_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let amount = Text::new(amount).size(DEFAULT_FONT_SIZE);
     //.width(Length::Units(400))
@@ -172,55 +200,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(amount_label_container)
         .push(amount_container);
 
-
-    /*let address_row = Row::new()
-        .push(address_input)
-        .push(copy_address_button)
-        .spacing(DEFAULT_PADDING);
-
-    let address_row: Element<Interaction> = address_row.into();
-
-    let address_instruction_container = Text::new(localized_string("address-instruction"))
-        .size(SMALLER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let address_instruction_container = Container::new(address_instruction_container)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let slatepack_paste_name = Text::new(localized_string("tx-slatepack-paste-transaction-here"))
-        .size(DEFAULT_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let slatepack_paste_name_container = Container::new(slatepack_paste_name)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let slatepack_text_area = Text::new(state.slatepack_read_result.clone())
-        .size(DEFAULT_FONT_SIZE)
-        .width(Length::Units(400));*/
-
-    /*let paste_slatepack_button = Button::new(
-        // &mut state.copy_address_button_state,
-        Text::new(localized_string("tx-slatepack-paste-from-clipboard"))
-            .size(SMALLER_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Center),
-    )
-    .style(grin_gui_core::theme::ButtonStyle::NormalText)
-    .on_press(Interaction::ReadSlatepackFromClipboard);
-
-    let paste_slatepack_button: Element<Interaction> = paste_slatepack_button.into();*/
-
-    /*let paste_slatepack_row = Row::new()
-        .push(slatepack_text_area)
-        //.push(paste_slatepack_button.map(Message::Interaction))
-        .spacing(DEFAULT_PADDING);
-
-    let slatepack_area = Column::new()
-        .push(slatepack_paste_name_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(paste_slatepack_row);
-
-    let slatepack_area_container = Container::new(slatepack_area);*/
-
     let button_height = Length::Units(BUTTON_HEIGHT);
     let button_width = Length::Units(BUTTON_WIDTH);
 
@@ -232,12 +211,14 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .center_y()
             .align_x(alignment::Horizontal::Center);
 
-    let mut submit_button = Button::new(submit_button_label_container)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::ReadSlatepackFromClipboard);
-    /*let submit_button = submit_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
-        LocalViewInteraction::ApplyTransaction("_".into()),
-    ));*/
+    let mut submit_button = Button::new(submit_button_label_container);
+
+    if hide_continue {
+        submit_button = submit_button.style(grin_gui_core::theme::ButtonStyle::NormalText);
+    } else {
+        submit_button = submit_button.style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletOperationApplyTxConfirmViewInteraction(LocalViewInteraction::Accept));
+    }
 
     let submit_button: Element<Interaction> = submit_button.into();
 
@@ -272,7 +253,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(cancel_container);
 
     let column = Column::new()
-        .push(sender_name_row)
+        .push(state_row)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(sender_address_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(amount_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
