@@ -211,7 +211,7 @@ where
         Ok(wallet_inst)
     }
 
-    fn inst_owner_api(
+    fn inst_apis(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         chain_type: global::ChainTypes,
         top_level_directory: PathBuf,
@@ -223,28 +223,11 @@ where
         )?;
         let mut w = wallet_interface.write().unwrap();
         w.owner_api = Some(Owner::new(wallet_inst.clone(), None));
-        global::set_local_chain_type(chain_type);
-
-        Ok(())
-    }
-
-    fn inst_foreign_api(
-        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
-        chain_type: global::ChainTypes,
-        top_level_directory: PathBuf,
-    ) -> Result<(), GrinWalletInterfaceError> {
-        let wallet_inst = WalletInterface::inst_wallet(
-            wallet_interface.clone(),
-            chain_type,
-            top_level_directory,
-        )?;
-        let mut w = wallet_interface.write().unwrap();
         w.foreign_api = Some(Foreign::new(wallet_inst.clone(), None, None, false));
         global::set_local_chain_type(chain_type);
 
         Ok(())
     }
-
 
     pub async fn init(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
@@ -254,13 +237,7 @@ where
         chain_type: global::ChainTypes,
         recovery_phrase: Option<String>,
     ) -> Result<(String, String, String, global::ChainTypes), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(
-            wallet_interface.clone(),
-            chain_type,
-            top_level_directory.clone(),
-        )?;
-
-        WalletInterface::inst_foreign_api(
+        WalletInterface::inst_apis(
             wallet_interface.clone(),
             chain_type,
             top_level_directory.clone(),
@@ -332,7 +309,7 @@ where
         top_level_directory: PathBuf,
         chain_type: global::ChainTypes,
     ) -> Result<(), GrinWalletInterfaceError> {
-        WalletInterface::inst_owner_api(
+        WalletInterface::inst_apis(
             wallet_interface.clone(),
             chain_type,
             top_level_directory.clone(),
@@ -479,7 +456,7 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slate: Slate,
         dest_slatepack_address: String,
-    ) -> Result<String, GrinWalletInterfaceError> {
+    ) -> Result<Option<String>, GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         let ret_slate;
         if let Some(f) = &w.foreign_api {
@@ -488,9 +465,25 @@ where
             return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
         }
         if let Some(o) = &w.owner_api {
-            return WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &ret_slate);
+            let encrypted = WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &ret_slate)?;
+            return Ok(Some(encrypted))
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn finalize_from_s2(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        slate: Slate,
+        send_to_chain: bool,
+    ) -> Result<Option<String>, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let ret_slate = o.finalize_tx(None, &slate)?;
+            o.post_tx(None, &ret_slate, true)?;
+            return Ok(None)
+        } else {
+            return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
         }
     }
 

@@ -64,7 +64,7 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     Accept,
-    TxAcceptSuccess(String),
+    TxAcceptSuccess(Option<String>),
     TxAcceptFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -97,20 +97,13 @@ pub fn handle_message<'a>(
 
             let w = grin_gui.wallet_interface.clone();
             let out_slate = slate.clone();
+            match slate.state {
+                SlateState::Standard1 => {
+                    let fut = move || {
+                        WalletInterface::receive_tx_from_s1(w, out_slate, sp_sending_address)
+                    };
 
-            // TODO: More states to consider here
-            let fut = match slate.state {
-                SlateState::Standard1 => Some(move || WalletInterface::receive_tx_from_s1(
-                    w,
-                    out_slate,
-                    sp_sending_address,
-                )),
-                _ => None,
-            };
-
-            match fut {
-                Some(ff) => {
-                    return Ok(Command::perform(ff(), |r| {
+                    return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
                             Ok(ret) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
@@ -125,9 +118,29 @@ pub fn handle_message<'a>(
                                 ),
                             ),
                         }
-                    }))
+                    }));
                 }
-                None => {
+                SlateState::Standard2 => {
+                    let fut = move || WalletInterface::finalize_from_s2(w, out_slate, true);
+
+                    return Ok(Command::perform(fut(), |r| {
+                        match r.context("Failed to Progress Transaction") {
+                            Ok(ret) => Message::Interaction(
+                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                    LocalViewInteraction::TxAcceptSuccess(ret),
+                                ),
+                            ),
+                            Err(e) => Message::Interaction(
+                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                    LocalViewInteraction::TxAcceptFailure(Arc::new(RwLock::new(
+                                        Some(e),
+                                    ))),
+                                ),
+                            ),
+                        }
+                    }));
+                }
+                _ => {
                     log::error!("Slate state not yet supported");
                     return Ok(Command::none());
                 }
@@ -139,7 +152,7 @@ pub fn handle_message<'a>(
                 .wallet_state
                 .operation_state
                 .apply_tx_success_state
-                .encrypted_slate = slate.to_string();
+                .encrypted_slate = slate;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ApplyTxSuccess;
         }
@@ -178,7 +191,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let state_text_append = match slate.state {
         SlateState::Standard1 => "You are the recipient - Standard workflow",
         SlateState::Standard2 => {
-            "You are the payee, and are finalizing the transaction - Standard workflow"
+            "You are the payee, and are finalizing the transaction and sending it to the chain for validation - Standard workflow"
         }
         SlateState::Standard3 => "This transaction is finalised - Standard workflow",
         _ => "Support still in development",

@@ -18,7 +18,7 @@ use {
 
 pub struct StateContainer {
     // Encrypted slate to send to recipient
-    pub encrypted_slate: String,
+    pub encrypted_slate: Option<String>,
 }
 
 impl Default for StateContainer {
@@ -82,9 +82,14 @@ pub fn data_container<'a>(
     let description_container =
         Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
+    let slate_card_content = match state.encrypted_slate.as_ref() {
+        Some(s) => s.clone(),
+        None => "Transaction was posted to chain".to_owned(),
+    };
+
     let encrypted_slate_card = Card::new(
         Text::new(localized_string("tx-create-success-title")).size(DEFAULT_HEADER_FONT_SIZE),
-        Text::new(&state.encrypted_slate).size(DEFAULT_FONT_SIZE),
+        Text::new(slate_card_content).size(DEFAULT_FONT_SIZE),
     )
     .foot(
         Column::new()
@@ -100,7 +105,7 @@ pub fn data_container<'a>(
                 )
                 .style(grin_gui_core::theme::ButtonStyle::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
-                    state.encrypted_slate.clone(),
+                    state.encrypted_slate.clone().unwrap_or("None".to_owned()),
                 ))),
             ),
     )
