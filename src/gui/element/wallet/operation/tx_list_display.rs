@@ -179,7 +179,7 @@ pub fn handle_message<'a>(
                         let credits = tx.amount_credited;
                         let debits = tx.amount_debited;
 
-                        datetime_sums.push((datetime, credits - debits));
+                        datetime_sums.push((datetime, credits as i64 - debits as i64));
                     }
 
                     let mut sum = 0;
@@ -195,7 +195,7 @@ pub fn handle_message<'a>(
                         let txns = datetime_sums.iter().filter(|(date, _)| *date == dt);
 
                         // sum up balance amount
-                        sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<u64>();
+                        sum = sum + txns.map(|x| x.1).collect::<Vec<_>>().iter().sum::<i64>();
 
                         // convert to grin units
                         let grin_sum = (sum as f64 / grin_gui_core::GRIN_BASE as f64) as f64;

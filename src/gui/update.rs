@@ -1,7 +1,10 @@
 use {
     super::{GrinGui, Interaction, Message, Mode},
     crate::{gui::element, log_error, Result},
-    grin_gui_core::{fs::PersistentData, node::subscriber::UIMessage, node::ChainTypes::Testnet, node::ChainTypes::Mainnet},
+    grin_gui_core::{
+        fs::PersistentData, node::subscriber::UIMessage, node::ChainTypes::Mainnet,
+        node::ChainTypes::Testnet,
+    },
     iced::{clipboard, Command},
     //grin_gui_widgets::header::ResizeEvent,
     std::path::PathBuf,
@@ -53,12 +56,12 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
                 if !node_started {
                     node.start_server(wallet_chain_type);
-                
                 } else {
                     let running_chain_type = {
                         let node = grin_gui.node_interface.read().unwrap();
                         node.chain_type
-                    }.unwrap();
+                    }
+                    .unwrap();
 
                     if running_chain_type != wallet_chain_type {
                         node.restart_server(wallet_chain_type);
@@ -77,6 +80,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::OpenErrorModal) => {}
         Message::Interaction(Interaction::CloseErrorModal) => {}
         Message::Interaction(Interaction::WriteToClipboard(_)) => {}
+        Message::Interaction(Interaction::ReadSlatepackFromClipboard) => {}
         Message::Interaction(_) => {
             grin_gui.error.take();
         }
@@ -108,14 +112,19 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         },
         // Error modal state
         Message::Interaction(Interaction::OpenErrorModal) => grin_gui.modal_state.show(true),
-        Message::Interaction(Interaction::CloseErrorModal) => {
-            grin_gui.modal_state.show(false)
-        }
+        Message::Interaction(Interaction::CloseErrorModal) => grin_gui.modal_state.show(false),
         // Clipboard messages
         Message::Interaction(Interaction::WriteToClipboard(contents)) => {
             return Ok(clipboard::write::<Message>(contents));
         }
-        // Top level menu
+        Message::Interaction(Interaction::ReadSlatepackFromClipboard) => {
+            return Ok(clipboard::read::<Message>(|value| {
+                match value {
+                Some(v) => return Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(element::wallet::operation::apply_tx::LocalViewInteraction::ReadFromClipboardSuccess(v))),
+                None => return Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(element::wallet::operation::apply_tx::LocalViewInteraction::ReadFromClipboardFailure))
+                }
+            }))
+        } // Top level menu
         Message::Interaction(Interaction::MenuViewInteraction(l)) => {
             let _ = element::menu::handle_message(grin_gui, l);
         }
@@ -168,7 +177,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationHomeTxListDisplayInteraction(l)) => {
             return element::wallet::operation::tx_list_display::handle_message(grin_gui, l);
         }
-         // Wallet -> Operation -> TxList
+        // Wallet -> Operation -> TxList
         Message::Interaction(Interaction::WalletOperationTxListInteraction(l)) => {
             return element::wallet::operation::tx_list::handle_message(grin_gui, l);
         }
@@ -180,15 +189,23 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationCreateTxSuccessViewInteraction(l)) => {
             return element::wallet::operation::create_tx_success::handle_message(grin_gui, l);
         }
-         // Wallet -> Operation -> Home -> Action
+        // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(l)) => {
             return element::wallet::operation::apply_tx::handle_message(grin_gui, l);
         }
         // Wallet -> Operation -> Home -> Action
+        Message::Interaction(Interaction::WalletOperationApplyTxConfirmViewInteraction(l)) => {
+            return element::wallet::operation::apply_tx_confirm::handle_message(grin_gui, l);
+        }
+        // Wallet -> Operation -> Home -> Action
+        Message::Interaction(Interaction::WalletOperationApplyTxSuccessViewInteraction(l)) => {
+            return element::wallet::operation::apply_tx_success::handle_message(grin_gui, l);
+        }
+         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationHomeActionMenuViewInteraction(l)) => {
             return element::wallet::operation::action_menu::handle_message(grin_gui, l);
         }
-          Message::Interaction(Interaction::ModeSelected(mode)) => {
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;

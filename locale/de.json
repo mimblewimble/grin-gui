@@ -219,7 +219,7 @@
     "wallet-create-tx": "Send",
     "wallet-apply-tx": "Receive",
     "wallet-home": "Wallet - Set Name Here TBD",
-    "apply-tx": "Progress Transaction",
+    "apply-tx": "Apply Transaction",
     "create-tx": "Start Transaction",
     "slatepack-address-name": "This Wallet's Slatepack Address",
     "address-instruction": "Provide this address to others to allow them to send you funds",
@@ -235,6 +235,13 @@
     "tx-list": "Transactions",
     "tx-outstanding": "Outstanding",
     "tx-recent": "Most Recent",
-    "tx-details": "Details"
-
+    "tx-details": "Details",
+    "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
+    "tx-slatepack-read-result-default": "Ensure the clipboard contains the encrypted slatepack contents and press 'Continue'",
+    "tx-slatepack-read-failure": "Clipboard does not contain a slatepack that can be decrypted by this wallet",
+    "tx-continue": "Continue",
+    "apply-tx-confirm": "Confirm Transaction Details",
+    "tx-sender-name": "Sender",
+    "apply-tx-amount": "Incoming amount",
+    "tx-state": "Transaction Stage (this will be presented better)"
 }

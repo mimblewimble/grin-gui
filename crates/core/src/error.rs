@@ -10,6 +10,8 @@ pub enum GrinWalletInterfaceError {
     WalletLibWallet(#[from] grin_wallet_libwallet::Error),
     #[error("Owner API not Instantiated")]
     OwnerAPINotInstantiated,
+    #[error("Foreign API not Instantiated")]
+    ForeignAPINotInstantiated,
 }
 
 #[derive(thiserror::Error, Debug)]

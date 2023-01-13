@@ -412,7 +412,7 @@ pub enum Interaction {
     CloseErrorModal,
     /// Clipboard copy
     WriteToClipboard(String),
-    ReadFromClipboard(String),
+    ReadSlatepackFromClipboard,
     /// View interactions
     MenuViewInteraction(element::menu::LocalViewInteraction),
     SettingsViewInteraction(element::settings::LocalViewInteraction),
@@ -433,6 +433,8 @@ pub enum Interaction {
     WalletOperationCreateTxViewInteraction(element::wallet::operation::create_tx::LocalViewInteraction),
     WalletOperationCreateTxSuccessViewInteraction(element::wallet::operation::create_tx_success::LocalViewInteraction),
     WalletOperationApplyTxViewInteraction(element::wallet::operation::apply_tx::LocalViewInteraction),
+    WalletOperationApplyTxConfirmViewInteraction(element::wallet::operation::apply_tx_confirm::LocalViewInteraction),
+    WalletOperationApplyTxSuccessViewInteraction(element::wallet::operation::apply_tx_success::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
