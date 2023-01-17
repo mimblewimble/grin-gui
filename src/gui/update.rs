@@ -10,6 +10,8 @@ use {
     std::path::PathBuf,
 };
 
+use iced::window;
+
 #[cfg(target_os = "windows")]
 use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
 #[cfg(target_os = "windows")]
@@ -362,6 +364,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Application shutdown
         Message::Interaction(Interaction::Exit) => {
             grin_gui.safe_exit();
+            return Ok(window::close());
         }
         Message::Interaction(Interaction::ExitCancel) => {
             grin_gui.show_exit(false);
