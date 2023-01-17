@@ -16,7 +16,7 @@ use grin_gui_core::{
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings};
+use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings, window};
 use iced::widget::{
     button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
@@ -85,7 +85,6 @@ impl GrinGui {
     pub fn safe_exit (&mut self) {
         let mut node = self.node_interface.write().unwrap();
         node.shutdown_server(true);
-        self.exit = true;
     }
 }
 
@@ -174,12 +173,6 @@ impl Application for GrinGui {
         apply_config(&mut grin_gui, config);
 
         (grin_gui, Command::batch(vec![]))
-    }
-
-    #[cfg(target_os = "macos")]
-    fn should_exit(&self) -> bool {
-        // set during application shutdown
-        self.exit
     }
 
     fn title(&self) -> String {

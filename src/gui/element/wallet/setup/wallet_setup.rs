@@ -377,8 +377,8 @@ pub fn data_container<'a>(
 
     let mut restore_from_seed_column = {
         let checkbox = Checkbox::new(
-            state.restore_from_seed,
             localized_string("restore-from-seed"),
+            state.restore_from_seed,
             |b| {
                 Interaction::WalletSetupWalletViewInteraction(
                     LocalViewInteraction::ToggleRestoreFromSeed(b),
@@ -398,8 +398,8 @@ pub fn data_container<'a>(
 
     let show_advanced_options_column = {
         let checkbox = Checkbox::new(
-            state.show_advanced_options,
             localized_string("show-advanced-options"),
+            state.show_advanced_options,
             |b| {
                 Interaction::WalletSetupWalletViewInteraction(
                     LocalViewInteraction::ToggleAdvancedOptions(b),
@@ -494,7 +494,7 @@ pub fn data_container<'a>(
     let display_name_input: Element<Interaction> = display_name_input.into();
 
     let is_testnet_checkbox =
-        Checkbox::new(state.is_testnet, localized_string("use-testnet"), |b| {
+        Checkbox::new(localized_string("use-testnet"), state.is_testnet, |b| {
             Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::ToggleIsTestnet(b))
         })
         .style(grin_gui_core::theme::CheckboxStyle::Normal)

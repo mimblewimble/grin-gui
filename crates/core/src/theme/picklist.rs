@@ -25,7 +25,10 @@ impl pick_list::StyleSheet for Theme {
                     ..self.palette.normal.primary
                 },
                 border_radius: 2.0,
-                icon_size: 0.5,
+                handle_color: Color {
+                    a: 0.5,
+                    ..self.palette.normal.primary
+                },
                 placeholder_color: Color {
                     a: 0.5,
                     ..self.palette.normal.primary
