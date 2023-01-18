@@ -261,7 +261,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 if grin_gui.config.close_to_tray {
                     let _ = sender.try_send(TrayMessage::CloseToTray);
                 } else {
-                    SHOULD_EXIT.store(true, Ordering::Relaxed);
+                    return Ok(window::close());
                 }
             }
         }
@@ -372,6 +372,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(_) => {}
         Message::RuntimeEvent(_) => {}
         Message::None(_) => {}
+    }
+
+    if SHOULD_EXIT.load(Ordering::Relaxed) {
+        return Ok(window::close());
     }
 
     Ok(Command::none())
