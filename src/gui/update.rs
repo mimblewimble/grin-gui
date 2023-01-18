@@ -384,6 +384,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::None(_) => {}
     }
 
+    #[cfg(target_os = "windows")]
     if SHOULD_EXIT.load(Ordering::Relaxed) {
         return Ok(window::close());
     }
