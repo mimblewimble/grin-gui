@@ -3,6 +3,7 @@ use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
+    error::GrinWalletInterfaceError,
     wallet::{TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
@@ -42,6 +43,8 @@ pub struct StateContainer {
     pub amount_value: String,
     // whether amount has errored
     amount_error: bool,
+    // slatepack address error
+    slatepack_address_error: bool,
 }
 
 impl Default for StateContainer {
@@ -50,6 +53,7 @@ impl Default for StateContainer {
             recipient_address_value: Default::default(),
             amount_value: Default::default(),
             amount_error: false,
+            slatepack_address_error: false,
         }
     }
 }
@@ -66,6 +70,7 @@ pub enum LocalViewInteraction {
 
     TxCreatedOk(String),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
+    SlatepackAddressError,
 }
 
 pub fn handle_message<'a>(
@@ -89,6 +94,7 @@ pub fn handle_message<'a>(
         LocalViewInteraction::CreateTransaction() => {
             grin_gui.error.take();
             state.amount_error = false;
+            state.slatepack_address_error = false;
 
             log::debug!("Interaction::WalletOperationCreateTxViewInteraction");
 
@@ -116,19 +122,24 @@ pub fn handle_message<'a>(
             let fut =
                 move || WalletInterface::create_tx(w, args, state.recipient_address_value.clone());
 
-            return Ok(Command::perform(fut(), |r| {
-                match r.context("Failed to Create Transaction") {
-                    Ok(ret) => {
-                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
-                            LocalViewInteraction::TxCreatedOk(ret),
-                        ))
-                    }
-                    Err(e) => {
-                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
-                            LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(e)))),
-                        ))
-                    }
+            return Ok(Command::perform(fut(), |r| match r {
+                Ok(ret) => {
+                    Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                        LocalViewInteraction::TxCreatedOk(ret),
+                    ))
                 }
+                Err(e) => match e {
+                    GrinWalletInterfaceError::InvalidSlatepackAddress => {
+                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                            LocalViewInteraction::SlatepackAddressError,
+                        ))
+                    }
+                    _ => Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                        LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
+                            anyhow::Error::from(e),
+                        )))),
+                    )),
+                },
             }));
         }
         LocalViewInteraction::TxCreatedOk(slate) => {
@@ -147,6 +158,7 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
+        LocalViewInteraction::SlatepackAddressError => state.slatepack_address_error = true,
     }
 
     Ok(Command::none())
@@ -195,6 +207,14 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
+
+    let address_error = Text::new(localized_string("create-tx-address-error"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left)
+        .style(grin_gui_core::theme::text::TextStyle::Warning);
+
+    let address_error_container =
+        Container::new(address_error).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let amount = Text::new(localized_string("create-tx-amount"))
         .size(DEFAULT_FONT_SIZE)
@@ -288,7 +308,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(address_instruction_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(recipient_address_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+
+    if state.slatepack_address_error {
+        column = column
+            .push(address_error_container)
+            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+    }
+
+    column = column
         .push(amount_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(amount_input.map(Message::Interaction))
@@ -300,7 +328,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
     }
 
-    let column = column
+    column = column
         .push(button_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(Space::new(
