@@ -183,14 +183,6 @@ impl Application for GrinGui {
         self.general_settings_state.scale_state.scale
     }
 
-    #[cfg(target_os = "windows")]
-    fn should_exit(&self) -> bool {
-        use crate::tray::SHOULD_EXIT;
-        use std::sync::atomic::Ordering;
-
-        SHOULD_EXIT.load(Ordering::Relaxed)
-    }
-
     /*#[cfg(target_os = "windows")]
     fn mode(&self) -> iced::window::Mode {
         use crate::tray::GUI_VISIBLE;

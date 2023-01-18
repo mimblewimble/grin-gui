@@ -459,8 +459,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     #[cfg(target_os = "windows")]
     let close_to_tray_column = {
         let checkbox = Checkbox::new(
-            config.close_to_tray,
             localized_string("close-to-tray"),
+            config.close_to_tray,
             Interaction::ToggleCloseToTray,
         )
         .style(grin_gui_core::theme::CheckboxStyle::Normal)
@@ -477,8 +477,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     #[cfg(target_os = "windows")]
     let toggle_autostart_column = {
         let checkbox = Checkbox::new(
-            config.autostart,
             localized_string("toggle-autostart"),
+            config.autostart,
             Interaction::ToggleAutoStart,
         )
         .style(grin_gui_core::theme::CheckboxStyle::Normal)
@@ -495,8 +495,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     #[cfg(target_os = "windows")]
     let start_closed_to_tray_column = {
         let checkbox = Checkbox::new(
-            config.start_closed_to_tray,
             localized_string("start-closed-to-tray"),
+            config.start_closed_to_tray,
             Interaction::ToggleStartClosedToTray,
         )
         .style(grin_gui_core::theme::CheckboxStyle::Normal)

@@ -12,6 +12,8 @@ pub enum GrinWalletInterfaceError {
     OwnerAPINotInstantiated,
     #[error("Foreign API not Instantiated")]
     ForeignAPINotInstantiated,
+    #[error("Invalid Slatepack Address")]
+    InvalidSlatepackAddress,
 }
 
 #[derive(thiserror::Error, Debug)]

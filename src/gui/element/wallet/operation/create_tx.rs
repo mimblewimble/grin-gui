@@ -3,6 +3,7 @@ use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
+    error::GrinWalletInterfaceError,
     wallet::{TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
@@ -27,7 +28,7 @@ use {
     },
     grin_gui_core::wallet::{InitTxArgs, Slate, StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{
-        node::amount_to_hr_string,
+        node::{amount_from_hr_string, amount_to_hr_string},
         theme::{ButtonStyle, ColorPalette, ContainerStyle},
     },
     iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
@@ -40,6 +41,10 @@ pub struct StateContainer {
     pub recipient_address_value: String,
     // pub amount_input_state: text_input::State,
     pub amount_value: String,
+    // whether amount has errored
+    amount_error: bool,
+    // slatepack address error
+    slatepack_address_error: bool,
 }
 
 impl Default for StateContainer {
@@ -47,6 +52,8 @@ impl Default for StateContainer {
         Self {
             recipient_address_value: Default::default(),
             amount_value: Default::default(),
+            amount_error: false,
+            slatepack_address_error: false,
         }
     }
 }
@@ -60,8 +67,10 @@ pub enum LocalViewInteraction {
     RecipientAddress(String),
     Amount(String),
     CreateTransaction(),
+
     TxCreatedOk(String),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
+    SlatepackAddressError,
 }
 
 pub fn handle_message<'a>(
@@ -84,15 +93,25 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::CreateTransaction() => {
             grin_gui.error.take();
+            state.amount_error = false;
+            state.slatepack_address_error = false;
 
             log::debug!("Interaction::WalletOperationCreateTxViewInteraction");
 
             let w = grin_gui.wallet_interface.clone();
 
+            let amount = match amount_from_hr_string(&state.amount_value) {
+                Ok(0) | Err(_) => {
+                    state.amount_error = true;
+                    return Ok(Command::none());
+                }
+                Ok(a) => a,
+            };
+
             // Todo: Amount parsing + validation, just testing the flow for now
             let args = InitTxArgs {
                 src_acct_name: None,
-                amount: 1_000_000_000,
+                amount,
                 minimum_confirmations: 2,
                 max_outputs: 500,
                 num_change_outputs: 1,
@@ -103,19 +122,24 @@ pub fn handle_message<'a>(
             let fut =
                 move || WalletInterface::create_tx(w, args, state.recipient_address_value.clone());
 
-            return Ok(Command::perform(fut(), |r| {
-                match r.context("Failed to Create Transaction") {
-                    Ok(ret) => {
-                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
-                            LocalViewInteraction::TxCreatedOk(ret),
-                        ))
-                    }
-                    Err(e) => {
-                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
-                            LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(e)))),
-                        ))
-                    }
+            return Ok(Command::perform(fut(), |r| match r {
+                Ok(ret) => {
+                    Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                        LocalViewInteraction::TxCreatedOk(ret),
+                    ))
                 }
+                Err(e) => match e {
+                    GrinWalletInterfaceError::InvalidSlatepackAddress => {
+                        Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                            LocalViewInteraction::SlatepackAddressError,
+                        ))
+                    }
+                    _ => Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
+                        LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
+                            anyhow::Error::from(e),
+                        )))),
+                    )),
+                },
             }));
         }
         LocalViewInteraction::TxCreatedOk(slate) => {
@@ -134,6 +158,7 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
+        LocalViewInteraction::SlatepackAddressError => state.slatepack_address_error = true,
     }
 
     Ok(Command::none())
@@ -183,6 +208,14 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
 
+    let address_error = Text::new(localized_string("create-tx-address-error"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left)
+        .style(grin_gui_core::theme::text::TextStyle::Warning);
+
+    let address_error_container =
+        Container::new(address_error).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
     let amount = Text::new(localized_string("create-tx-amount"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
@@ -202,6 +235,14 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let amount_input: Element<Interaction> = amount_input.into();
+
+    let amount_error = Text::new(localized_string("create-tx-amount-error"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left)
+        .style(grin_gui_core::theme::text::TextStyle::Warning);
+
+    let amount_error_container =
+        Container::new(amount_error).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let address_instruction_container =
         Text::new(localized_string("recipient-address-instruction"))
@@ -224,9 +265,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut submit_button = Button::new(submit_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary);
-    let submit_button = submit_button.on_press(Interaction::WalletOperationCreateTxViewInteraction(
-        LocalViewInteraction::CreateTransaction(),
-    ));
+    let submit_button =
+        submit_button.on_press(Interaction::WalletOperationCreateTxViewInteraction(
+            LocalViewInteraction::CreateTransaction(),
+        ));
     let submit_button: Element<Interaction> = submit_button.into();
 
     let cancel_button_label_container =
@@ -260,17 +302,33 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
         .push(cancel_container);
 
-    let column = Column::new()
+    let mut column = Column::new()
         .push(recipient_address_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(address_instruction_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(recipient_address_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+
+    if state.slatepack_address_error {
+        column = column
+            .push(address_error_container)
+            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+    }
+
+    column = column
         .push(amount_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(amount_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+
+    if state.amount_error {
+        column = column
+            .push(amount_error_container)
+            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+    }
+
+    column = column
         .push(button_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(Space::new(

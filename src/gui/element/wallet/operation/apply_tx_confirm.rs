@@ -226,7 +226,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         0,               // left
     ]));
 
-    /// TX State (i.e. Stage)
+    // TX State (i.e. Stage)
     let state_label = Text::new(format!("{}: ", localized_string("tx-state")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
@@ -243,7 +243,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let state_row = Row::new().push(state_label_container).push(state_container);
 
-    /// Sender address
+    // Sender address
     let sender_address_label = Text::new(format!("{}: ", localized_string("tx-sender-name")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
