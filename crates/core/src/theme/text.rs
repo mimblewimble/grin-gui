@@ -1,5 +1,5 @@
 use super::Theme;
-use iced::{widget::text, theme::Text};
+use iced::widget::text;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum TextStyle {
