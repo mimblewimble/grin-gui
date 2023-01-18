@@ -83,6 +83,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::CloseErrorModal) => {}
         Message::Interaction(Interaction::WriteToClipboard(_)) => {}
         Message::Interaction(Interaction::ReadSlatepackFromClipboard) => {}
+        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(ref i)) => match i {
+            element::wallet::operation::home::LocalViewInteraction::WalletInfoUpdateSuccess(
+                _,
+                _,
+            ) => {}
+            _ => {
+                grin_gui.error.take();
+                ()
+            }
+        },
         Message::Interaction(_) => {
             grin_gui.error.take();
         }
@@ -203,7 +213,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationApplyTxSuccessViewInteraction(l)) => {
             return element::wallet::operation::apply_tx_success::handle_message(grin_gui, l);
         }
-         // Wallet -> Operation -> Home -> Action
+        // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationHomeActionMenuViewInteraction(l)) => {
             return element::wallet::operation::action_menu::handle_message(grin_gui, l);
         }

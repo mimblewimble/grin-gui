@@ -50,7 +50,6 @@ pub struct StateContainer {
     pub tx_list_display_state: tx_list_display::StateContainer,
 
     wallet_info: Option<WalletInfo>,
-    wallet_txs: TxList,
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
@@ -65,7 +64,7 @@ pub enum LocalViewInteraction {
     Back,
     Submit,
     /// was updated from node, info
-    WalletInfoUpdateSuccess(bool, WalletInfo, Vec<TxLogEntry>),
+    WalletInfoUpdateSuccess(bool, WalletInfo),
     WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
     WalletSlatepackAddressUpdateSuccess(String),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
@@ -166,7 +165,6 @@ pub fn handle_tick<'a>(
 
         let fut = move || WalletInterface::get_wallet_info(w.clone()); //.join(WalletInterface::get_txs(w, Some(query_args)));
 
-        //return Ok(Command::perform(fut(), |(wallet_info_res, txs_res)| {
         return Ok(Command::perform(fut(), |wallet_info_res| {
             if wallet_info_res.is_err() {
                 let e = wallet_info_res
@@ -176,19 +174,11 @@ pub fn handle_tick<'a>(
                     LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
                 ));
             }
-            /*if txs_res.is_err() {
-                let e = txs_res
-                    .context("Failed to retrieve wallet tx status")
-                    .unwrap_err();
-                return Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                    LocalViewInteraction::WalletInfoUpdateFailure(Arc::new(RwLock::new(Some(e)))),
-                ));
-            }*/
             let (node_success, wallet_info) = wallet_info_res.unwrap();
             //let (_, txs) = txs_res.unwrap();
             Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
                 //LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs),
-                LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, vec![]),
+                LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info),
             ))
         }));
     }
@@ -255,18 +245,12 @@ pub fn handle_message<'a>(
             }));
         }
         LocalViewInteraction::Submit => {}
-        LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info, txs) => {
+        LocalViewInteraction::WalletInfoUpdateSuccess(node_success, wallet_info) => {
             debug!(
                 "Update Wallet Info Summary: {}, {:?}",
                 node_success, wallet_info
             );
             state.wallet_info = Some(wallet_info);
-            debug!("Update Wallet Txs Summary: {:?}", txs);
-            let tx_wrap_list = txs
-                .iter()
-                .map(|tx| TxLogEntryWrap::new(tx.clone()))
-                .collect();
-            state.wallet_txs = TxList { txs: tx_wrap_list };
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
