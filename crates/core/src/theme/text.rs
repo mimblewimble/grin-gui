@@ -1,13 +1,25 @@
 use super::Theme;
-use iced::widget::text;
+use iced::{widget::text, theme::Text};
+
+#[derive(Debug, Clone, Copy, Default)]
+pub enum TextStyle {
+    #[default]
+    Default,
+    Warning,
+}
+
 
 impl text::StyleSheet for Theme {
-    type Style = iced_style::theme::Text;
+    type Style = TextStyle;
 
     fn appearance(&self, style: Self::Style) -> text::Appearance {
-        // text::Appearance {
-        //     color: Some(self.palette.bright.surface),
-        // }
-        Default::default()
+        match style {
+            TextStyle::Warning => {
+                text::Appearance{
+                    color: Some(self.palette.bright.error)
+                }
+            }
+            TextStyle::Default => Default::default(),
+        }
     }
 }

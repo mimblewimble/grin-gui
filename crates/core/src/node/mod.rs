@@ -28,7 +28,7 @@ pub mod subscriber;
 pub use grin_chain::types::SyncStatus;
 pub use grin_keychain::Identifier;
 pub use grin_servers::ServerStats;
-pub use grin_core::core::amount_to_hr_string;
+pub use grin_core::core::{amount_to_hr_string, amount_from_hr_string};
 
 /// TODO - this differs from the default directory in 5.x,
 /// need to reconcile this with existing installs somehow
