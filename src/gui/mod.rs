@@ -48,9 +48,6 @@ pub struct GrinGui {
     mode: Mode,
     config: Config,
 
-    /// Top-level error modal overlay
-    modal_state: modal::State<element::modal::StateContainer>,
-
     /// Main menu state
     menu_state: element::menu::StateContainer,
 
@@ -69,17 +66,16 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
-    show_modal: bool,
-    show_exit: bool,
+    show_error_modal: bool,
+    show_exit_modal: bool,
     exit: bool,
     theme: Theme,
 }
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
-        self.modal_state.show(show);
-        self.show_exit = show;
-        self.show_modal = show;
+        self.show_exit_modal = true;
+        self.show_error_modal = false;
     }
 
     pub fn safe_exit (&mut self) {
@@ -106,7 +102,6 @@ impl GrinGui{
             error: None,
             mode: Mode::Catalog,
             config: Config::default(),
-            modal_state: Default::default(),
             menu_state: Default::default(),
             wallet_state: Default::default(),
             node_state: Default::default(),
@@ -115,8 +110,8 @@ impl GrinGui{
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-            show_modal: false,
-            show_exit: false,
+            show_error_modal: false,
+            show_exit_modal: false,
             exit: false,
             theme,
         }
@@ -266,22 +261,22 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-        let show_exit = self.show_exit;
+        let show_exit = self.show_exit_modal;
         let error_cause = if let Some(e) = &self.error {
             error_cause_string(&e)
         } else {
             "".into()
         };
 
-        Modal::new(self.show_modal, content, move|| {
-            if show_exit {
+        Modal::new(self.show_exit_modal || self.show_error_modal, content, move|| {
+            if self.show_exit_modal {
                 element::modal::exit_card().into()
             } else {
                 element::modal::error_card(error_cause.clone()).into()
             }
         })
         //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
-        //.on_esc(Message::Interaction(Interaction::CloseErrorModal))
+        .on_esc(Message::Interaction(Interaction::CloseErrorModal))
         .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
 

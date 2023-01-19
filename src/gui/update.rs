@@ -123,8 +123,8 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             }
         },
         // Error modal state
-        Message::Interaction(Interaction::OpenErrorModal) => grin_gui.modal_state.show(true),
-        Message::Interaction(Interaction::CloseErrorModal) => grin_gui.modal_state.show(false),
+        Message::Interaction(Interaction::OpenErrorModal) =>  grin_gui.show_error_modal = true,
+        Message::Interaction(Interaction::CloseErrorModal) => grin_gui.show_error_modal = false,
         // Clipboard messages
         Message::Interaction(Interaction::WriteToClipboard(contents)) => {
             return Ok(clipboard::write::<Message>(contents));
