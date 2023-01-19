@@ -615,9 +615,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let status_container = Container::new(status_container_contents)
         .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
-        .height(Length::Fill)
-        .width(Length::Fill)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        .height(Length::Units(25))
+        .width(Length::Fill);
 
     let status_row = Row::new()
         .push(status_container)
@@ -625,7 +624,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .spacing(25);
 
     // Buttons to perform operations go here, but empty container for now
-    let tx_list_display = tx_list_display::data_container(config, &state.tx_list_display_state);
+    let tx_list_display =
+        tx_list_display::data_container(config, &state.tx_list_display_state).height(Length::Fill);
 
     // Overall Home screen layout column
     let column = Column::new()
@@ -633,7 +633,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(first_row_container)
         .push(Space::with_height(Length::Units(DEFAULT_PADDING * 3)))
         .push(tx_list_display)
-        .push(status_row);
+        .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+        .push(status_row)
+        .height(Length::Fill);
 
     Container::new(column).padding(iced::Padding::from([
         DEFAULT_PADDING, // top

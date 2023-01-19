@@ -315,7 +315,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
         0,               // top
-        DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
+        DEFAULT_PADDING * 3, // right - should roughly match width of content scroll bar to align table headers
         0,               // bottom
         0,               // left
     ]));
@@ -373,9 +373,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let mut tx_list_scrollable =
         Scrollable::new(content).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
-    // Bottom space below the scrollable.
-    let bottom_space = Space::new(Length::FillPortion(1), Length::Units(DEFAULT_PADDING));
-
     // This column gathers all the tx list elements together.
     let mut tx_list_content = Column::new();
 
@@ -386,39 +383,13 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // TRANSACTION LISTING
 
-    let main_column = Column::new();
-
-    let scrollable =
-        Scrollable::new(main_column).style(grin_gui_core::theme::ScrollableStyle::Primary);
-
-    let table_colummn = Column::new()
-        .push(table_header_container)
-        .push(scrollable)
-        .push(tx_list_content);
-    let table_container = Container::new(table_colummn)
-        //.style(grin_gui_core::theme::ContainerStyle::PanelBordered)
-        .height(Length::Fill)
-        .width(Length::Fill);
-
-    let row = Row::new().push(
-        Column::new()
-            .push(table_container)
-            .push(Space::with_height(Length::Units(DEFAULT_PADDING))), //.push(button_row),
-    );
-
-    let content = Container::new(row)
-        .center_x()
-        .width(Length::Fill)
-        .height(Length::Shrink)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let wrapper_column = Column::new()
-        .height(Length::Fill)
+    let column = Column::new()
         .push(header_container)
-        .push(content);
+        .push(table_header_container)
+        .push(tx_list_content);
 
     // Returns the final container.
-    Container::new(wrapper_column)
+    Container::new(column)
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right
