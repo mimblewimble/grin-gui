@@ -9,6 +9,8 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};
@@ -68,7 +70,7 @@ pub enum LocalViewInteraction {
     Amount(String),
     CreateTransaction(),
 
-    TxCreatedOk(String),
+    TxCreatedOk(Slate, String),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     SlatepackAddressError,
 }
@@ -123,9 +125,9 @@ pub fn handle_message<'a>(
                 move || WalletInterface::create_tx(w, args, state.recipient_address_value.clone());
 
             return Ok(Command::perform(fut(), |r| match r {
-                Ok(ret) => {
+                Ok((enc_slate, unenc_slate)) => {
                     Message::Interaction(Interaction::WalletOperationCreateTxViewInteraction(
-                        LocalViewInteraction::TxCreatedOk(ret),
+                        LocalViewInteraction::TxCreatedOk(enc_slate, unenc_slate),
                     ))
                 }
                 Err(e) => match e {
@@ -142,13 +144,22 @@ pub fn handle_message<'a>(
                 },
             }));
         }
-        LocalViewInteraction::TxCreatedOk(slate) => {
-            log::debug!("{:?}", slate);
+        LocalViewInteraction::TxCreatedOk(unencrypted_slate, encrypted_slate) => {
+            log::debug!("{:?}", encrypted_slate);
             grin_gui
                 .wallet_state
                 .operation_state
                 .create_tx_success_state
-                .encrypted_slate = slate.to_string();
+                .encrypted_slate = encrypted_slate.to_string();
+
+            // create a directory to which files will be output, if it doesn't exist
+            if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
+                let out_file_name = format!("{}/{}.slatepack", dir, unencrypted_slate.id);
+                let mut output = File::create(out_file_name.clone())?;
+                output.write_all(&encrypted_slate.as_bytes())?;
+                output.sync_all()?;
+            }
+
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
         }

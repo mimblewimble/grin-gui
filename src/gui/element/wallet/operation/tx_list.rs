@@ -1590,6 +1590,7 @@ pub fn data_row_container<'a, 'b>(
                     .style(grin_gui_core::theme::ContainerStyle::Segmented)
                     .padding(1);
 
+
                 action_button_row = Row::new()
                     .push(Space::new(
                         Length::Units(DEFAULT_PADDING * 3),
@@ -1599,6 +1600,29 @@ pub fn data_row_container<'a, 'b>(
                     .push(Space::with_width(Length::Units(DEFAULT_PADDING)));
 
                 if !confirmed {
+                    // Re-fetch the slate representing the last saved state
+                    let tx_reload_slate_container = Container::new(
+                        Text::new(localized_string("tx-reload-slate")).size(DEFAULT_FONT_SIZE),
+                    )
+                    .width(button_width)
+                    .align_y(alignment::Vertical::Center)
+                    .align_x(alignment::Horizontal::Center);
+
+                    let tx_reload_slate_button: Element<Interaction> = Button::new(tx_reload_slate_container)
+                        .width(Length::Units(BUTTON_WIDTH))
+                        .style(grin_gui_core::theme::ButtonStyle::Primary)
+                        .on_press(Interaction::WalletOperationHomeViewInteraction(
+                            super::home::LocalViewInteraction::ReloadTxSlate(tx_cloned_for_row.tx.tx_slate_id.unwrap().to_string()),
+                        ))
+                        .into();
+
+                    let tx_reload_slate_wrap =
+                        Container::new(tx_reload_slate_button.map(Message::Interaction)).padding(1);
+                    let tx_reload_slate_wrap = Container::new(tx_reload_slate_wrap)
+                        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+                        .padding(1);
+
+                    // Present cancel button
                     let tx_button_cancel_container = Container::new(
                         Text::new(localized_string("cancel-tx")).size(DEFAULT_FONT_SIZE),
                     )
@@ -1613,6 +1637,7 @@ pub fn data_row_container<'a, 'b>(
                             .on_press(Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::CancelTx(
                                     tx_log_entry_wrap.tx.id,
+                                    tx_log_entry_wrap.tx.tx_slate_id.unwrap().to_string()
                                 ),
                             ))
                             .into();
@@ -1623,6 +1648,7 @@ pub fn data_row_container<'a, 'b>(
                         .style(grin_gui_core::theme::ContainerStyle::Segmented)
                         .padding(1);
 
+                    action_button_row = action_button_row.push(tx_reload_slate_wrap);
                     action_button_row = action_button_row.push(tx_cancel_wrap)
                 }
 
