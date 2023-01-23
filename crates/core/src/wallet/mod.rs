@@ -441,7 +441,7 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         init_args: InitTxArgs,
         dest_slatepack_address: String,
-    ) -> Result<String, GrinWalletInterfaceError> {
+    ) -> Result<(Slate, String), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         let _address = match SlatepackAddress::try_from(dest_slatepack_address.as_str()) {
             Ok(a) => Some(a),
@@ -450,7 +450,7 @@ where
         if let Some(o) = &w.owner_api {
             let slate = { o.init_send_tx(None, init_args)? };
             o.tx_lock_outputs(None, &slate)?;
-            return WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate);
+            return Ok((slate.clone(), WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate)?));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
@@ -460,7 +460,7 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slate: Slate,
         dest_slatepack_address: String,
-    ) -> Result<Option<String>, GrinWalletInterfaceError> {
+    ) -> Result<(Slate, Option<String>), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         let ret_slate;
         if let Some(f) = &w.foreign_api {
@@ -471,7 +471,7 @@ where
         if let Some(o) = &w.owner_api {
             let encrypted =
                 WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &ret_slate)?;
-            return Ok(Some(encrypted));
+            return Ok((ret_slate, Some(encrypted)));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
@@ -481,12 +481,12 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slate: Slate,
         send_to_chain: bool,
-    ) -> Result<Option<String>, GrinWalletInterfaceError> {
+    ) -> Result<(Slate, Option<String>), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let ret_slate = o.finalize_tx(None, &slate)?;
             o.post_tx(None, &ret_slate, true)?;
-            return Ok(None);
+            return Ok((ret_slate, None));
         } else {
             return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
         }

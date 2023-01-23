@@ -14,6 +14,8 @@ pub enum GrinWalletInterfaceError {
     ForeignAPINotInstantiated,
     #[error("Invalid Slatepack Address")]
     InvalidSlatepackAddress,
+    #[error("Can't load slatepack file at {file}")]
+    InvalidSlatepackFile{file: String},
 }
 
 #[derive(thiserror::Error, Debug)]

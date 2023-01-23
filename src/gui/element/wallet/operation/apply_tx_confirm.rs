@@ -8,6 +8,8 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_native::Widget;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};
@@ -64,7 +66,7 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     Accept,
-    TxAcceptSuccess(Option<String>),
+    TxAcceptSuccess(Slate, Option<String>),
     TxAcceptFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -105,9 +107,9 @@ pub fn handle_message<'a>(
 
                     return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
-                            Ok(ret) => Message::Interaction(
+                            Ok((slate, enc_slate)) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(ret),
+                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate),
                                 ),
                             ),
                             Err(e) => Message::Interaction(
@@ -125,9 +127,9 @@ pub fn handle_message<'a>(
 
                     return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
-                            Ok(ret) => Message::Interaction(
+                            Ok((slate, enc_slate)) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(ret),
+                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate),
                                 ),
                             ),
                             Err(e) => Message::Interaction(
@@ -146,13 +148,28 @@ pub fn handle_message<'a>(
                 }
             }
         }
-        LocalViewInteraction::TxAcceptSuccess(slate) => {
-            log::debug!("{:?}", slate);
+        LocalViewInteraction::TxAcceptSuccess(slate, encrypted_slate) => {
+            // Output the latest slatepack, overriding any previous
+            if let Some(ref s) = encrypted_slate {
+                if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
+                    let out_file_name = format!("{}/{}.slatepack", dir, slate.id);
+                    let mut output = File::create(out_file_name.clone())?;
+                    output.write_all(&s.as_bytes())?;
+                    output.sync_all()?;
+                }
+            } else {
+                // If no encrypted slate, tx was posted so remove file
+                if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
+                    let out_file_name = format!("{}/{}.slatepack", dir, slate.id);
+                    let _ = fs::remove_file(out_file_name);
+                }
+            }
+
             grin_gui
                 .wallet_state
                 .operation_state
                 .apply_tx_success_state
-                .encrypted_slate = slate;
+                .encrypted_slate = encrypted_slate;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ApplyTxSuccess;
         }

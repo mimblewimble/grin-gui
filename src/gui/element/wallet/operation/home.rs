@@ -6,6 +6,7 @@ use super::{
 };
 use async_std::{prelude::FutureExt, task::current};
 use chrono::{DateTime, DurationRound, TimeZone, Utc};
+use grin_gui_core::error::GrinWalletInterfaceError;
 use grin_gui_core::{
     config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
@@ -20,6 +21,7 @@ use plotters::{
 };
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
+use std::fs::{self, File};
 use std::io::Read;
 use std::{collections::HashMap, path::PathBuf};
 
@@ -69,10 +71,11 @@ pub enum LocalViewInteraction {
     WalletSlatepackAddressUpdateSuccess(String),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
-    CancelTx(u32),
+    CancelTx(u32, String),
     TxDetails(TxLogEntryWrap),
-    TxCancelledOk(u32),
+    TxCancelledOk(u32, String),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
+    ReloadTxSlate(String),
 
     // chart stuff
     MouseIndex(usize, usize),
@@ -279,11 +282,11 @@ pub fn handle_message<'a>(
             log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");
             log::debug!("TBD {}", tx_log_entry_wrap.tx.id);
         }
-        LocalViewInteraction::CancelTx(id) => {
+        LocalViewInteraction::CancelTx(id, uuid) => {
             debug!("Cancel Tx: {}", id);
             grin_gui.error.take();
 
-            log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
+           log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
 
             let w = grin_gui.wallet_interface.clone();
 
@@ -293,7 +296,7 @@ pub fn handle_message<'a>(
                 match r.context("Failed to Cancel Transaction") {
                     Ok(ret) => {
                         Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-                            LocalViewInteraction::TxCancelledOk(ret),
+                            LocalViewInteraction::TxCancelledOk(ret, uuid),
                         ))
                     }
                     Err(e) => {
@@ -304,8 +307,14 @@ pub fn handle_message<'a>(
                 }
             }));
         }
-        LocalViewInteraction::TxCancelledOk(id) => {
-            // Trigger event to reload transaction list
+        LocalViewInteraction::TxCancelledOk(id, uuid) => {
+            // Delete file
+            if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
+                let out_file_name = format!("{}/{}.slatepack", dir, uuid);
+                let _ = fs::remove_file(out_file_name);
+            }
+
+             // Trigger event to reload transaction list
             let mode = grin_gui
                 .wallet_state
                 .operation_state
@@ -324,6 +333,28 @@ pub fn handle_message<'a>(
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
+            }
+        }
+        LocalViewInteraction::ReloadTxSlate(id) => {
+            debug!("Reload stored slatepack at: {}", id);
+            if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
+                let in_file_name = format!("{}/{}.slatepack", dir, id);
+                if let Ok(s) = fs::read_to_string(in_file_name.clone()) {
+                    grin_gui
+                        .wallet_state
+                        .operation_state
+                        .create_tx_success_state
+                        .encrypted_slate = s.to_string();
+                    // Just go to create tx success screen for now
+                    grin_gui.wallet_state.operation_state.mode =
+                        crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
+                } else {
+                    // Error that we're unable to load the file
+                    grin_gui.error = Some(
+                        GrinWalletInterfaceError::InvalidSlatepackFile { file: in_file_name }
+                            .into(),
+                    );
+                }
             }
         }
     }

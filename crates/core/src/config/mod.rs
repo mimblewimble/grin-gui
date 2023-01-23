@@ -1,6 +1,7 @@
 use crate::backup::CompressionFormat;
 use crate::error::FilesystemError;
 use serde::{Deserialize, Serialize};
+use std::f32::consts::E;
 use std::fmt::{self, Display, Formatter};
 use std::path::PathBuf;
 
@@ -70,9 +71,23 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn add_wallet(&mut self, wallet: Wallet) -> usize{
+    pub fn add_wallet(&mut self, wallet: Wallet) -> usize {
         self.wallets.push(wallet);
         self.wallets.len() - 1
+    }
+
+    pub fn get_wallet_slatepack_dir(&self) -> Option<String> {
+        if let Some(i) = self.current_wallet_index.as_ref() {
+            if let Some(ref tld) = self.wallets[*i].tld {
+                let slate_dir = format!("{}/{}", tld.as_os_str().to_str().unwrap(), "slatepack");
+                let _ = std::fs::create_dir_all(slate_dir.clone());
+                Some(slate_dir)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
 
@@ -167,10 +182,7 @@ impl std::fmt::Display for Language {
 
 impl Language {
     // Alphabetically sorted based on their local name (@see `impl Display`).
-    pub const ALL: [Language; 2] = [
-        Language::German,
-        Language::English,
-    ];
+    pub const ALL: [Language; 2] = [Language::German, Language::English];
 
     pub const fn language_code(self) -> &'static str {
         match self {
@@ -186,10 +198,11 @@ impl Default for Language {
     }
 }
 
-
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord)]
+#[derive(
+    Default, Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord,
+)]
 pub enum Currency {
-    #[default] 
+    #[default]
     GRIN,
     BTC,
     USD,
@@ -211,35 +224,31 @@ impl std::fmt::Display for Currency {
 
 impl Currency {
     // Alphabetically sorted based on their local name (@see `impl Display`).
-    pub const ALL: [Currency; 3] = [
-        Currency::BTC,
-        Currency::GRIN,
-        Currency::USD,
-    ];
+    pub const ALL: [Currency; 3] = [Currency::BTC, Currency::GRIN, Currency::USD];
 
     pub fn shortname(&self) -> String {
-		match *self {
-			Currency::BTC => "btc".to_owned(),
-			Currency::GRIN => "grin".to_owned(),
-			Currency::USD => "usd".to_owned(),
-		}
-	}
+        match *self {
+            Currency::BTC => "btc".to_owned(),
+            Currency::GRIN => "grin".to_owned(),
+            Currency::USD => "usd".to_owned(),
+        }
+    }
 
     pub fn symbol(&self) -> String {
-		match *self {
-			Currency::BTC => "₿".to_owned(),
-			Currency::GRIN => "".to_owned(),
-			Currency::USD => "$".to_owned(),
-		}
-	}
+        match *self {
+            Currency::BTC => "₿".to_owned(),
+            Currency::GRIN => "".to_owned(),
+            Currency::USD => "$".to_owned(),
+        }
+    }
 
     pub fn precision(&self) -> usize {
-		match *self {
-			Currency::BTC => 8,
-			Currency::GRIN => 9,
-			Currency::USD => 4,
-		}
-	}
+        match *self {
+            Currency::BTC => 8,
+            Currency::GRIN => 9,
+            Currency::USD => 4,
+        }
+    }
 }
 
 /// Returns a Config.
