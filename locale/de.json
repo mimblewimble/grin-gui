@@ -246,5 +246,7 @@
     "tx-sender-name": "Sender",
     "apply-tx-amount": "Incoming amount",
     "tx-state": "Transaction Stage (this will be presented better)",
-    "tx-reload-slate": "Show Slatepack"
+    "tx-reload-slate": "Show Slatepack",
+    "txs-list-loading": "Transactions not loaded",
+    "no-txs-list": "No transactions matching the current filter have been found."
 }
