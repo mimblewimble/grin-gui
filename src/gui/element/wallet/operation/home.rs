@@ -253,7 +253,45 @@ pub fn handle_message<'a>(
                 "Update Wallet Info Summary: {}, {:?}",
                 node_success, wallet_info
             );
-            state.wallet_info = Some(wallet_info);
+            // check if different from last update, if so refresh the current transaction listing
+            if state.wallet_info.as_ref() != Some(&wallet_info) {
+                // If transaction list hasn't been init yet, refresh the list with latest
+                debug!(
+                    "Updating transactions based on new wallet info data: {:?} (old) vs {:?} (new)",
+                    state.wallet_info.as_ref(),
+                    wallet_info
+                );
+                state.wallet_info = Some(wallet_info);
+                if grin_gui
+                    .wallet_state
+                    .operation_state
+                    .home_state
+                    .tx_list_display_state
+                    .mode
+                    == crate::gui::element::wallet::operation::tx_list_display::Mode::NotInit
+                {
+                    let fut = move || async {};
+                    return Ok(Command::perform(fut(), |_| {
+                        return Message::Interaction(
+                        Interaction::WalletOperationHomeTxListDisplayInteraction(
+                            crate::gui::element::wallet::operation::tx_list_display::LocalViewInteraction::SelectMode(
+                                crate::gui::element::wallet::operation::tx_list_display::Mode::Recent
+                            ),
+                        ),
+                    );
+                    }));
+                } else {
+                    let fut = move || async {};
+                    return Ok(Command::perform(fut(), |_| {
+                        return Message::Interaction(
+                        Interaction::WalletOperationHomeTxListDisplayInteraction(
+                            crate::gui::element::wallet::operation::tx_list_display::LocalViewInteraction::RefreshList
+                            ,
+                        ),
+                    );
+                    }));
+                }
+            }
         }
         LocalViewInteraction::WalletInfoUpdateFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -286,7 +324,7 @@ pub fn handle_message<'a>(
             debug!("Cancel Tx: {}", id);
             grin_gui.error.take();
 
-           log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
 
             let w = grin_gui.wallet_interface.clone();
 
@@ -314,7 +352,7 @@ pub fn handle_message<'a>(
                 let _ = fs::remove_file(out_file_name);
             }
 
-             // Trigger event to reload transaction list
+            // Trigger event to reload transaction list
             let mode = grin_gui
                 .wallet_state
                 .operation_state

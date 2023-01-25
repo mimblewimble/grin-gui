@@ -1,18 +1,21 @@
 use {
-    super::super::super::{DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING, BUTTON_HEIGHT, BUTTON_WIDTH},
+    super::super::super::{
+        BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
+    },
     crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
     crate::Result,
     grin_gui_core::config::Config,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+        TextInput,
+    },
     grin_gui_core::{
         theme::ColorPalette,
         wallet::{create_grin_wallet_path, ChainTypes},
     },
+    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
-    grin_gui_core::theme::{Button, Column, Element, Container, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
-    iced::widget::{
-        button, pick_list, scrollable, text_input, Checkbox, Space,
-    },
     native_dialog::FileDialog,
     std::path::PathBuf,
 };
@@ -21,7 +24,6 @@ use grin_gui_widgets::widget::table_row;
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
-
 
 pub struct StateContainer {
     selected_wallet_index: usize,
@@ -64,6 +66,28 @@ pub fn handle_message<'a>(
         LocalViewInteraction::LoadWallet(index) => {
             grin_gui.config.current_wallet_index = Some(index);
             grin_gui.wallet_state.mode = crate::gui::element::wallet::Mode::Operation;
+
+            // If transaction list hasn't been init yet, refresh the list with latest
+            if grin_gui
+                .wallet_state
+                .operation_state
+                .home_state
+                .tx_list_display_state
+                .mode
+                == crate::gui::element::wallet::operation::tx_list_display::Mode::NotInit
+            {
+                let fut = move || async {};
+                return Ok(Command::perform(fut(), |_| {
+                    return Message::Interaction(
+                        Interaction::WalletOperationHomeTxListDisplayInteraction(
+                            crate::gui::element::wallet::operation::tx_list_display::LocalViewInteraction::SelectMode(
+                                crate::gui::element::wallet::operation::tx_list_display::Mode::Recent
+                            ),
+                        ),
+                    );
+                }));
+            }
+
         }
         LocalViewInteraction::LocateWallet => {
             match FileDialog::new().show_open_single_file() {
@@ -124,20 +148,18 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
     Ok(true)
 }
 
-pub fn data_container<'a>(
-    state: &'a StateContainer,
-    config: &Config,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);
     let button_width = Length::Units(BUTTON_WIDTH);
 
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
-    let title_container =
-        Container::new(title).style(grin_gui_core::theme::ContainerStyle::BrightBackground).padding(iced::Padding::from([
-            0,               // top
-            0,               // right
-            0,               // bottom
-            5,               // left
+    let title_container = Container::new(title)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
+        .padding(iced::Padding::from([
+            0, // top
+            0, // right
+            0, // bottom
+            5, // left
         ]));
 
     let new_wallet_container =
@@ -145,13 +167,12 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let new_wallet_button: Element<Interaction> =
-        Button::new( new_wallet_container)
-            .style(grin_gui_core::theme::ButtonStyle::Primary)
-            .on_press(Interaction::WalletListWalletViewInteraction(
-                LocalViewInteraction::CreateWallet,
-            ))
-            .into();
+    let new_wallet_button: Element<Interaction> = Button::new(new_wallet_container)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletListWalletViewInteraction(
+            LocalViewInteraction::CreateWallet,
+        ))
+        .into();
 
     // add additional buttons here
     let button_row = Row::new().push(new_wallet_button.map(Message::Interaction));
@@ -228,11 +249,11 @@ pub fn data_container<'a>(
         let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_FONT_SIZE);
         let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
-        let mut wallet_name_container =
-            Container::new(wallet_name).style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
+        let mut wallet_name_container = Container::new(wallet_name)
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
-        let mut wallet_chain_container =
-            Container::new(chain_name).style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
+        let mut wallet_chain_container = Container::new(chain_name)
+            .style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
         let tld_string = match &w.tld {
             Some(path_buf) => path_buf.display().to_string(),
@@ -305,10 +326,8 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let mut load_wallet_button = Button::new(
-        load_wallet_button_container,
-    )
-    .style(grin_gui_core::theme::ButtonStyle::Primary);
+    let mut load_wallet_button =
+        Button::new(load_wallet_button_container).style(grin_gui_core::theme::ButtonStyle::Primary);
 
     // the load wallet button should be disabled if there are no wallets
     if !config.wallets.is_empty() {
@@ -327,14 +346,12 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let select_other_button: Element<Interaction> = Button::new(
-        select_folder_button_container,
-    )
-    .style(grin_gui_core::theme::ButtonStyle::Primary)
-    .on_press(Interaction::WalletListWalletViewInteraction(
-        LocalViewInteraction::LocateWallet,
-    ))
-    .into();
+    let select_other_button: Element<Interaction> = Button::new(select_folder_button_container)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletListWalletViewInteraction(
+            LocalViewInteraction::LocateWallet,
+        ))
+        .into();
 
     // button lipstick
     let load_container = Container::new(load_wallet_button.map(Message::Interaction)).padding(1);
@@ -353,8 +370,8 @@ pub fn data_container<'a>(
         .push(select_container)
         .height(Length::Shrink);
 
-    let scrollable = Scrollable::new(wallet_column)
-        .style(grin_gui_core::theme::ScrollableStyle::Primary);
+    let scrollable =
+        Scrollable::new(wallet_column).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     let table_colummn = Column::new().push(table_header_container).push(scrollable);
     let table_container = Container::new(table_colummn)

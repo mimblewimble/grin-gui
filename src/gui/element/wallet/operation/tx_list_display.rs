@@ -27,7 +27,8 @@ use {
         TextInput,
     },
     grin_gui_core::wallet::{
-        InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, StatusMessage, WalletInfo, WalletInterface,
+        InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, StatusMessage,
+        WalletInfo, WalletInterface,
     },
     grin_gui_core::{
         node::amount_to_hr_string,
@@ -44,6 +45,7 @@ pub struct StateContainer {
     confirmed_txns: Vec<TxLogEntry>,
     wallet_txs: TxList,
     tx_header_state: HeaderState,
+    query_args: RetrieveTxQueryArgs,
     pub mode: Mode,
 
     pub expanded_type: ExpandType,
@@ -58,6 +60,7 @@ impl Default for StateContainer {
             wallet_txs: Default::default(),
             tx_header_state: Default::default(),
             expanded_type: ExpandType::None,
+            query_args: Default::default(),
             mode: Mode::NotInit,
             balance_data: vec![],
             confirmed_txns: vec![],
@@ -78,6 +81,7 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     SelectMode(Mode),
+    RefreshList,
     TxListUpdateSuccess(bool, Vec<TxLogEntry>),
     TxListUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
@@ -94,26 +98,37 @@ pub fn handle_message<'a>(
 
     match message {
         LocalViewInteraction::SelectMode(new_mode) => {
-            let mut query_args = RetrieveTxQueryArgs::default();
+            state.query_args = RetrieveTxQueryArgs::default();
 
-            query_args.sort_order = Some(RetrieveTxQuerySortOrder::Desc);
+            state.query_args.sort_order = Some(RetrieveTxQuerySortOrder::Desc);
 
             match new_mode {
                 Mode::NotInit => {}
                 Mode::Recent => {
-                    query_args.exclude_cancelled = Some(true);
+                    state.query_args.exclude_cancelled = Some(true);
                 }
                 Mode::Outstanding => {
-                    query_args.exclude_cancelled = Some(true);
-                    query_args.include_outstanding_only = Some(true);
+                    state.query_args.exclude_cancelled = Some(true);
+                    state.query_args.include_outstanding_only = Some(true);
                 }
             }
 
             state.mode = new_mode;
 
+            let fut = move || async {};
+            return Ok(Command::perform(fut(), |_| {
+                return Message::Interaction(
+                    Interaction::WalletOperationHomeTxListDisplayInteraction(
+                        LocalViewInteraction::RefreshList,
+                    ),
+                );
+            }));
+        }
+
+        LocalViewInteraction::RefreshList => {
             let w = grin_gui.wallet_interface.clone();
 
-            let fut = move || WalletInterface::get_txs(w, Some(query_args));
+            let fut = move || WalletInterface::get_txs(w, Some(state.query_args.clone()));
             return Ok(Command::perform(fut(), |tx_list_res| {
                 if tx_list_res.is_err() {
                     let e = tx_list_res
@@ -240,13 +255,19 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let latest_button: Element<Interaction> = Button::new(latest_container)
-        .width(button_width)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationHomeTxListDisplayInteraction(
-            LocalViewInteraction::SelectMode(Mode::Recent),
-        ))
-        .into();
+    let latest_button = Button::new(latest_container).width(button_width).on_press(
+        Interaction::WalletOperationHomeTxListDisplayInteraction(LocalViewInteraction::SelectMode(
+            Mode::Recent,
+        )),
+    );
+
+    let latest_button = if state.mode == Mode::Recent {
+        latest_button.style(grin_gui_core::theme::ButtonStyle::Selected)
+    } else {
+        latest_button.style(grin_gui_core::theme::ButtonStyle::Primary)
+    };
+
+    let latest_button: Element<Interaction> = latest_button.into();
 
     // add a nice double border around our buttons
     // TODO refactor since many of the buttons around the UI repeat this theme
@@ -261,13 +282,19 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let outstanding_button: Element<Interaction> = Button::new(outstanding_container)
+    let outstanding_button = Button::new(outstanding_container)
         .width(button_width)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
         .on_press(Interaction::WalletOperationHomeTxListDisplayInteraction(
             LocalViewInteraction::SelectMode(Mode::Outstanding),
-        ))
-        .into();
+        ));
+
+    let outstanding_button = if state.mode == Mode::Outstanding {
+        outstanding_button.style(grin_gui_core::theme::ButtonStyle::Selected)
+    } else {
+        outstanding_button.style(grin_gui_core::theme::ButtonStyle::Primary)
+    };
+
+    let outstanding_button: Element<Interaction> = outstanding_button.into();
 
     let outstanding_container_wrap =
         Container::new(outstanding_button.map(Message::Interaction)).padding(1);
@@ -314,10 +341,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     );
 
     let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
-        0,               // top
+        0,                   // top
         DEFAULT_PADDING * 3, // right - should roughly match width of content scroll bar to align table headers
-        0,               // bottom
-        0,               // left
+        0,                   // bottom
+        0,                   // left
     ]));
     //.style(grin_gui_core::theme::ContainerStyle::PanelForeground);
 
@@ -379,6 +406,21 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     // Adds the rest of the elements to the content column.
     if has_txs {
         tx_list_content = tx_list_content.push(tx_list_scrollable);
+    } else {
+        let no_txs_label = if state.mode == Mode::NotInit {
+            Text::new(localized_string("txs-list-loading")).size(DEFAULT_FONT_SIZE)
+        } else {
+            Text::new(localized_string("no-txs-list")).size(DEFAULT_FONT_SIZE)
+        };
+        let no_txs_container = Container::new(no_txs_label)
+            .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
+            .padding(iced::Padding::from([
+                0, // top
+                0, // right
+                0, // bottom
+                5, // left
+            ]));
+        tx_list_content = tx_list_content.push(no_txs_container);
     }
 
     // TRANSACTION LISTING
