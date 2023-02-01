@@ -318,7 +318,11 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::TxDetails(tx_log_entry_wrap) => {
             log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");
-            log::debug!("TBD {}", tx_log_entry_wrap.tx.id);
+            grin_gui.wallet_state.operation_state.tx_detail_state.current_tx = Some(tx_log_entry_wrap.tx);
+            grin_gui
+                .wallet_state
+                .operation_state
+                .mode = crate::gui::element::wallet::operation::Mode::TxDetail;
         }
         LocalViewInteraction::CancelTx(id, uuid) => {
             debug!("Cancel Tx: {}", id);

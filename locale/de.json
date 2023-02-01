@@ -207,7 +207,7 @@
     "tx-creation-time": "Creation Time",
     "tx-confirmation-time": "Confirmation Time",
     "tx-status": "Status",
-    "tx-net-difference": "Amount",
+    "tx-net-difference": "Net Difference",
     "tx-id": "ID",
     "tx-type": "Type",
     "info-confirmed-total": "Confirmed Total",
@@ -238,6 +238,7 @@
     "tx-outstanding": "Outstanding",
     "tx-recent": "Most Recent",
     "tx-details": "Details",
+    "tx-details-title": "Transaction Details",
     "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
     "tx-slatepack-read-result-default": "Ensure the clipboard contains the encrypted slatepack contents and press 'Continue'",
     "tx-slatepack-read-failure": "Clipboard does not contain a slatepack that can be decrypted by this wallet",
@@ -248,5 +249,12 @@
     "tx-state": "Transaction Stage (this will be presented better)",
     "tx-reload-slate": "Show Slatepack",
     "txs-list-loading": "Transactions not loaded",
-    "no-txs-list": "No transactions matching the current filter have been found."
+    "no-txs-list": "No transactions matching the current filter have been found.",
+    "tx-ttl-cutoff": "TTL Cutoff Height",
+    "tx-is-confirmed": "Confirmed",
+    "tx-num-inputs": "Number of Inputs",
+    "tx-num-outputs": "Number of Outputs",
+    "tx-amount-credited": "Amount Credited",
+    "tx-amount-debited": "Amount Debited",
+    "tx-fee": "Fee"
 }
