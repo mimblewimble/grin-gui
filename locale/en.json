@@ -211,9 +211,11 @@
     "exit-confirm-title": "Quit application",
     "exit-confirm-msg": "Are you sure you want to quit the application? This will shutdown any nodes that you have running.",
     "tx-creation-time": "Creation Time",
+    "tx-ttl-cutoff": "TTL Cutoff Height",
+    "tx-is-confirmed": "Confirmed",
     "tx-confirmation-time": "Confirmation Time",
     "tx-status": "Status",
-    "tx-net-difference": "Amount",
+    "tx-net-difference": "Net Difference",
     "tx-id": "Internal ID",
     "tx-type": "Type",
     "tx-shared-id": "Shared ID",
@@ -245,6 +247,7 @@
     "tx-list": "Transactions",
     "tx-recent": "Most Recent",
     "tx-details": "Details",
+    "tx-details-title": "Transaction Details",
     "tx-create-success-title": "Encrypted Transaction",
     "tx-create-success-desc": "Copy/Paste this encrypted transaction to the recipient via a channel of your choosing",
     "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
@@ -257,5 +260,10 @@
     "tx-state": "Transaction Stage (this will be presented better)",
     "tx-reload-slate": "Show Slatepack",
     "no-txs-list": "No transactions matching the current filter have been found.",
-    "txs-list-loading": "Transactions not loaded"
+    "txs-list-loading": "Transactions not loaded",
+    "tx-num-inputs": "Number of Inputs",
+    "tx-num-outputs": "Number of Outputs",
+    "tx-amount-credited": "Amount Credited",
+    "tx-amount-debited": "Amount Debited",
+    "tx-fee": "Fee"
 }
