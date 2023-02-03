@@ -40,6 +40,10 @@ pub struct StateContainer {
     pub address_value: String,
     // Slatepack read result
     pub slatepack_read_result: String,
+    // Slatepack data itself as read
+    pub slatepack_read_data: String,
+    // whether we can continue
+    pub can_continue: bool,
 }
 
 impl Default for StateContainer {
@@ -50,6 +54,8 @@ impl Default for StateContainer {
             // address_state: Default::default(),
             address_value: Default::default(),
             slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
+            slatepack_read_data: Default::default(),
+            can_continue: false,
         }
     }
 }
@@ -60,6 +66,7 @@ pub enum Action {}
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Back,
+    Continue,
     Address(String),
     ApplyTransaction(String),
     ReadFromClipboardSuccess(String),
@@ -74,24 +81,52 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxViewInteraction(Back)");
+            state.slatepack_read_result = localized_string("tx-slatepack-read-result-default");
+            state.slatepack_read_data = "".to_string();
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_confirm_state
+                .slatepack_parsed = None;
+            state.can_continue = false;
         }
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
             debug!("Read from clipboard: {}", value);
             let w = grin_gui.wallet_interface.clone();
-            let decode_res = WalletInterface::decrypt_slatepack(w, value);
+            let decode_res = WalletInterface::decrypt_slatepack(w, value.clone());
             match decode_res {
                 Err(e) => {
-                    state.slatepack_read_result = localized_string("tx-slatepack-read-failure")
+                    state.slatepack_read_result = localized_string("tx-slatepack-read-failure");
+                    state.slatepack_read_data = "".to_string();
+                    grin_gui
+                        .wallet_state
+                        .operation_state
+                        .apply_tx_confirm_state
+                        .slatepack_parsed = None;
+
+                    state.can_continue = false;
                 }
                 Ok(s) => {
                     debug!("{}", s.0);
-                    grin_gui.wallet_state.operation_state.apply_tx_confirm_state.slatepack_parsed = Some(s);
-                    grin_gui.wallet_state.operation_state.mode =
-                        crate::gui::element::wallet::operation::Mode::ApplyTxConfirm;
+                    state.slatepack_read_result = localized_string("tx-slatepack-read-success");
+                    state.slatepack_read_data = value;
+                    grin_gui
+                        .wallet_state
+                        .operation_state
+                        .apply_tx_confirm_state
+                        .slatepack_parsed = Some(s);
+                    state.can_continue = true;
                 }
             }
+        }
+        LocalViewInteraction::Continue => {
+            state.slatepack_read_result = localized_string("tx-slatepack-read-result-default");
+            state.slatepack_read_data = "".to_string();
+            state.can_continue = false;
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::ApplyTxConfirm;
         }
         LocalViewInteraction::ReadFromClipboardFailure => {
             error!("Failed to read from clipboard");
@@ -182,6 +217,20 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .size(DEFAULT_FONT_SIZE)
         .width(Length::Units(400));
 
+    let encrypted_slate_card = Card::new(
+        Text::new(localized_string("tx-paste-success-title")).size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(&state.slatepack_read_data).size(DEFAULT_FONT_SIZE),
+    )
+    .foot(
+        Column::new()
+            .spacing(10)
+            .padding(5)
+            .width(Length::Fill)
+            .align_items(Alignment::Center),
+    )
+    .max_width(400)
+    .style(grin_gui_core::theme::CardStyle::Normal);
+
     /*let paste_slatepack_button = Button::new(
         // &mut state.copy_address_button_state,
         Text::new(localized_string("tx-slatepack-paste-from-clipboard"))
@@ -201,6 +250,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let slatepack_area = Column::new()
         .push(slatepack_paste_name_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(encrypted_slate_card)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(paste_slatepack_row);
 
     let slatepack_area_container = Container::new(slatepack_area);
@@ -209,7 +260,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let button_width = Length::Units(BUTTON_WIDTH);
 
     let submit_button_label_container =
-        Container::new(Text::new(localized_string("tx-continue")).size(DEFAULT_FONT_SIZE))
+        Container::new(Text::new(localized_string("tx-paste")).size(DEFAULT_FONT_SIZE))
             .width(button_width)
             .height(button_height)
             .center_x()
@@ -219,11 +270,23 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let mut submit_button = Button::new(submit_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary)
         .on_press(Interaction::ReadSlatepackFromClipboard);
-    /*let submit_button = submit_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
-        LocalViewInteraction::ApplyTransaction("_".into()),
-    ));*/
 
     let submit_button: Element<Interaction> = submit_button.into();
+
+    let continue_button_label_container =
+        Container::new(Text::new(localized_string("tx-continue")).size(DEFAULT_FONT_SIZE))
+            .width(button_width)
+            .height(button_height)
+            .center_x()
+            .center_y()
+            .align_x(alignment::Horizontal::Center);
+
+    let continue_button: Element<Interaction> = Button::new(continue_button_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletOperationApplyTxViewInteraction(
+            LocalViewInteraction::Continue,
+        ))
+        .into();
 
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
@@ -245,15 +308,27 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
+    let continue_container = Container::new(continue_button.map(Message::Interaction)).padding(1);
+    let continue_container = Container::new(continue_container)
+        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+        .padding(1);
+
     let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
     let cancel_container = Container::new(cancel_container)
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let button_row = Row::new()
+    let mut button_row = Row::new()
         .push(submit_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(cancel_container);
+        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)));
+
+    if state.can_continue {
+        button_row = button_row
+            .push(continue_container)
+            .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+    }
+
+    button_row = button_row.push(cancel_container);
 
     let column = Column::new()
         .push(address_name_container)
