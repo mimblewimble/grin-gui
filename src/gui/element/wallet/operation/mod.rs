@@ -29,7 +29,6 @@ pub struct StateContainer {
     pub create_tx_state: create_tx::StateContainer,
     pub create_tx_success_state: create_tx_success::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
-    pub apply_tx_confirm_state: apply_tx_confirm::StateContainer,
     pub apply_tx_success_state: apply_tx_success::StateContainer,
     pub tx_detail_state: tx_detail::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
@@ -43,7 +42,6 @@ pub enum Mode {
     CreateTx,
     CreateTxSuccess,
     ApplyTx,
-    ApplyTxConfirm,
     ApplyTxSuccess,
     TxDetail,
 }
@@ -57,7 +55,6 @@ impl Default for StateContainer {
             create_tx_state: Default::default(),
             create_tx_success_state: Default::default(),
             apply_tx_state: Default::default(),
-            apply_tx_confirm_state: Default::default(),
             apply_tx_success_state: Default::default(),
             tx_detail_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
@@ -99,9 +96,6 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
             create_tx_success::data_container(config, &state.create_tx_success_state)
         }
         Mode::ApplyTx => apply_tx::data_container(config, &state.apply_tx_state),
-        Mode::ApplyTxConfirm => {
-            apply_tx_confirm::data_container(config, &state.apply_tx_confirm_state)
-        }
         Mode::ApplyTxSuccess => {
             apply_tx_success::data_container(config, &state.apply_tx_success_state)
         }

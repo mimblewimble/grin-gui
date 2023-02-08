@@ -34,20 +34,20 @@ use {
 };
 
 pub struct StateContainer {
-    // Slatepack read result
-    pub slatepack_read_result: String,
-    // Slatepack data itself as read
+    // Slatepack data itself as read, or instructions
     pub slatepack_read_data: String,
     // whether we can continue
     pub can_continue: bool,
+    // confirmation state, in separate panel
+    pub confirm_state: super::apply_tx_confirm::StateContainer,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
-            slatepack_read_data: Default::default(),
+            slatepack_read_data: localized_string("tx-slatepack-read-result-default"),
             can_continue: false,
+            confirm_state: Default::default(),
         }
     }
 }
@@ -73,15 +73,10 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxViewInteraction(Back)");
-            state.slatepack_read_result = localized_string("tx-slatepack-read-result-default");
-            state.slatepack_read_data = "".to_string();
+            state.slatepack_read_data = localized_string("tx-slatepack-read-result-default");
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
-            grin_gui
-                .wallet_state
-                .operation_state
-                .apply_tx_confirm_state
-                .slatepack_parsed = None;
+            state.confirm_state.slatepack_parsed = None;
             state.can_continue = false;
         }
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
@@ -90,35 +85,29 @@ pub fn handle_message<'a>(
             let decode_res = WalletInterface::decrypt_slatepack(w, value.clone());
             match decode_res {
                 Err(e) => {
-                    state.slatepack_read_result = localized_string("tx-slatepack-read-failure");
-                    state.slatepack_read_data = "".to_string();
-                    grin_gui
-                        .wallet_state
-                        .operation_state
-                        .apply_tx_confirm_state
-                        .slatepack_parsed = None;
-
+                    state.slatepack_read_data = localized_string("tx-slatepack-read-failure");
+                    state.confirm_state.slatepack_parsed = None;
                     state.can_continue = false;
                 }
                 Ok(s) => {
                     debug!("{}", s.0);
-                    state.slatepack_read_result = localized_string("tx-slatepack-read-success");
                     state.slatepack_read_data = value;
-                    grin_gui
-                        .wallet_state
-                        .operation_state
-                        .apply_tx_confirm_state
-                        .slatepack_parsed = Some(s);
+                    state.confirm_state.slatepack_parsed = Some(s);
                     state.can_continue = true;
                 }
             }
         }
         LocalViewInteraction::Continue => {
-            state.slatepack_read_result = localized_string("tx-slatepack-read-result-default");
-            state.slatepack_read_data = "".to_string();
+            //state.slatepack_read_data = localized_string("tx-slatepack-read-result-default");
             state.can_continue = false;
-            grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::ApplyTxConfirm;
+            let fut = move || async {};
+            return Ok(Command::perform(fut(), |_| {
+                return Message::Interaction(
+                        Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                            crate::gui::element::wallet::operation::apply_tx_confirm::LocalViewInteraction::Accept
+                        ),
+                    );
+            }));
         }
         LocalViewInteraction::ReadFromClipboardFailure => {
             error!("Failed to read from clipboard");
@@ -132,43 +121,8 @@ pub fn handle_message<'a>(
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     let unit_spacing = 15;
 
-    // Title row
-    let title = Text::new(localized_string("apply-tx"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container = Container::new(title)
-        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
-        .padding(iced::Padding::from([
-            2, // top
-            0, // right
-            2, // bottom
-            5, // left
-        ]));
-
-    // push more items on to header here: e.g. other buttons, things that belong on the header
-    let header_row = Row::new().push(title_container);
-
-    let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
-        DEFAULT_PADDING, // bottom
-        0,               // left
-    ]));
-
-    let slatepack_paste_name = Text::new(localized_string("tx-slatepack-paste-transaction-here"))
-        .size(DEFAULT_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let slatepack_paste_name_container = Container::new(slatepack_paste_name)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let slatepack_text_area = Text::new(state.slatepack_read_result.clone())
-        .size(DEFAULT_FONT_SIZE)
-        .width(Length::Units(400));
-
     let encrypted_slate_card = Card::new(
-        Text::new(localized_string("tx-paste-success-title")).size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(localized_string("apply-tx")).size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(&state.slatepack_read_data).size(DEFAULT_FONT_SIZE),
     )
     .foot(
@@ -181,28 +135,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     .max_width(400)
     .style(grin_gui_core::theme::CardStyle::Normal);
 
-    /*let paste_slatepack_button = Button::new(
-        // &mut state.copy_address_button_state,
-        Text::new(localized_string("tx-slatepack-paste-from-clipboard"))
-            .size(SMALLER_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Center),
-    )
-    .style(grin_gui_core::theme::ButtonStyle::NormalText)
-    .on_press(Interaction::ReadSlatepackFromClipboard);
-
-    let paste_slatepack_button: Element<Interaction> = paste_slatepack_button.into();*/
-
-    let paste_slatepack_row = Row::new()
-        .push(slatepack_text_area)
-        //.push(paste_slatepack_button.map(Message::Interaction))
-        .spacing(DEFAULT_PADDING);
-
-    let slatepack_area = Column::new()
-        .push(slatepack_paste_name_container)
+    let mut slatepack_area = Column::new().push(encrypted_slate_card);
+    if state.can_continue {
+        // Add parsed slatepack contents area here
+        let parsed_slate_content =
+            super::apply_tx_confirm::data_container(config, &state.confirm_state);
+        slatepack_area = slatepack_area
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(encrypted_slate_card)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(paste_slatepack_row);
+        .push(parsed_slate_content);
+    }
 
     let slatepack_area_container = Container::new(slatepack_area);
 
@@ -309,10 +250,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .height(Length::Shrink)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let wrapper_column = Column::new()
-        .height(Length::Fill)
-        .push(header_container)
-        .push(content);
+    let wrapper_column = Column::new().height(Length::Fill).push(content);
 
     // Returns the final container.
     Container::new(wrapper_column).padding(iced::Padding::from([
