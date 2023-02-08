@@ -268,5 +268,6 @@
     "tx-num-outputs": "Number of Outputs",
     "tx-amount-credited": "Amount Credited",
     "tx-amount-debited": "Amount Debited",
-    "tx-fee": "Fee"
+    "tx-fee": "Fee",
+    "this-wallet-receive-addr": "Receive address"
 }

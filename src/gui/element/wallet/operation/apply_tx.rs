@@ -34,10 +34,6 @@ use {
 };
 
 pub struct StateContainer {
-    // pub back_button_state: button::State,
-    // pub copy_address_button_state: button::State,
-    // pub address_state: text_input::State,
-    pub address_value: String,
     // Slatepack read result
     pub slatepack_read_result: String,
     // Slatepack data itself as read
@@ -49,10 +45,6 @@ pub struct StateContainer {
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            // back_button_state: Default::default(),
-            // copy_address_button_state: Default::default(),
-            // address_state: Default::default(),
-            address_value: Default::default(),
             slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
             slatepack_read_data: Default::default(),
             can_continue: false,
@@ -163,48 +155,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         DEFAULT_PADDING, // bottom
         0,               // left
     ]));
-
-    let address_name = Text::new(localized_string("slatepack-address-name"))
-        .size(DEFAULT_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let address_name_container =
-        Container::new(address_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let address_input = TextInput::new("", &state.address_value, |s| {
-        Interaction::WalletOperationApplyTxViewInteraction(LocalViewInteraction::Address(s))
-    })
-    .size(DEFAULT_FONT_SIZE)
-    .padding(6)
-    .width(Length::Units(400))
-    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
-
-    let address_input: Element<Interaction> = address_input.into();
-
-    let copy_address_button = Button::new(
-        // &mut state.copy_address_button_state,
-        Text::new(localized_string("copy-to-clipboard"))
-            .size(SMALLER_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Center),
-    )
-    .style(grin_gui_core::theme::ButtonStyle::NormalText)
-    .on_press(Interaction::WriteToClipboard(state.address_value.clone()));
-
-    let copy_address_button: Element<Interaction> = copy_address_button.into();
-
-    let address_row = Row::new()
-        .push(address_input)
-        .push(copy_address_button)
-        .spacing(DEFAULT_PADDING);
-
-    let address_row: Element<Interaction> = address_row.into();
-
-    let address_instruction_container = Text::new(localized_string("address-instruction"))
-        .size(SMALLER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let address_instruction_container = Container::new(address_instruction_container)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let slatepack_paste_name = Text::new(localized_string("tx-slatepack-paste-transaction-here"))
         .size(DEFAULT_FONT_SIZE)
@@ -331,12 +281,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     button_row = button_row.push(cancel_container);
 
     let column = Column::new()
-        .push(address_name_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(address_instruction_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(address_row.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(slatepack_area_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(button_row)
