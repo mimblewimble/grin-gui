@@ -260,5 +260,8 @@
     "tx-amount-credited": "Amount Credited",
     "tx-amount-debited": "Amount Debited",
     "tx-fee": "Fee",
-    "this-wallet-receive-addr": "Receive address"
+    "tx-show-full-slatepack": "Show Full",
+    "this-wallet-receive-addr": "Receive address",
+    "pasted-slatepack": "Clipboard Contents",
+    "pasted-slatepack-details": "Transaction Details"
 }

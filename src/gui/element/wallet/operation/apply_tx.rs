@@ -15,7 +15,7 @@ use super::tx_list::{HeaderState, TxList};
 use {
     super::super::super::{
         BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
-        SMALLER_FONT_SIZE,
+        DEFAULT_SUB_HEADER_FONT_SIZE, SMALLER_FONT_SIZE,
     },
     crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
@@ -36,6 +36,8 @@ use {
 pub struct StateContainer {
     // Slatepack data itself as read, or instructions
     pub slatepack_read_data: String,
+    // Entire slatepack data
+    pub slatepack_read_data_full: String,
     // whether we can continue
     pub can_continue: bool,
     // confirmation state, in separate panel
@@ -46,6 +48,7 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             slatepack_read_data: localized_string("tx-slatepack-read-result-default"),
+            slatepack_read_data_full: Default::default(),
             can_continue: false,
             confirm_state: Default::default(),
         }
@@ -63,6 +66,7 @@ pub enum LocalViewInteraction {
     ApplyTransaction(String),
     ReadFromClipboardSuccess(String),
     ReadFromClipboardFailure,
+    ShowSlate,
 }
 
 pub fn handle_message<'a>(
@@ -77,6 +81,7 @@ pub fn handle_message<'a>(
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
             state.confirm_state.slatepack_parsed = None;
+            state.slatepack_read_data_full = Default::default();
             state.can_continue = false;
         }
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
@@ -87,11 +92,21 @@ pub fn handle_message<'a>(
                 Err(e) => {
                     state.slatepack_read_data = localized_string("tx-slatepack-read-failure");
                     state.confirm_state.slatepack_parsed = None;
+                    state.slatepack_read_data_full = Default::default();
                     state.can_continue = false;
                 }
                 Ok(s) => {
                     debug!("{}", s.0);
-                    state.slatepack_read_data = value;
+                    // Truncate a bit for compact display purposes
+                    let mut s1 = value.clone();
+                    s1.truncate(27);
+                    let s2 = value
+                        .clone()
+                        .split_off(usize::saturating_sub(value.len(), 23));
+                    let short_display = format!("{}...{}", s1, s2);
+
+                    state.slatepack_read_data_full = value.clone();
+                    state.slatepack_read_data = short_display;
                     state.confirm_state.slatepack_parsed = Some(s);
                     state.can_continue = true;
                 }
@@ -112,6 +127,14 @@ pub fn handle_message<'a>(
         LocalViewInteraction::ReadFromClipboardFailure => {
             error!("Failed to read from clipboard");
         }
+        LocalViewInteraction::ShowSlate => {
+            // ensure back button on showing slate screen comes back here
+            grin_gui.wallet_state.operation_state.show_slatepack_state.submit_mode = Some(crate::gui::element::wallet::operation::Mode::ApplyTx);
+            grin_gui.wallet_state.operation_state.show_slatepack_state.encrypted_slate = Some(state.slatepack_read_data_full.clone());
+
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
+        }
         LocalViewInteraction::Address(_) => {}
         LocalViewInteraction::ApplyTransaction(_) => {}
     }
@@ -120,29 +143,95 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     let unit_spacing = 15;
+    // Title row
+    let title = Text::new(localized_string("apply-tx"))
+        .size(DEFAULT_HEADER_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Center);
 
-    let encrypted_slate_card = Card::new(
-        Text::new(localized_string("apply-tx")).size(DEFAULT_HEADER_FONT_SIZE),
-        Text::new(&state.slatepack_read_data).size(DEFAULT_FONT_SIZE),
-    )
-    .foot(
-        Column::new()
-            .spacing(10)
-            .padding(5)
-            .width(Length::Fill)
-            .align_items(Alignment::Center),
-    )
-    .max_width(400)
-    .style(grin_gui_core::theme::CardStyle::Normal);
+    let title_container = Container::new(title)
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
+        .padding(iced::Padding::from([
+            2, // top
+            0, // right
+            2, // bottom
+            0, // left
+        ]));
 
-    let mut slatepack_area = Column::new().push(encrypted_slate_card);
+    // push more items on to header here: e.g. other buttons, things that belong on the header
+    let header_row = Row::new().push(title_container);
+
+    let header_container = Container::new(header_row).padding(iced::Padding::from([
+        0,               // top
+        0,               // right
+        DEFAULT_PADDING, // bottom
+        0,               // left
+    ]));
+
+    let paste_instruction = Text::new(state.slatepack_read_data.clone())
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
+
+    let paste_instruction_container = Container::new(paste_instruction)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+    let mut instruction_row = Row::new().push(paste_instruction_container);
+
+    if state.can_continue {
+        let show_slate_label_container = Container::new(
+            Text::new(localized_string("tx-show-full-slatepack")).size(SMALLER_FONT_SIZE),
+        )
+        .height(Length::Units(14))
+        .width(Length::Units(60))
+        .center_y()
+        .center_x();
+
+        let show_slate_button: Element<Interaction> = Button::new(show_slate_label_container)
+            .style(grin_gui_core::theme::ButtonStyle::Bordered)
+            .on_press(Interaction::WalletOperationApplyTxViewInteraction(
+                LocalViewInteraction::ShowSlate,
+            ))
+            .padding(2)
+            .into();
+
+        instruction_row = instruction_row
+            .push(Space::with_width(Length::Units(2)))
+            .push(show_slate_button.map(Message::Interaction));
+    }
+
+    let mut instruction_col = Column::new();
+
+    if state.can_continue {
+        let pasted_tx_label = Text::new(localized_string("pasted-slatepack"))
+            .size(DEFAULT_SUB_HEADER_FONT_SIZE)
+            .horizontal_alignment(alignment::Horizontal::Left);
+        let pasted_tx_label_container = Container::new(pasted_tx_label)
+            .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+        instruction_col = instruction_col
+            .push(pasted_tx_label_container)
+            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+    }
+
+    instruction_col = instruction_col.push(instruction_row);
+
+    if state.can_continue {
+        let decrypted_tx_label = Text::new(localized_string("pasted-slatepack-details"))
+            .size(DEFAULT_SUB_HEADER_FONT_SIZE)
+            .horizontal_alignment(alignment::Horizontal::Left);
+
+        let decrypted_tx_label_container = Container::new(decrypted_tx_label)
+            .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+        instruction_col = instruction_col
+            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+            .push(decrypted_tx_label_container)
+    }
+
+    let mut slatepack_area = Column::new();
     if state.can_continue {
         // Add parsed slatepack contents area here
         let parsed_slate_content =
             super::apply_tx_confirm::data_container(config, &state.confirm_state);
-        slatepack_area = slatepack_area
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(parsed_slate_content);
+
+        slatepack_area = slatepack_area.push(parsed_slate_content);
     }
 
     let slatepack_area_container = Container::new(slatepack_area);
@@ -222,6 +311,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     button_row = button_row.push(cancel_container);
 
     let column = Column::new()
+        .push(header_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(instruction_col)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(slatepack_area_container)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(button_row)
