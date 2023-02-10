@@ -198,8 +198,8 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             return element::wallet::operation::create_tx::handle_message(grin_gui, l);
         }
         // Wallet -> Operation -> CreateTxSuccess
-        Message::Interaction(Interaction::WalletOperationCreateTxSuccessViewInteraction(l)) => {
-            return element::wallet::operation::create_tx_success::handle_message(grin_gui, l);
+        Message::Interaction(Interaction::WalletOperationShowSlatepackViewInteraction(l)) => {
+            return element::wallet::operation::show_slatepack::handle_message(grin_gui, l);
         }
         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationApplyTxViewInteraction(l)) => {
@@ -208,10 +208,6 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationApplyTxConfirmViewInteraction(l)) => {
             return element::wallet::operation::apply_tx_confirm::handle_message(grin_gui, l);
-        }
-        // Wallet -> Operation -> Home -> Action
-        Message::Interaction(Interaction::WalletOperationApplyTxSuccessViewInteraction(l)) => {
-            return element::wallet::operation::apply_tx_success::handle_message(grin_gui, l);
         }
         // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationTxDetailViewInteraction(l)) => {

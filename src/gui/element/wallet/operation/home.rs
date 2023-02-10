@@ -383,11 +383,11 @@ pub fn handle_message<'a>(
                     grin_gui
                         .wallet_state
                         .operation_state
-                        .create_tx_success_state
-                        .encrypted_slate = s.to_string();
+                        .show_slatepack_state
+                        .encrypted_slate = Some(s.to_string());
                     // Just go to create tx success screen for now
                     grin_gui.wallet_state.operation_state.mode =
-                        crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
+                        crate::gui::element::wallet::operation::Mode::ShowSlatepack;
                 } else {
                     // Error that we're unable to load the file
                     grin_gui.error = Some(

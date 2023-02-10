@@ -19,12 +19,15 @@ use {
 pub struct StateContainer {
     // Encrypted slate to send to recipient
     pub encrypted_slate: Option<String>,
+    // Where the 'submit' or back button leads to 
+    pub submit_mode: Option<crate::gui::element::wallet::operation::Mode>
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             encrypted_slate: Default::default(),
+            submit_mode: None,
         }
     }
 }
@@ -38,11 +41,17 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
+    let state = &mut grin_gui.wallet_state.operation_state.show_slatepack_state;
     match message {
         LocalViewInteraction::Submit => {
-            grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::Home;
+            state.encrypted_slate = None;
+            if let Some(ref m) = state.submit_mode {
+                grin_gui.wallet_state.operation_state.mode = m.clone();
+            } else {
+                grin_gui.wallet_state.operation_state.mode =
+                    crate::gui::element::wallet::operation::Mode::Home;
+            }
+            state.submit_mode = None;
         }
     }
     Ok(Command::none())
@@ -53,7 +62,7 @@ pub fn data_container<'a>(
     state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
-    let title = Text::new(localized_string("tx-create-success"))
+    let title = Text::new(localized_string("tx-view"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -82,14 +91,15 @@ pub fn data_container<'a>(
     let description_container =
         Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let slate_card_content = match state.encrypted_slate.as_ref() {
-        Some(s) => s.clone(),
-        None => "Transaction was posted to chain".to_owned(),
+    let card_contents = match &state.encrypted_slate {
+        Some(s) => s.to_owned(),
+        None => "".to_owned()
     };
 
     let encrypted_slate_card = Card::new(
-        Text::new(localized_string("tx-create-success-title")).size(DEFAULT_HEADER_FONT_SIZE),
-        Text::new(slate_card_content).size(DEFAULT_FONT_SIZE),
+        Text::new(localized_string("tx-create-success-title"))
+            .size(DEFAULT_HEADER_FONT_SIZE),
+        Text::new(card_contents.clone()).size(DEFAULT_FONT_SIZE),
     )
     .foot(
         Column::new()
@@ -105,7 +115,7 @@ pub fn data_container<'a>(
                 )
                 .style(grin_gui_core::theme::ButtonStyle::NormalText)
                 .on_press(Message::Interaction(Interaction::WriteToClipboard(
-                    state.encrypted_slate.clone().unwrap_or("None".to_owned()),
+                    card_contents.clone(),
                 ))),
             ),
     )
@@ -127,7 +137,7 @@ pub fn data_container<'a>(
 
     let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationApplyTxSuccessViewInteraction(
+        .on_press(Interaction::WalletOperationShowSlatepackViewInteraction(
             LocalViewInteraction::Submit,
         ))
         .into();

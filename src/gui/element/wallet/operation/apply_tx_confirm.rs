@@ -168,10 +168,10 @@ pub fn handle_message<'a>(
             grin_gui
                 .wallet_state
                 .operation_state
-                .apply_tx_success_state
+                .show_slatepack_state
                 .encrypted_slate = encrypted_slate;
             grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::ApplyTxSuccess;
+                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
         LocalViewInteraction::TxAcceptFailure(err) => {
             grin_gui.error = err.write().unwrap().take();

@@ -220,7 +220,7 @@
     "tx-type": "Type",
     "tx-shared-id": "Shared ID",
     "tx-create-submit": "Create",
-    "tx-create-success": "Transaction Created",
+    "tx-view": "Transaction View",
     "info-confirmed-total": "Confirmed Total",
     "info-amount-spendable": "Amount Spendable",
     "info-awaiting-confirmation": "Awaiting Confirmation",
