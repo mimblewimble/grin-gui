@@ -149,8 +149,8 @@ pub fn handle_message<'a>(
             grin_gui
                 .wallet_state
                 .operation_state
-                .create_tx_success_state
-                .encrypted_slate = encrypted_slate.to_string();
+                .show_slatepack_state
+                .encrypted_slate = Some(encrypted_slate.to_string());
 
             // create a directory to which files will be output, if it doesn't exist
             if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
@@ -161,7 +161,7 @@ pub fn handle_message<'a>(
             }
 
             grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
+                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
         LocalViewInteraction::TxCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();

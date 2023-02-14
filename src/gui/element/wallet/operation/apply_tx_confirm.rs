@@ -74,7 +74,7 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.apply_tx_confirm_state;
+    let state = &mut grin_gui.wallet_state.operation_state.apply_tx_state.confirm_state;
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Cancel)");
@@ -168,10 +168,10 @@ pub fn handle_message<'a>(
             grin_gui
                 .wallet_state
                 .operation_state
-                .apply_tx_success_state
+                .show_slatepack_state
                 .encrypted_slate = encrypted_slate;
             grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::ApplyTxSuccess;
+                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
         LocalViewInteraction::TxAcceptFailure(err) => {
             grin_gui.error = err.write().unwrap().take();
@@ -215,33 +215,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     };
 
     state_text = format!("{} - {}", state_text, state_text_append);
-
-    let hide_continue =
-        slate.state != SlateState::Standard1 && slate.state != SlateState::Standard2;
-
-    // Title row
-    let title = Text::new(localized_string("apply-tx-confirm"))
-        .size(DEFAULT_HEADER_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center);
-
-    let title_container = Container::new(title)
-        .style(grin_gui_core::theme::ContainerStyle::BrightBackground)
-        .padding(iced::Padding::from([
-            2, // top
-            0, // right
-            2, // bottom
-            5, // left
-        ]));
-
-    // push more items on to header here: e.g. other buttons, things that belong on the header
-    let header_row = Row::new().push(title_container);
-
-    let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
-        DEFAULT_PADDING, // bottom
-        0,               // left
-    ]));
 
     // TX State (i.e. Stage)
     let state_label = Text::new(format!("{}: ", localized_string("tx-state")))
@@ -297,104 +270,17 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(amount_label_container)
         .push(amount_container);
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
-
-    let submit_button_label_container =
-        Container::new(Text::new(localized_string("tx-continue")).size(DEFAULT_FONT_SIZE))
-            .width(button_width)
-            .height(button_height)
-            .center_x()
-            .center_y()
-            .align_x(alignment::Horizontal::Center);
-
-    let mut submit_button = Button::new(submit_button_label_container);
-
-    if hide_continue {
-        submit_button = submit_button.style(grin_gui_core::theme::ButtonStyle::NormalText);
-    } else {
-        submit_button = submit_button
-            .style(grin_gui_core::theme::ButtonStyle::Primary)
-            .on_press(Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                LocalViewInteraction::Accept,
-            ));
-    }
-
-    let submit_button: Element<Interaction> = submit_button.into();
-
-    let cancel_button_label_container =
-        Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
-            .width(button_width)
-            .height(button_height)
-            .center_x()
-            .center_y()
-            .align_x(alignment::Horizontal::Center);
-
-    let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationApplyTxConfirmViewInteraction(
-            LocalViewInteraction::Back,
-        ))
-        .into();
-
-    let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
-    let submit_container = Container::new(submit_container)
-        .style(grin_gui_core::theme::ContainerStyle::Segmented)
-        .padding(1);
-
-    let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
-    let cancel_container = Container::new(cancel_container)
-        .style(grin_gui_core::theme::ContainerStyle::Segmented)
-        .padding(1);
-
-    let button_row = Row::new()
-        .push(submit_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
-        .push(cancel_container);
-
     let column = Column::new()
         .push(state_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(sender_address_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(amount_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(button_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
-        ));
-
-    let form_container = Container::new(column)
-        .width(Length::Fill)
-        .padding(iced::Padding::from([
-            0, // top
-            0, // right
-            0, // bottom
-            5, // left
-        ]));
-
-    // form container should be scrollable in tiny windows
-    let scrollable = Scrollable::new(form_container)
-        .height(Length::Fill)
-        .style(grin_gui_core::theme::ScrollableStyle::Primary);
-
-    let content = Container::new(scrollable)
-        .width(Length::Fill)
-        .height(Length::Shrink)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        .push(amount_row);
 
     let wrapper_column = Column::new()
         .height(Length::Fill)
-        .push(header_container)
-        .push(content);
+        .push(column);
 
     // Returns the final container.
-    Container::new(wrapper_column).padding(iced::Padding::from([
-        DEFAULT_PADDING, // top
-        DEFAULT_PADDING, // right
-        DEFAULT_PADDING, // bottom
-        DEFAULT_PADDING, // left
-    ]))
+    Container::new(wrapper_column)
 }

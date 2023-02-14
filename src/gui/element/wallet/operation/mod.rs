@@ -1,10 +1,9 @@
 pub mod action_menu;
 pub mod apply_tx;
 pub mod apply_tx_confirm;
-pub mod apply_tx_success;
 pub mod chart;
 pub mod create_tx;
-pub mod create_tx_success;
+pub mod show_slatepack;
 pub mod home;
 pub mod open;
 pub mod tx_list;
@@ -27,10 +26,8 @@ pub struct StateContainer {
     pub open_state: open::StateContainer,
     pub home_state: home::StateContainer,
     pub create_tx_state: create_tx::StateContainer,
-    pub create_tx_success_state: create_tx_success::StateContainer,
+    pub show_slatepack_state: show_slatepack::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
-    pub apply_tx_confirm_state: apply_tx_confirm::StateContainer,
-    pub apply_tx_success_state: apply_tx_success::StateContainer,
     pub tx_detail_state: tx_detail::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
     has_wallet_open_check_failed_one_time: bool,
@@ -41,10 +38,8 @@ pub enum Mode {
     Open,
     Home,
     CreateTx,
-    CreateTxSuccess,
     ApplyTx,
-    ApplyTxConfirm,
-    ApplyTxSuccess,
+    ShowSlatepack,
     TxDetail,
 }
 
@@ -55,10 +50,8 @@ impl Default for StateContainer {
             open_state: Default::default(),
             home_state: Default::default(),
             create_tx_state: Default::default(),
-            create_tx_success_state: Default::default(),
+            show_slatepack_state: Default::default(),
             apply_tx_state: Default::default(),
-            apply_tx_confirm_state: Default::default(),
-            apply_tx_success_state: Default::default(),
             tx_detail_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
         }
@@ -95,16 +88,10 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
         Mode::Open => open::data_container(&state.open_state, config),
         Mode::Home => home::data_container(config, &state.home_state),
         Mode::CreateTx => create_tx::data_container(config, &state.create_tx_state),
-        Mode::CreateTxSuccess => {
-            create_tx_success::data_container(config, &state.create_tx_success_state)
+        Mode::ShowSlatepack => {
+            show_slatepack::data_container(config, &state.show_slatepack_state)
         }
         Mode::ApplyTx => apply_tx::data_container(config, &state.apply_tx_state),
-        Mode::ApplyTxConfirm => {
-            apply_tx_confirm::data_container(config, &state.apply_tx_confirm_state)
-        }
-        Mode::ApplyTxSuccess => {
-            apply_tx_success::data_container(config, &state.apply_tx_success_state)
-        }
         Mode::TxDetail => {
             tx_detail::data_container(config, &state.tx_detail_state)
         }

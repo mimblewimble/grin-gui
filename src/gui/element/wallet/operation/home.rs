@@ -50,6 +50,7 @@ use {
 pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
     pub tx_list_display_state: tx_list_display::StateContainer,
+    pub address_value: Option<String>,
 
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
@@ -186,8 +187,7 @@ pub fn handle_tick<'a>(
         }));
     }
     // If slatepack address is not filled out, go get it
-    let apply_tx_state = &mut grin_gui.wallet_state.operation_state.apply_tx_state;
-    if apply_tx_state.address_value.is_empty() {
+    if state.address_value.is_none() {
         let w = grin_gui.wallet_interface.clone();
 
         let fut = move || WalletInterface::get_slatepack_address(w.clone());
@@ -310,19 +310,17 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
-            grin_gui
-                .wallet_state
-                .operation_state
-                .apply_tx_state
-                .address_value = address;
+            state.address_value = Some(address);
         }
         LocalViewInteraction::TxDetails(tx_log_entry_wrap) => {
             log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");
-            grin_gui.wallet_state.operation_state.tx_detail_state.current_tx = Some(tx_log_entry_wrap.tx);
             grin_gui
                 .wallet_state
                 .operation_state
-                .mode = crate::gui::element::wallet::operation::Mode::TxDetail;
+                .tx_detail_state
+                .current_tx = Some(tx_log_entry_wrap.tx);
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::TxDetail;
         }
         LocalViewInteraction::CancelTx(id, uuid) => {
             debug!("Cancel Tx: {}", id);
@@ -385,11 +383,11 @@ pub fn handle_message<'a>(
                     grin_gui
                         .wallet_state
                         .operation_state
-                        .create_tx_success_state
-                        .encrypted_slate = s.to_string();
+                        .show_slatepack_state
+                        .encrypted_slate = Some(s.to_string());
                     // Just go to create tx success screen for now
                     grin_gui.wallet_state.operation_state.mode =
-                        crate::gui::element::wallet::operation::Mode::CreateTxSuccess;
+                        crate::gui::element::wallet::operation::Mode::ShowSlatepack;
                 } else {
                     // Error that we're unable to load the file
                     grin_gui.error = Some(
@@ -498,13 +496,75 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::with_width(Length::Units(2)))
         .push(close_wallet_button.map(Message::Interaction));
 
-    let title_container = Container::new(Column::new().push(title_container).push(subtitle_row))
+    let address_label = Text::new(format!(
+        "{}: ",
+        localized_string("this-wallet-receive-addr")
+    ))
+    .size(SMALLER_FONT_SIZE);
+    let address_label_container = Container::new(address_label)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
-            0, // top
+            3, // top
             0, // right
             0, // bottom
-            5, // left
+            0, // left
         ]));
+
+    // Truncate a bit for compact display purposes
+    let mut copied_address_value = "".into();
+    let address = match &state.address_value {
+        Some(a) => {
+            let mut s = a.clone();
+            copied_address_value = a.clone();
+            s.truncate(10);
+            let s2 = a.clone().split_off(60);
+            format!("{}...{}", s, s2)
+        }
+        None => "".to_owned(),
+    };
+
+    let address = Text::new(address).size(SMALLER_FONT_SIZE);
+    let address_container = Container::new(address)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
+        .padding(iced::Padding::from([
+            3, // top
+            0, // right
+            0, // bottom
+            0, // left
+        ]));
+
+    let copy_address_label_container =
+        Container::new(Text::new(localized_string("copy-to-clipboard")).size(SMALLER_FONT_SIZE))
+            .height(Length::Units(14))
+            .width(Length::Units(30))
+            .center_y()
+            .center_x();
+
+    let copy_address_button: Element<Interaction> = Button::new(copy_address_label_container)
+        .style(grin_gui_core::theme::ButtonStyle::Bordered)
+        .on_press(Interaction::WriteToClipboard(copied_address_value))
+        .padding(2)
+        .into();
+
+    let address_row = Row::new()
+        .push(address_label_container)
+        .push(Space::with_width(Length::Units(2)))
+        .push(address_container)
+        .push(Space::with_width(Length::Units(2)))
+        .push(copy_address_button.map(Message::Interaction));
+
+    let title_container = Container::new(
+        Column::new()
+            .push(title_container)
+            .push(subtitle_row)
+            .push(address_row),
+    )
+    .padding(iced::Padding::from([
+        0, // top
+        0, // right
+        0, // bottom
+        5, // left
+    ]));
 
     let header_row = Row::new()
         .push(title_container)
