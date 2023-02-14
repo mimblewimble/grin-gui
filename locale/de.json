@@ -247,7 +247,7 @@
     "tx-paste": "Paste",
     "tx-continue": "Sign",
     "apply-tx-confirm": "Confirm Transaction Details",
-    "tx-sender-name": "Sender",
+    "tx-sender-name": "From sender",
     "apply-tx-amount": "Incoming amount",
     "tx-state": "Transaction Stage (this will be presented better)",
     "tx-reload-slate": "Show Slatepack",
@@ -263,5 +263,9 @@
     "tx-show-full-slatepack": "Show Full",
     "this-wallet-receive-addr": "Receive address",
     "pasted-slatepack": "Clipboard Contents",
-    "pasted-slatepack-details": "Transaction Details"
+    "pasted-slatepack-details": "Transaction Details",
+    "tx-reception": "You are agreeing to <b>receive</b> [AMOUNT] Grin",
+    "tx-reception-instruction": "If you agree to this transaction, press 'Sign' below, then return the resulting transaction to the sender for completion.",
+    "tx-reception-instruction-2": "This transaction will not be completed until the sender has finalized it and posted it to the chain",
+    "signing-tx": "Signing..."
 }

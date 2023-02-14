@@ -129,8 +129,16 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::ShowSlate => {
             // ensure back button on showing slate screen comes back here
-            grin_gui.wallet_state.operation_state.show_slatepack_state.submit_mode = Some(crate::gui::element::wallet::operation::Mode::ApplyTx);
-            grin_gui.wallet_state.operation_state.show_slatepack_state.encrypted_slate = Some(state.slatepack_read_data_full.clone());
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .submit_mode = Some(crate::gui::element::wallet::operation::Mode::ApplyTx);
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .encrypted_slate = Some(state.slatepack_read_data_full.clone());
 
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
@@ -143,8 +151,15 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     let unit_spacing = 15;
+    let mut title_key = localized_string("apply-tx");
+
+    // Just display Signing... and return while signing futures are being called
+    if state.confirm_state.is_signing {
+        title_key = localized_string("signing-tx");
+    }
+
     // Title row
-    let title = Text::new(localized_string("apply-tx"))
+    let title = Text::new(title_key)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -166,6 +181,40 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         DEFAULT_PADDING, // bottom
         0,               // left
     ]));
+
+    if state.confirm_state.is_signing {
+        let column = Column::new().push(header_container);
+
+        let form_container =
+            Container::new(column)
+                .width(Length::Fill)
+                .padding(iced::Padding::from([
+                    0, // top
+                    0, // right
+                    0, // bottom
+                    5, // left
+                ]));
+
+        // form container should be scrollable in tiny windows
+        let scrollable = Scrollable::new(form_container)
+            .height(Length::Fill)
+            .style(grin_gui_core::theme::ScrollableStyle::Primary);
+
+        let content = Container::new(scrollable)
+            .width(Length::Fill)
+            .height(Length::Shrink)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+        let wrapper_column = Column::new().height(Length::Fill).push(content);
+
+        // Returns the final container.
+        return Container::new(wrapper_column).padding(iced::Padding::from([
+            DEFAULT_PADDING, // top
+            DEFAULT_PADDING, // right
+            DEFAULT_PADDING, // bottom
+            DEFAULT_PADDING, // left
+        ]));
+    }
 
     let paste_instruction = Text::new(state.slatepack_read_data.clone())
         .size(DEFAULT_FONT_SIZE)

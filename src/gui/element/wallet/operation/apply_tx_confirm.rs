@@ -44,6 +44,9 @@ pub struct StateContainer {
     pub slatepack_read_result: String,
     // Actual read slatepack
     pub slatepack_parsed: Option<(Slatepack, Slate)>,
+    // In the state of applying slatepack
+    pub is_signing: bool,
+
 }
 
 impl Default for StateContainer {
@@ -55,6 +58,7 @@ impl Default for StateContainer {
             address_value: Default::default(),
             slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
             slatepack_parsed: None,
+            is_signing: false,
         }
     }
 }
@@ -78,6 +82,7 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Cancel)");
+            state.is_signing = false;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
         }
@@ -123,6 +128,7 @@ pub fn handle_message<'a>(
                     }));
                 }
                 SlateState::Standard2 => {
+                    state.is_signing = true;
                     let fut = move || WalletInterface::finalize_from_s2(w, out_slate, true);
 
                     return Ok(Command::perform(fut(), |r| {
@@ -170,10 +176,12 @@ pub fn handle_message<'a>(
                 .operation_state
                 .show_slatepack_state
                 .encrypted_slate = encrypted_slate;
+            state.is_signing = false;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
         LocalViewInteraction::TxAcceptFailure(err) => {
+            state.is_signing = false;
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
@@ -181,6 +189,17 @@ pub fn handle_message<'a>(
         }
     }
     Ok(Command::none())
+}
+
+// Very hacky, but these amount string will require different placements of
+// words + amount in different languages
+fn parse_info_strings(in_str: &str, amount: &str) -> String {
+    let amount_split: Vec<&str> = in_str.split("[AMOUNT]").collect();
+    let mut amount_included = format!("{}{}", amount_split[0], amount);
+    if amount_split.len() > 1 {
+        amount_included = format!("{}{}", amount_included, amount_split[1]);
+    }
+    amount_included
 }
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
@@ -200,41 +219,28 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         Some(s) => s.to_string(),
     };
 
-    let amount = amount_to_hr_string(slate.amount, false);
-
-    let mut state_text = slate.state.to_string();
+    let amount = amount_to_hr_string(slate.amount, true);
 
     // TODO: What's displayed here should change based on the slate state
-    let state_text_append = match slate.state {
-        SlateState::Standard1 => "You are the recipient - Standard workflow",
+    let state_text = match slate.state {
+        SlateState::Standard1 => parse_info_strings(&localized_string("tx-reception"), &amount),
         SlateState::Standard2 => {
-            "You are the payee, and are finalizing the transaction and sending it to the chain for validation - Standard workflow"
+            "You are the payee, and are finalizing the transaction and sending it to the chain for validation - Standard workflow".to_owned()
         }
-        SlateState::Standard3 => "This transaction is finalised - Standard workflow",
-        _ => "Support still in development",
+        SlateState::Standard3 => "This transaction is finalised - Standard workflow".to_owned(),
+        _ => "Support still in development".to_owned(),
     };
 
-    state_text = format!("{} - {}", state_text, state_text_append);
-
     // TX State (i.e. Stage)
-    let state_label = Text::new(format!("{}: ", localized_string("tx-state")))
-        .size(DEFAULT_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
-
-    let state_label_container =
-        Container::new(state_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
     let state = Text::new(state_text).size(DEFAULT_FONT_SIZE);
-    //.width(Length::Units(400))
-    //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let state_container =
-        Container::new(state).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        Container::new(state).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
-    let state_row = Row::new().push(state_label_container).push(state_container);
+    let state_row = Row::new().push(state_container);
 
     // Sender address
-    let sender_address_label = Text::new(format!("{}: ", localized_string("tx-sender-name")))
+    let sender_address_label = Text::new(format!("{} ", localized_string("tx-sender-name")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
@@ -246,36 +252,34 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let sender_address_container = Container::new(sender_address)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let sender_address_row = Row::new()
         .push(sender_address_label_container)
         .push(sender_address_container);
 
-    let amount_label = Text::new(format!("{}: ", localized_string("apply-tx-amount")))
+    let instruction_label = Text::new(format!("{} ", localized_string("tx-reception-instruction")))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let amount_label_container =
-        Container::new(amount_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let instruction_label_container =
+        Container::new(instruction_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let amount = Text::new(amount).size(DEFAULT_FONT_SIZE);
-    //.width(Length::Units(400))
-    //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+    let instruction_label_2 = Text::new(format!("{} ", localized_string("tx-reception-instruction-2")))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
 
-    let amount_container =
-        Container::new(amount).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let amount_row = Row::new()
-        .push(amount_label_container)
-        .push(amount_container);
+    let instruction_label_container_2 =
+        Container::new(instruction_label_2).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let column = Column::new()
         .push(state_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(sender_address_row)
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
-        .push(amount_row);
+        .push(instruction_label_container)
+        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(instruction_label_container_2);
 
     let wrapper_column = Column::new()
         .height(Length::Fill)
@@ -283,4 +287,5 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // Returns the final container.
     Container::new(wrapper_column)
+
 }
