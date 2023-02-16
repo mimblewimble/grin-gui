@@ -96,7 +96,7 @@ pub fn handle_message<'a>(
                     state.can_continue = false;
                 }
                 Ok(s) => {
-                    debug!("{}", s.0);
+                    debug!("{}", s.1);
                     // Truncate a bit for compact display purposes
                     let mut s1 = value.clone();
                     s1.truncate(27);

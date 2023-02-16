@@ -43,7 +43,7 @@ pub struct StateContainer {
     // Slatepack read result
     pub slatepack_read_result: String,
     // Actual read slatepack
-    pub slatepack_parsed: Option<(Slatepack, Slate)>,
+    pub slatepack_parsed: Option<(Slatepack, Slate, Option<TxLogEntry>)>,
     // In the state of applying slatepack
     pub is_signing: bool,
 }
@@ -98,7 +98,7 @@ pub fn handle_message<'a>(
                 return Ok(Command::none());
             }
 
-            let (slatepack, slate) = state.slatepack_parsed.as_ref().unwrap();
+            let (slatepack, slate, tx_log_entry) = state.slatepack_parsed.as_ref().unwrap();
 
             let sp_sending_address = match &slatepack.sender {
                 None => "None".to_string(),
@@ -229,20 +229,30 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     }
 
     // Decode/parse/etc fields for display here
-    let (slatepack, slate) = state.slatepack_parsed.as_ref().unwrap();
+    let (slatepack, slate, tx_log_entry) = state.slatepack_parsed.as_ref().unwrap();
 
     let sp_sending_address = match &slatepack.sender {
         None => "None".to_string(),
         Some(s) => s.to_string(),
     };
 
-    let amount = amount_to_hr_string(slate.amount, true);
+    let mut amount = amount_to_hr_string(slate.amount, true);
 
     // TODO: What's displayed here should change based on the slate state
     let state_text = match slate.state {
         SlateState::Standard1 => parse_info_strings(&localized_string("tx-reception"), &amount),
         SlateState::Standard2 => {
-            "You are the payee, and are finalizing the transaction and sending it to the chain for validation - Standard workflow".to_owned()
+            if let Some(tx) = tx_log_entry {
+                amount = if tx.amount_credited >= tx.amount_debited {
+                    amount_to_hr_string(tx.amount_credited - tx.amount_debited, true)
+                } else {
+                    format!(
+                        "-{}",
+                        amount_to_hr_string(tx.amount_debited - tx.amount_credited, true)
+                    )
+                };
+            }
+            parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount)
         }
         SlateState::Standard3 => "This transaction is finalised - Standard workflow".to_owned(),
         _ => "Support still in development".to_owned(),
@@ -255,6 +265,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         Container::new(state).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let state_row = Row::new().push(state_container);
+
 
     // Sender address
     let sender_address_label = Text::new(format!("{} ", localized_string("tx-sender-name")))

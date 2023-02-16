@@ -373,16 +373,22 @@ where
         Ok(api.create_slatepack_message(None, &unenc_slate, Some(0), recipients)?)
     }
 
-    /// Attempt to decode and decrypt a given slatepack
+    /// Attempt to decode and decrypt a given slatepack, also return associated transaction (if we can find it)
     pub fn decrypt_slatepack(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slatepack: String,
-    ) -> Result<(Slatepack, Slate), GrinWalletInterfaceError> {
+    ) -> Result<(Slatepack, Slate, Option<TxLogEntry>), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
             let sp = o.decode_slatepack_message(None, slatepack.clone(), vec![0])?;
             let slate = o.slate_from_slatepack_message(None, slatepack, vec![0])?;
-            return Ok((sp, slate));
+            let txs = o.retrieve_txs(None, false, None,Some(slate.id), None)?;
+            let ret_tx = if txs.1.len() > 0 {
+                Some(txs.1[0].clone())
+            } else {
+                None
+            };
+            return Ok((sp, slate, ret_tx));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
