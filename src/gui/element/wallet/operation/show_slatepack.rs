@@ -20,7 +20,11 @@ pub struct StateContainer {
     // Encrypted slate to send to recipient
     pub encrypted_slate: Option<String>,
     // Where the 'submit' or back button leads to 
-    pub submit_mode: Option<crate::gui::element::wallet::operation::Mode>
+    pub submit_mode: Option<crate::gui::element::wallet::operation::Mode>,
+    // Label to display as title
+    pub title_label: String,
+    // description
+    pub desc: String,
 }
 
 impl Default for StateContainer {
@@ -28,7 +32,16 @@ impl Default for StateContainer {
         Self {
             encrypted_slate: Default::default(),
             submit_mode: None,
+            title_label: localized_string("tx-view"),
+            desc: localized_string("tx-view-desc")
         }
+    }
+}
+
+impl StateContainer {
+    pub fn reset_defaults(&mut self) {
+        self.title_label = localized_string("tx-view");
+        self.desc = localized_string("tx-view-desc");
     }
 }
 
@@ -45,6 +58,7 @@ pub fn handle_message(
     match message {
         LocalViewInteraction::Submit => {
             state.encrypted_slate = None;
+            state.reset_defaults();
             if let Some(ref m) = state.submit_mode {
                 grin_gui.wallet_state.operation_state.mode = m.clone();
             } else {
@@ -62,7 +76,7 @@ pub fn data_container<'a>(
     state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
-    let title = Text::new(localized_string("tx-view"))
+    let title = Text::new(state.title_label.clone())
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -85,7 +99,7 @@ pub fn data_container<'a>(
         0,               // left
     ]));
 
-    let description = Text::new(localized_string("tx-create-success-desc"))
+    let description = Text::new(state.desc.clone())
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container =
@@ -97,7 +111,7 @@ pub fn data_container<'a>(
     };
 
     let encrypted_slate_card = Card::new(
-        Text::new(localized_string("tx-create-success-title"))
+        Text::new(localized_string("tx-paste-success-title"))
             .size(DEFAULT_HEADER_FONT_SIZE),
         Text::new(card_contents.clone()).size(DEFAULT_FONT_SIZE),
     )

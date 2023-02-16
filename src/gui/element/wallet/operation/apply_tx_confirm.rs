@@ -46,7 +46,6 @@ pub struct StateContainer {
     pub slatepack_parsed: Option<(Slatepack, Slate)>,
     // In the state of applying slatepack
     pub is_signing: bool,
-
 }
 
 impl Default for StateContainer {
@@ -78,7 +77,11 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.apply_tx_state.confirm_state;
+    let state = &mut grin_gui
+        .wallet_state
+        .operation_state
+        .apply_tx_state
+        .confirm_state;
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Cancel)");
@@ -106,6 +109,7 @@ pub fn handle_message<'a>(
             let out_slate = slate.clone();
             match slate.state {
                 SlateState::Standard1 => {
+                    state.is_signing = true;
                     let fut = move || {
                         WalletInterface::receive_tx_from_s1(w, out_slate, sp_sending_address)
                     };
@@ -176,6 +180,19 @@ pub fn handle_message<'a>(
                 .operation_state
                 .show_slatepack_state
                 .encrypted_slate = encrypted_slate;
+
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .title_label = localized_string("tx-continue-success-title");
+
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .desc = localized_string("tx-continue-success-desc");
+
             state.is_signing = false;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
@@ -262,15 +279,18 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
-    let instruction_label_container =
-        Container::new(instruction_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let instruction_label_container = Container::new(instruction_label)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let instruction_label_2 = Text::new(format!("{} ", localized_string("tx-reception-instruction-2")))
-        .size(DEFAULT_FONT_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Left);
+    let instruction_label_2 = Text::new(format!(
+        "{} ",
+        localized_string("tx-reception-instruction-2")
+    ))
+    .size(DEFAULT_FONT_SIZE)
+    .horizontal_alignment(alignment::Horizontal::Left);
 
-    let instruction_label_container_2 =
-        Container::new(instruction_label_2).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let instruction_label_container_2 = Container::new(instruction_label_2)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let column = Column::new()
         .push(state_row)
@@ -281,11 +301,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
         .push(instruction_label_container_2);
 
-    let wrapper_column = Column::new()
-        .height(Length::Fill)
-        .push(column);
+    let wrapper_column = Column::new().height(Length::Fill).push(column);
 
     // Returns the final container.
     Container::new(wrapper_column)
-
 }

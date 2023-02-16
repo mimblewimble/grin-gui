@@ -20,13 +20,14 @@ use {
     crate::localization::localized_string,
     crate::Result,
     anyhow::Context,
+    grin_gui_core::theme::{
+        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+        TextInput,
+    },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
-    grin_gui_core::theme::{Container, Button, Element, Column, PickList, Row, Scrollable, Text, TextInput, Header, TableRow},
+    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{Alignment, Command, Length},
-    iced::widget::{
-        button, pick_list, scrollable, text_input, Checkbox, Space,
-    },
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
@@ -86,11 +87,21 @@ pub fn handle_message<'a>(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    config: &'a Config,
-    state: &'a StateContainer,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     let button_width = Length::Units(70);
+
+    let description = Text::new(localized_string("tx-transact"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Center)
+        .vertical_alignment(alignment::Vertical::Center);
+    let description_container = Container::new(description)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
+        .padding(iced::Padding::from([
+            6, // top
+            5, // right
+            5, // bottom
+            5, // left
+        ]));
 
     // Buttons to perform wallet operations
     let create_tx_container =
@@ -99,14 +110,13 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let create_tx_button: Element<Interaction> =
-        Button::new(create_tx_container)
-            .width(button_width)
-            .style(grin_gui_core::theme::ButtonStyle::Primary)
-            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-                LocalViewInteraction::SelectAction(Action::CreateTx),
-            ))
-            .into();
+    let create_tx_button: Element<Interaction> = Button::new(create_tx_container)
+        .width(button_width)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+            LocalViewInteraction::SelectAction(Action::CreateTx),
+        ))
+        .into();
 
     let apply_tx_container =
         Container::new(Text::new(localized_string("wallet-apply-tx")).size(DEFAULT_FONT_SIZE))
@@ -114,14 +124,13 @@ pub fn data_container<'a>(
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let apply_tx_button: Element<Interaction> =
-        Button::new( apply_tx_container)
-            .width(button_width)
-            .style(grin_gui_core::theme::ButtonStyle::Primary)
-            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-                LocalViewInteraction::SelectAction(Action::ApplyTx),
-            ))
-            .into();
+    let apply_tx_button: Element<Interaction> = Button::new(apply_tx_container)
+        .width(button_width)
+        .style(grin_gui_core::theme::ButtonStyle::Primary)
+        .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+            LocalViewInteraction::SelectAction(Action::ApplyTx),
+        ))
+        .into();
 
     // add a nice double border around our buttons
     // TODO refactor since many of the buttons around the UI repeat this theme
@@ -136,9 +145,18 @@ pub fn data_container<'a>(
         .padding(1);
 
     let menu_column = Row::new()
+        .push(description_container)
+        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
         .push(create_container)
         .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
         .push(apply_container);
 
     Container::new(menu_column)
+        .style(grin_gui_core::theme::ContainerStyle::PanelBordered)
+        .padding(iced::Padding::from([
+            5, // top
+            5, // right
+            5, // bottom
+            5, // left
+        ]))
 }

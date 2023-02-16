@@ -242,9 +242,25 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .padding(2)
             .into();
 
+        let paste_again_label_container = Container::new(
+            Text::new(localized_string("tx-paste-again")).size(SMALLER_FONT_SIZE),
+        )
+        .height(Length::Units(14))
+        .width(Length::Units(60))
+        .center_y()
+        .center_x();
+
+        let paste_again_button: Element<Interaction> = Button::new(paste_again_label_container)
+            .style(grin_gui_core::theme::ButtonStyle::Bordered)
+            .on_press(Interaction::ReadSlatepackFromClipboard)
+            .padding(2)
+            .into();
+
         instruction_row = instruction_row
             .push(Space::with_width(Length::Units(2)))
-            .push(show_slate_button.map(Message::Interaction));
+            .push(show_slate_button.map(Message::Interaction))
+            .push(Space::with_width(Length::Units(2)))
+            .push(paste_again_button.map(Message::Interaction));
     }
 
     let mut instruction_col = Column::new();
@@ -347,11 +363,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let mut button_row = Row::new()
-        .push(submit_container)
+    let mut button_row = Row::new();
+    if !state.can_continue {
+        button_row = button_row.push(submit_container)
         .push(Space::new(Length::Units(unit_spacing), Length::Units(0)));
-
-    if state.can_continue {
+    } else {
         button_row = button_row
             .push(continue_container)
             .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
