@@ -16,34 +16,15 @@ use {
     iced_aw::Card,
 };
 
-pub struct StateContainer {
-    // Encrypted slate to send to recipient
-    pub encrypted_slate: Option<String>,
-    // Where the 'submit' or back button leads to 
-    pub submit_mode: Option<crate::gui::element::wallet::operation::Mode>,
-    // Label to display as title
-    pub title_label: String,
-    // description
-    pub desc: String,
-}
+pub struct StateContainer {}
 
 impl Default for StateContainer {
     fn default() -> Self {
-        Self {
-            encrypted_slate: Default::default(),
-            submit_mode: None,
-            title_label: localized_string("tx-view"),
-            desc: localized_string("tx-view-desc")
-        }
+        Self {}
     }
 }
 
-impl StateContainer {
-    pub fn reset_defaults(&mut self) {
-        self.title_label = localized_string("tx-view");
-        self.desc = localized_string("tx-view-desc");
-    }
-}
+impl StateContainer {}
 
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
@@ -54,18 +35,11 @@ pub fn handle_message(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.show_slatepack_state;
+    let state = &mut grin_gui.wallet_state.operation_state.tx_done_state;
     match message {
         LocalViewInteraction::Submit => {
-            state.encrypted_slate = None;
-            state.reset_defaults();
-            if let Some(ref m) = state.submit_mode {
-                grin_gui.wallet_state.operation_state.mode = m.clone();
-            } else {
-                grin_gui.wallet_state.operation_state.mode =
-                    crate::gui::element::wallet::operation::Mode::Home;
-            }
-            state.submit_mode = None;
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::Home;
         }
     }
     Ok(Command::none())
@@ -76,7 +50,7 @@ pub fn data_container<'a>(
     state: &'a StateContainer,
 ) -> Container<'a, Message> {
     // Title row
-    let title = Text::new(state.title_label.clone())
+    let title = Text::new(localized_string("tx-done"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -99,42 +73,11 @@ pub fn data_container<'a>(
         0,               // left
     ]));
 
-    let description = Text::new(state.desc.clone())
+    let description = Text::new(localized_string("tx-done-instruction"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
     let description_container =
         Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-    let card_contents = match &state.encrypted_slate {
-        Some(s) => s.to_owned(),
-        None => "".to_owned()
-    };
-
-    let encrypted_slate_card = Card::new(
-        Text::new(localized_string("tx-paste-success-title"))
-            .size(DEFAULT_HEADER_FONT_SIZE),
-        Text::new(card_contents.clone()).size(DEFAULT_FONT_SIZE),
-    )
-    .foot(
-        Column::new()
-            .spacing(10)
-            .padding(5)
-            .width(Length::Fill)
-            .align_items(Alignment::Center)
-            .push(
-                Button::new(
-                    Text::new(localized_string("copy-to-clipboard"))
-                        .size(SMALLER_FONT_SIZE)
-                        .horizontal_alignment(alignment::Horizontal::Center),
-                )
-                .style(grin_gui_core::theme::ButtonStyle::NormalText)
-                .on_press(Message::Interaction(Interaction::WriteToClipboard(
-                    card_contents.clone(),
-                ))),
-            ),
-    )
-    .max_width(400)
-    .style(grin_gui_core::theme::CardStyle::Normal);
 
     let unit_spacing = 15;
 
@@ -151,7 +94,7 @@ pub fn data_container<'a>(
 
     let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationShowSlatepackViewInteraction(
+        .on_press(Interaction::WalletOperationTxDoneViewInteraction(
             LocalViewInteraction::Submit,
         ))
         .into();
@@ -169,11 +112,6 @@ pub fn data_container<'a>(
         .push(Space::new(
             Length::Units(0),
             Length::Units(unit_spacing + 5),
-        ))
-        .push(encrypted_slate_card)
-        .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
         ))
         .push(button_row)
         .push(Space::new(

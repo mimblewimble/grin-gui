@@ -152,6 +152,18 @@ pub fn handle_message<'a>(
                 .show_slatepack_state
                 .encrypted_slate = Some(encrypted_slate.to_string());
 
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .title_label = localized_string("tx-create-success-title");
+
+            grin_gui
+                .wallet_state
+                .operation_state
+                .show_slatepack_state
+                .desc = localized_string("tx-create-success-desc");
+  
             // create a directory to which files will be output, if it doesn't exist
             if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
                 let out_file_name = format!("{}/{}.slatepack", dir, unencrypted_slate.id);

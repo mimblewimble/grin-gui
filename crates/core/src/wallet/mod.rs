@@ -12,6 +12,7 @@ use grin_core::{self};
 use grin_keychain as keychain;
 use grin_util::{file, Mutex, ZeroingString};
 
+use super::node::amount_to_hr_string;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
@@ -102,6 +103,29 @@ where
     use_embedded_node: bool,
 
     node_client: C,
+}
+
+// Amount / Fee
+pub fn parse_abs_tx_amount_fee(tx: &TxLogEntry, subtract_fee_from_amt: bool) -> (String, String) {
+    let mut amt = if tx.amount_credited >= tx.amount_debited {
+        tx.amount_credited - tx.amount_debited
+    } else {
+        tx.amount_debited - tx.amount_credited
+    };
+
+    let fee = match tx.fee {
+        Some(f) => f.fee(),
+        None => 0,
+    };
+
+    if subtract_fee_from_amt {
+        amt = amt - fee;
+    }
+
+    (
+        amount_to_hr_string(amt, true),
+        amount_to_hr_string(fee, true),
+    )
 }
 
 impl<L, C> WalletInterface<L, C>
@@ -373,16 +397,22 @@ where
         Ok(api.create_slatepack_message(None, &unenc_slate, Some(0), recipients)?)
     }
 
-    /// Attempt to decode and decrypt a given slatepack
+    /// Attempt to decode and decrypt a given slatepack, also return associated transaction (if we can find it)
     pub fn decrypt_slatepack(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slatepack: String,
-    ) -> Result<(Slatepack, Slate), GrinWalletInterfaceError> {
+    ) -> Result<(Slatepack, Slate, Option<TxLogEntry>), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
             let sp = o.decode_slatepack_message(None, slatepack.clone(), vec![0])?;
             let slate = o.slate_from_slatepack_message(None, slatepack, vec![0])?;
-            return Ok((sp, slate));
+            let txs = o.retrieve_txs(None, false, None, Some(slate.id), None)?;
+            let ret_tx = if txs.1.len() > 0 {
+                Some(txs.1[0].clone())
+            } else {
+                None
+            };
+            return Ok((sp, slate, ret_tx));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
@@ -450,7 +480,10 @@ where
         if let Some(o) = &w.owner_api {
             let slate = { o.init_send_tx(None, init_args)? };
             o.tx_lock_outputs(None, &slate)?;
-            return Ok((slate.clone(), WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate)?));
+            return Ok((
+                slate.clone(),
+                WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate)?,
+            ));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
