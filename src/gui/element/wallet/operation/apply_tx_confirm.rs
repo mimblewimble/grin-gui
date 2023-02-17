@@ -27,7 +27,7 @@ use {
         Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
         TextInput,
     },
-    grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
+    grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface, parse_abs_tx_amount_fee},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
     iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
@@ -237,22 +237,23 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     };
 
     let mut amount = amount_to_hr_string(slate.amount, true);
+    let mut other_wallet_label = localized_string("tx-sender-name");
+    let mut reception_instruction_1 = localized_string("tx-reception-instruction");
+    let mut reception_instruction_2 = localized_string("tx-reception-instruction-2");
 
     // TODO: What's displayed here should change based on the slate state
     let state_text = match slate.state {
         SlateState::Standard1 => parse_info_strings(&localized_string("tx-reception"), &amount),
         SlateState::Standard2 => {
+            let mut fee = String::default();
+            other_wallet_label = localized_string("tx-recipient-name");
+            reception_instruction_2 = parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
             if let Some(tx) = tx_log_entry {
-                amount = if tx.amount_credited >= tx.amount_debited {
-                    amount_to_hr_string(tx.amount_credited - tx.amount_debited, true)
-                } else {
-                    format!(
-                        "-{}",
-                        amount_to_hr_string(tx.amount_debited - tx.amount_credited, true)
-                    )
-                };
+                (amount, fee) = parse_abs_tx_amount_fee(tx, true);
             }
-            parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount)
+            reception_instruction_1 = parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
+            let amt_stmt = parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount);
+            amt_stmt
         }
         SlateState::Standard3 => "This transaction is finalised - Standard workflow".to_owned(),
         _ => "Support still in development".to_owned(),
@@ -266,9 +267,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let state_row = Row::new().push(state_container);
 
-
     // Sender address
-    let sender_address_label = Text::new(format!("{} ", localized_string("tx-sender-name")))
+    let sender_address_label = Text::new(format!("{} ", other_wallet_label))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
@@ -286,7 +286,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(sender_address_label_container)
         .push(sender_address_container);
 
-    let instruction_label = Text::new(format!("{} ", localized_string("tx-reception-instruction")))
+    let instruction_label = Text::new(format!("{} ", reception_instruction_1))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
@@ -295,7 +295,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let instruction_label_2 = Text::new(format!(
         "{} ",
-        localized_string("tx-reception-instruction-2")
+        localized_string(&reception_instruction_2)
     ))
     .size(DEFAULT_FONT_SIZE)
     .horizontal_alignment(alignment::Horizontal::Left);
