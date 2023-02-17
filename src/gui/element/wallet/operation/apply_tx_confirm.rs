@@ -27,7 +27,7 @@ use {
         Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
         TextInput,
     },
-    grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface, parse_abs_tx_amount_fee},
+    grin_gui_core::wallet::{parse_abs_tx_amount_fee, StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
     iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
@@ -69,7 +69,7 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     Accept,
-    TxAcceptSuccess(Slate, Option<String>),
+    TxAcceptSuccess(Slate, Option<String>, bool),
     TxAcceptFailure(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -118,7 +118,7 @@ pub fn handle_message<'a>(
                         match r.context("Failed to Progress Transaction") {
                             Ok((slate, enc_slate)) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate),
+                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate, false),
                                 ),
                             ),
                             Err(e) => Message::Interaction(
@@ -139,7 +139,7 @@ pub fn handle_message<'a>(
                         match r.context("Failed to Progress Transaction") {
                             Ok((slate, enc_slate)) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate),
+                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate, true),
                                 ),
                             ),
                             Err(e) => Message::Interaction(
@@ -158,7 +158,7 @@ pub fn handle_message<'a>(
                 }
             }
         }
-        LocalViewInteraction::TxAcceptSuccess(slate, encrypted_slate) => {
+        LocalViewInteraction::TxAcceptSuccess(slate, encrypted_slate, finished) => {
             // Output the latest slatepack, overriding any previous
             if let Some(ref s) = encrypted_slate {
                 if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
@@ -175,27 +175,33 @@ pub fn handle_message<'a>(
                 }
             }
 
-            grin_gui
-                .wallet_state
-                .operation_state
-                .show_slatepack_state
-                .encrypted_slate = encrypted_slate;
-
-            grin_gui
-                .wallet_state
-                .operation_state
-                .show_slatepack_state
-                .title_label = localized_string("tx-continue-success-title");
-
-            grin_gui
-                .wallet_state
-                .operation_state
-                .show_slatepack_state
-                .desc = localized_string("tx-continue-success-desc");
-
             state.is_signing = false;
-            grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
+
+            if finished {
+                grin_gui.wallet_state.operation_state.mode =
+                    crate::gui::element::wallet::operation::Mode::TxDone;
+            } else {
+                grin_gui
+                    .wallet_state
+                    .operation_state
+                    .show_slatepack_state
+                    .encrypted_slate = encrypted_slate;
+
+                grin_gui
+                    .wallet_state
+                    .operation_state
+                    .show_slatepack_state
+                    .title_label = localized_string("tx-continue-success-title");
+
+                grin_gui
+                    .wallet_state
+                    .operation_state
+                    .show_slatepack_state
+                    .desc = localized_string("tx-continue-success-desc");
+
+                grin_gui.wallet_state.operation_state.mode =
+                    crate::gui::element::wallet::operation::Mode::ShowSlatepack;
+            }
         }
         LocalViewInteraction::TxAcceptFailure(err) => {
             state.is_signing = false;
@@ -247,11 +253,13 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         SlateState::Standard2 => {
             let mut fee = String::default();
             other_wallet_label = localized_string("tx-recipient-name");
-            reception_instruction_2 = parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
+            reception_instruction_2 =
+                parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
             if let Some(tx) = tx_log_entry {
                 (amount, fee) = parse_abs_tx_amount_fee(tx, true);
             }
-            reception_instruction_1 = parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
+            reception_instruction_1 =
+                parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
             let amt_stmt = parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount);
             amt_stmt
         }
@@ -293,12 +301,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let instruction_label_container = Container::new(instruction_label)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let instruction_label_2 = Text::new(format!(
-        "{} ",
-        localized_string(&reception_instruction_2)
-    ))
-    .size(DEFAULT_FONT_SIZE)
-    .horizontal_alignment(alignment::Horizontal::Left);
+    let instruction_label_2 = Text::new(format!("{} ", localized_string(&reception_instruction_2)))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
 
     let instruction_label_container_2 = Container::new(instruction_label_2)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);

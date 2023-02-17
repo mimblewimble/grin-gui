@@ -251,6 +251,7 @@
     "tx-paste": "Paste",
     "tx-paste-again": "Paste Again",
     "tx-continue": "Sign",
+    "tx-done": "Transaction Complete",
     "apply-tx-confirm": "Confirm Transaction Details",
     "tx-sender-name": "From the wallet",
     "tx-recipient-name": "To the wallet",
@@ -276,5 +277,6 @@
     "tx-s1-finalization-1": "You are finalizing an agreement to pay [AMOUNT] Grin",
     "tx-s1-finalization-2": "Along with a mining fee of [AMOUNT]",
     "tx-s1-finalization-3": "This will complete the transaction and post it to the chain, at which point it becomes irreversible.",
+    "tx-done-instruction": "The transaction has been completed and posted to the chain. Please wait a few blocks for validation.",
     "signing-tx": "Signing..."
 }

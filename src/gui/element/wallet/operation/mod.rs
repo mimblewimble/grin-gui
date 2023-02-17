@@ -9,6 +9,7 @@ pub mod open;
 pub mod tx_list;
 pub mod tx_list_display;
 pub mod tx_detail;
+pub mod tx_done;
 
 use {
     crate::gui::{GrinGui, Message},
@@ -29,6 +30,7 @@ pub struct StateContainer {
     pub show_slatepack_state: show_slatepack::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
     pub tx_detail_state: tx_detail::StateContainer,
+    pub tx_done_state: tx_done::StateContainer,
     // When changed to true, this should stay false until a wallet is opened with a password
     has_wallet_open_check_failed_one_time: bool,
 }
@@ -41,6 +43,7 @@ pub enum Mode {
     ApplyTx,
     ShowSlatepack,
     TxDetail,
+    TxDone,
 }
 
 impl Default for StateContainer {
@@ -53,6 +56,7 @@ impl Default for StateContainer {
             show_slatepack_state: Default::default(),
             apply_tx_state: Default::default(),
             tx_detail_state: Default::default(),
+            tx_done_state: Default::default(),
             has_wallet_open_check_failed_one_time: false,
         }
     }
@@ -94,6 +98,9 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
         Mode::ApplyTx => apply_tx::data_container(config, &state.apply_tx_state),
         Mode::TxDetail => {
             tx_detail::data_container(config, &state.tx_detail_state)
+        }
+        Mode::TxDone => {
+            tx_done::data_container(config, &state.tx_done_state)
         }
     };
 

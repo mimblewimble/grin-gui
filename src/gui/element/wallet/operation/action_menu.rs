@@ -95,9 +95,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .horizontal_alignment(alignment::Horizontal::Center)
         .vertical_alignment(alignment::Vertical::Center);
     let description_container = Container::new(description)
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
         .padding(iced::Padding::from([
-            6, // top
+            7, // top
             5, // right
             5, // bottom
             5, // left
@@ -152,7 +151,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(apply_container);
 
     Container::new(menu_column)
-        .style(grin_gui_core::theme::ContainerStyle::PanelBordered)
         .padding(iced::Padding::from([
             5, // top
             5, // right

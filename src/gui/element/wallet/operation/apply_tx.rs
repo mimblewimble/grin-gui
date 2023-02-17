@@ -113,7 +113,7 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::Continue => {
-            //state.slatepack_read_data = localized_string("tx-slatepack-read-result-default");
+            state.slatepack_read_data = localized_string("tx-slatepack-read-result-default");
             state.can_continue = false;
             let fut = move || async {};
             return Ok(Command::perform(fut(), |_| {
