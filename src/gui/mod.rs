@@ -74,7 +74,7 @@ pub struct GrinGui {
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
-        self.show_exit_modal = true;
+        self.show_exit_modal = show;
         self.show_error_modal = false;
     }
 
