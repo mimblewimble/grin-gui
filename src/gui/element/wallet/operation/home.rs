@@ -300,6 +300,16 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::WalletCloseSuccess => {
+            // Also blank out all relevant info first, and perform all shutdown 
+            // so it doesn't appear when opening another wallet
+            state.wallet_info = None;
+            state.address_value = None;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .tx_detail_state
+                .current_tx = None;
+
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Open;
         }
