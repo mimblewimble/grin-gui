@@ -88,7 +88,7 @@ pub fn exit_card() -> Card<'static, Message> {
             .push(button_row),
     )
     .max_width(500)
-    .on_close(Message::Interaction(Interaction::CloseErrorModal))
+    .on_close(Message::Interaction(Interaction::ExitCancel))
     .style(grin_gui_core::theme::CardStyle::Normal)
 }
 

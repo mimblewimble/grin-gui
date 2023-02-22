@@ -67,6 +67,7 @@
     "open": "Open",
     "open-wallet": "Open Wallet",
     "open-wallet-password": "Please enter your wallet password",
+    "open-wallet-error": "Is password correct?",
     "or-caps": "OR",
     "ok-caps": "OK",
     "parsing-addons": "Currently parsing {flavor} AddOns",

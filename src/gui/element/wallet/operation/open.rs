@@ -28,30 +28,26 @@ static UNIT_SPACE: u16 = 15;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
-    // pub submit_button_state: button::State,
-    // cancel_button_state: button::State,
+    pub wallet_message: String,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
             password_state: Default::default(),
-            // submit_button_state: Default::default(),
-            // cancel_button_state: Default::default(),
+            wallet_message: localized_string("open-wallet-password"),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct PasswordState {
-    // pub input_state: text_input::State,
     pub input_value: String,
 }
 
 impl Default for PasswordState {
     fn default() -> Self {
         PasswordState {
-            // input_state: Default::default(),
             input_value: Default::default(),
         }
     }
@@ -88,6 +84,7 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::PasswordInput(password) => {
             state.password_state.input_value = password;
+            state.wallet_message = localized_string("open-wallet-password");
         }
         LocalViewInteraction::PasswordInputEnterPressed => {
             //state.password_state.input_state.unfocus();
@@ -159,10 +156,10 @@ pub fn handle_message<'a>(
         }
 
         LocalViewInteraction::WalletOpenError(err) => {
-            grin_gui.error = err.write().unwrap().take();
-            if let Some(e) = grin_gui.error.as_ref() {
-                log_error(e);
-            }
+            //grin_gui.error = err.write().unwrap().take();
+            // display wallet message to user 
+            state.wallet_message = localized_string("open-wallet-error");
+            err.write().unwrap().take().and_then(|e| Some(log_error(&e)));
         }
     }
     Ok(Command::none())
@@ -217,7 +214,7 @@ pub fn data_container<'a>(
         Column::new().push(password_input_col)
     };
 
-    let description = Text::new(localized_string("open-wallet-password"))
+    let description = Text::new(state.wallet_message.clone())
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
