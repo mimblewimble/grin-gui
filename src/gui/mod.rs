@@ -66,16 +66,20 @@ pub struct GrinGui {
     /// About screen state
     about_state: element::about::StateContainer,
 
-    show_error_modal: bool,
-    show_exit_modal: bool,
+    show_modal: bool,
+    modal_type: ModalType,
     exit: bool,
     theme: Theme,
 }
 
 impl GrinGui {
     pub fn show_exit (&mut self, show: bool) {
-        self.show_exit_modal = show;
-        self.show_error_modal = false;
+        self.show_modal = show;
+        if show {
+            self.modal_type = ModalType::Exit;
+        } else {
+            self.modal_type = ModalType::Error;
+        }
     }
 
     pub fn safe_exit (&mut self) {
@@ -110,8 +114,8 @@ impl GrinGui{
             node_settings_state: Default::default(),
             general_settings_state: Default::default(),
             about_state: Default::default(),
-            show_error_modal: false,
-            show_exit_modal: false,
+            show_modal: false,
+            modal_type: ModalType::Error,
             exit: false,
             theme,
         }
@@ -127,6 +131,11 @@ pub enum Message {
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_native::Event),
     None(()),
+}
+
+pub enum ModalType {
+    Exit,
+    Error,
 }
 
 impl Application for GrinGui {
@@ -261,21 +270,18 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-        let show_exit = self.show_exit_modal;
-        let error_cause = if let Some(e) = &self.error {
-            error_cause_string(&e)
-        } else {
-            "".into()
-        };
+        Modal::new(self.show_modal, content, move|| {
+            match self.modal_type {
+                ModalType::Exit => element::modal::exit_card().into(),
+                ModalType::Error => {
+                    let error_cause = self.error
+                        .as_ref()
+                        .map_or_else(|| "unknown error".to_owned(), |e| error_cause_string(e));
 
-        Modal::new(self.show_exit_modal || self.show_error_modal, content, move|| {
-            if self.show_exit_modal {
-                element::modal::exit_card().into()
-            } else {
-                element::modal::error_card(error_cause.clone()).into()
+                    element::modal::error_card(error_cause.clone()).into()
+                }
             }
         })
-        //.backdrop(Message::Interaction(Interaction::CloseErrorModal))
         .on_esc(Message::Interaction(Interaction::CloseErrorModal))
         .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
