@@ -103,6 +103,7 @@
     "password-repeat": "Repeat Password",
     "source": "Quelle",
     "status": "Status",
+    "node-status": "Node Status",
     "summary": "Zusammenfassung",
     "theme": "Thema",
     "ui": "Benutzeroberfläche",

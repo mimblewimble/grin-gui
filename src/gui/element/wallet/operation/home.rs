@@ -40,7 +40,10 @@ use {
         TextInput,
     },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
-    grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
+    grin_gui_core::{
+        node::{amount_to_hr_string, ServerStats},
+        theme::ColorPalette,
+    },
     iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
     std::sync::{Arc, RwLock},
@@ -56,10 +59,27 @@ pub struct StateContainer {
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
+    node_status: Option<ServerStats>,
 
     cursor_index: Option<usize>,
     caption_index: Option<usize>,
     price_history: HashMap<DateTime<Utc>, f64>,
+}
+
+impl StateContainer {
+    pub fn parse_node_status(&self) -> String {
+        // Node status string
+        // BodySync 
+        match &self.node_status {
+            Some(s) => match s {
+                _ => format!("{:?}", s.sync_status),
+            },
+            None => localized_string("unknown"),
+        }
+    }
+    pub fn update_node_status(&mut self, stats: &ServerStats) {
+        self.node_status = Some(stats.clone());
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -300,7 +320,7 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::WalletCloseSuccess => {
-            // Also blank out all relevant info first, and perform all shutdown 
+            // Also blank out all relevant info first, and perform all shutdown
             // so it doesn't appear when opening another wallet
             state.wallet_info = None;
             state.address_value = None;
@@ -730,6 +750,20 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         ));
     }
 
+    // Status container element for Node state
+    let status_container_node_state_label_text =
+        Text::new(format!("{}: ", localized_string("node-status")))
+            .size(DEFAULT_FONT_SIZE)
+            .height(Length::Fill)
+            .horizontal_alignment(alignment::Horizontal::Left)
+            .vertical_alignment(alignment::Vertical::Center);
+
+    let status_container_node_state_text = Text::new(state.parse_node_status())
+        .size(DEFAULT_FONT_SIZE)
+        .height(Length::Fill)
+        .horizontal_alignment(alignment::Horizontal::Left)
+        .vertical_alignment(alignment::Vertical::Center);
+
     // Status container bar at bottom of screen
     let status_container_label_text = Text::new(localized_string("status"))
         .size(DEFAULT_FONT_SIZE)
@@ -750,6 +784,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .vertical_alignment(alignment::Vertical::Center);
 
     let status_container_contents = Row::new()
+        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(status_container_node_state_label_text)
+        .push(status_container_node_state_text)
         .push(Space::new(Length::Fill, Length::Fill))
         .push(status_container_label_text)
         .push(status_container_separator_text)
