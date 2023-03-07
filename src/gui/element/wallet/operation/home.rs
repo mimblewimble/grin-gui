@@ -61,7 +61,7 @@ pub struct StateContainer {
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
     node_status: Option<ServerStats>,
-    node_synced: bool,
+    pub node_synched: bool,
 
     cursor_index: Option<usize>,
     caption_index: Option<usize>,
@@ -83,8 +83,8 @@ impl StateContainer {
     pub fn update_node_status(&mut self, stats: &ServerStats) {
         self.node_status = Some(stats.clone());
         match stats.sync_status {
-            SyncStatus::NoSync => self.node_synced = true,
-            _ => self.node_synced = false,
+            SyncStatus::NoSync => self.node_synched = true,
+            _ => self.node_synched = false,
         }
     }
 }
@@ -176,7 +176,7 @@ pub fn handle_tick<'a>(
     }
 
     // don't display status if node is still synching
-    if !state.node_synced {
+    if !state.node_synched {
         state.wallet_status = localized_string("awaiting-sync");
     }
 
@@ -198,7 +198,7 @@ pub fn handle_tick<'a>(
         query_args.include_outstanding_only = Some(true);
 
         let w = grin_gui.wallet_interface.clone();
-        let node_synched = state.node_synced;
+        let node_synched = state.node_synched;
 
         let fut = move || WalletInterface::get_wallet_info(w.clone(), node_synched); //.join(WalletInterface::get_txs(w, Some(query_args)));
 
@@ -446,7 +446,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu = action_menu::data_container(config, &state.action_menu_state);
+    let operations_menu = action_menu::data_container(config, &state.action_menu_state, &state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
