@@ -7,6 +7,7 @@ use super::{
 use async_std::{prelude::FutureExt, task::current};
 use chrono::{DateTime, DurationRound, TimeZone, Utc};
 use grin_gui_core::error::GrinWalletInterfaceError;
+use grin_gui_core::node::SyncStatus;
 use grin_gui_core::{
     config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
@@ -60,6 +61,7 @@ pub struct StateContainer {
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
     node_status: Option<ServerStats>,
+    node_synced: bool,
 
     cursor_index: Option<usize>,
     caption_index: Option<usize>,
@@ -69,16 +71,21 @@ pub struct StateContainer {
 impl StateContainer {
     pub fn parse_node_status(&self) -> String {
         // Node status string
-        // BodySync 
+        // BodySync
         match &self.node_status {
-            Some(s) => match s {
-                _ => format!("{:?}", s.sync_status),
+            Some(s) => match s.sync_status {
+                SyncStatus::NoSync => localized_string("node-synched"),
+                _ => localized_string("node-unsynched")
             },
             None => localized_string("unknown"),
         }
     }
     pub fn update_node_status(&mut self, stats: &ServerStats) {
         self.node_status = Some(stats.clone());
+        match stats.sync_status {
+            SyncStatus::NoSync => self.node_synced = true,
+            _ => self.node_synced = false,
+        }
     }
 }
 
@@ -168,6 +175,11 @@ pub fn handle_tick<'a>(
         }
     }
 
+    // don't display status if node is still synching
+    if !state.node_synced {
+        state.wallet_status = localized_string("awaiting-sync");
+    }
+
     // calls to API should be limited to once per minute
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
@@ -186,8 +198,9 @@ pub fn handle_tick<'a>(
         query_args.include_outstanding_only = Some(true);
 
         let w = grin_gui.wallet_interface.clone();
+        let node_synched = state.node_synced;
 
-        let fut = move || WalletInterface::get_wallet_info(w.clone()); //.join(WalletInterface::get_txs(w, Some(query_args)));
+        let fut = move || WalletInterface::get_wallet_info(w.clone(), node_synched); //.join(WalletInterface::get_txs(w, Some(query_args)));
 
         return Ok(Command::perform(fut(), |wallet_info_res| {
             if wallet_info_res.is_err() {
@@ -765,7 +778,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .vertical_alignment(alignment::Vertical::Center);
 
     // Status container bar at bottom of screen
-    let status_container_label_text = Text::new(localized_string("status"))
+    let status_container_label_text = Text::new(localized_string("wallet-status"))
         .size(DEFAULT_FONT_SIZE)
         .height(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Right)
