@@ -87,20 +87,23 @@ pub fn handle_message<'a>(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
+pub fn data_container<'a>(
+    config: &'a Config,
+    state: &'a StateContainer,
+    home_state: &'a super::home::StateContainer,
+) -> Container<'a, Message> {
     let button_width = Length::Units(70);
 
     let description = Text::new(localized_string("tx-transact"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center)
         .vertical_alignment(alignment::Vertical::Center);
-    let description_container = Container::new(description)
-        .padding(iced::Padding::from([
-            7, // top
-            5, // right
-            5, // bottom
-            5, // left
-        ]));
+    let description_container = Container::new(description).padding(iced::Padding::from([
+        7, // top
+        5, // right
+        5, // bottom
+        5, // left
+    ]));
 
     // Buttons to perform wallet operations
     let create_tx_container =
@@ -109,13 +112,18 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let create_tx_button: Element<Interaction> = Button::new(create_tx_container)
+    let mut create_tx_button = Button::new(create_tx_container)
         .width(button_width)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-            LocalViewInteraction::SelectAction(Action::CreateTx),
-        ))
-        .into();
+        .style(grin_gui_core::theme::ButtonStyle::Primary);
+
+    if home_state.node_synched {
+        create_tx_button = create_tx_button
+            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+                LocalViewInteraction::SelectAction(Action::CreateTx),
+            ))
+    } 
+
+    let create_tx_button: Element<Interaction> = create_tx_button.into();
 
     let apply_tx_container =
         Container::new(Text::new(localized_string("wallet-apply-tx")).size(DEFAULT_FONT_SIZE))
@@ -123,15 +131,19 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .align_y(alignment::Vertical::Center)
             .align_x(alignment::Horizontal::Center);
 
-    let apply_tx_button: Element<Interaction> = Button::new(apply_tx_container)
+    let mut apply_tx_button = Button::new(apply_tx_container)
         .width(button_width)
-        .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
-            LocalViewInteraction::SelectAction(Action::ApplyTx),
-        ))
-        .into();
+        .style(grin_gui_core::theme::ButtonStyle::Primary);
 
-    // add a nice double border around our buttons
+    if home_state.node_synched {
+        apply_tx_button = apply_tx_button
+            .on_press(Interaction::WalletOperationHomeActionMenuViewInteraction(
+                LocalViewInteraction::SelectAction(Action::ApplyTx),
+            ))
+    } 
+
+    let apply_tx_button: Element<Interaction> = apply_tx_button.into();
+
     // TODO refactor since many of the buttons around the UI repeat this theme
     let create_container = Container::new(create_tx_button.map(Message::Interaction)).padding(1);
     let create_container = Container::new(create_container)
@@ -150,11 +162,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
         .push(apply_container);
 
-    Container::new(menu_column)
-        .padding(iced::Padding::from([
-            5, // top
-            5, // right
-            5, // bottom
-            5, // left
-        ]))
+    Container::new(menu_column).padding(iced::Padding::from([
+        5, // top
+        5, // right
+        5, // bottom
+        5, // left
+    ]))
 }

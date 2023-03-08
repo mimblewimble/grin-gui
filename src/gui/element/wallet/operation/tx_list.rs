@@ -977,6 +977,7 @@ pub fn data_row_container<'a, 'b>(
     column_config: &'b [(ColumnKey, Length, bool)],
     is_odd: Option<bool>,
     pending_confirmation: &Option<Confirm>,
+    node_synched: bool,
 ) -> Container<'a, Message> {
     let default_height = Length::Units(26);
     let mut default_row_height = 26;
@@ -1632,17 +1633,21 @@ pub fn data_row_container<'a, 'b>(
                     .align_y(alignment::Vertical::Center)
                     .align_x(alignment::Horizontal::Center);
 
-                    let tx_cancel_button: Element<Interaction> =
-                        Button::new(tx_button_cancel_container)
-                            .width(Length::Units(BUTTON_WIDTH))
-                            .style(grin_gui_core::theme::ButtonStyle::Primary)
-                            .on_press(Interaction::WalletOperationHomeViewInteraction(
+                    let mut tx_cancel_button = Button::new(tx_button_cancel_container)
+                        .width(Length::Units(BUTTON_WIDTH))
+                        .style(grin_gui_core::theme::ButtonStyle::Primary);
+
+                    if node_synched {
+                        tx_cancel_button = tx_cancel_button.on_press(
+                            Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::CancelTx(
                                     tx_log_entry_wrap.tx.id,
                                     tx_log_entry_wrap.tx.tx_slate_id.unwrap().to_string(),
                                 ),
-                            ))
-                            .into();
+                            ),
+                        );
+                    }
+                    let tx_cancel_button: Element<Interaction> = tx_cancel_button.into();
 
                     let tx_cancel_wrap =
                         Container::new(tx_cancel_button.map(Message::Interaction)).padding(1);

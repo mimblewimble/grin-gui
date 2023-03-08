@@ -7,6 +7,7 @@ use super::{
 use async_std::{prelude::FutureExt, task::current};
 use chrono::{DateTime, DurationRound, TimeZone, Utc};
 use grin_gui_core::error::GrinWalletInterfaceError;
+use grin_gui_core::node::SyncStatus;
 use grin_gui_core::{
     config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
@@ -40,7 +41,10 @@ use {
         TextInput,
     },
     grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
-    grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
+    grin_gui_core::{
+        node::{amount_to_hr_string, ServerStats},
+        theme::ColorPalette,
+    },
     iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
     std::sync::{Arc, RwLock},
@@ -56,10 +60,33 @@ pub struct StateContainer {
     wallet_status: String,
     last_summary_update: chrono::DateTime<chrono::Local>,
     tx_header_state: HeaderState,
+    node_status: Option<ServerStats>,
+    pub node_synched: bool,
 
     cursor_index: Option<usize>,
     caption_index: Option<usize>,
     price_history: HashMap<DateTime<Utc>, f64>,
+}
+
+impl StateContainer {
+    pub fn parse_node_status(&self) -> String {
+        // Node status string
+        // BodySync
+        match &self.node_status {
+            Some(s) => match s.sync_status {
+                SyncStatus::NoSync => localized_string("node-synched"),
+                _ => localized_string("node-unsynched")
+            },
+            None => localized_string("unknown"),
+        }
+    }
+    pub fn update_node_status(&mut self, stats: &ServerStats) {
+        self.node_status = Some(stats.clone());
+        match stats.sync_status {
+            SyncStatus::NoSync => self.node_synched = true,
+            _ => self.node_synched = false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -148,6 +175,11 @@ pub fn handle_tick<'a>(
         }
     }
 
+    // don't display status if node is still synching
+    if !state.node_synched {
+        state.wallet_status = localized_string("awaiting-sync");
+    }
+
     // calls to API should be limited to once per minute
     if time - state.last_summary_update
         > chrono::Duration::from_std(std::time::Duration::from_secs(60)).unwrap()
@@ -166,8 +198,9 @@ pub fn handle_tick<'a>(
         query_args.include_outstanding_only = Some(true);
 
         let w = grin_gui.wallet_interface.clone();
+        let node_synched = state.node_synched;
 
-        let fut = move || WalletInterface::get_wallet_info(w.clone()); //.join(WalletInterface::get_txs(w, Some(query_args)));
+        let fut = move || WalletInterface::get_wallet_info(w.clone(), node_synched); //.join(WalletInterface::get_txs(w, Some(query_args)));
 
         return Ok(Command::perform(fut(), |wallet_info_res| {
             if wallet_info_res.is_err() {
@@ -300,7 +333,7 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::WalletCloseSuccess => {
-            // Also blank out all relevant info first, and perform all shutdown 
+            // Also blank out all relevant info first, and perform all shutdown
             // so it doesn't appear when opening another wallet
             state.wallet_info = None;
             state.address_value = None;
@@ -413,7 +446,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     // Buttons to perform operations go here, but empty container for now
-    let operations_menu = action_menu::data_container(config, &state.action_menu_state);
+    let operations_menu = action_menu::data_container(config, &state.action_menu_state, &state);
 
     // Basic Info "Box"
     let waiting_string = "---------";
@@ -730,8 +763,22 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         ));
     }
 
+    // Status container element for Node state
+    let status_container_node_state_label_text =
+        Text::new(format!("{}: ", localized_string("node-status")))
+            .size(DEFAULT_FONT_SIZE)
+            .height(Length::Fill)
+            .horizontal_alignment(alignment::Horizontal::Left)
+            .vertical_alignment(alignment::Vertical::Center);
+
+    let status_container_node_state_text = Text::new(state.parse_node_status())
+        .size(DEFAULT_FONT_SIZE)
+        .height(Length::Fill)
+        .horizontal_alignment(alignment::Horizontal::Left)
+        .vertical_alignment(alignment::Vertical::Center);
+
     // Status container bar at bottom of screen
-    let status_container_label_text = Text::new(localized_string("status"))
+    let status_container_label_text = Text::new(localized_string("wallet-status"))
         .size(DEFAULT_FONT_SIZE)
         .height(Length::Fill)
         .horizontal_alignment(alignment::Horizontal::Right)
@@ -750,6 +797,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .vertical_alignment(alignment::Vertical::Center);
 
     let status_container_contents = Row::new()
+        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(status_container_node_state_label_text)
+        .push(status_container_node_state_text)
         .push(Space::new(Length::Fill, Length::Fill))
         .push(status_container_label_text)
         .push(status_container_separator_text)
@@ -768,7 +818,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // Buttons to perform operations go here, but empty container for now
     let tx_list_display =
-        tx_list_display::data_container(config, &state.tx_list_display_state).height(Length::Fill);
+        tx_list_display::data_container(config, &state, &state.tx_list_display_state).height(Length::Fill);
 
     // Overall Home screen layout column
     let column = Column::new()

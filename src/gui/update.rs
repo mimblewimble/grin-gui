@@ -116,6 +116,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 match msg {
                     UIMessage::None => {}
                     UIMessage::UpdateStatus(stats) => {
+                        grin_gui.wallet_state.operation_state.home_state.update_node_status(&stats);
                         grin_gui.node_state.embedded_state.server_stats = Some(stats);
                     }
                 }

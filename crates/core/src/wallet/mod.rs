@@ -420,10 +420,11 @@ where
 
     pub async fn get_wallet_info(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        refresh_from_node: bool,
     ) -> Result<(bool, WalletInfo), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
-            let res = o.retrieve_summary_info(None, false, 2)?;
+            let res = o.retrieve_summary_info(None, refresh_from_node, 2)?;
             return Ok(res);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);

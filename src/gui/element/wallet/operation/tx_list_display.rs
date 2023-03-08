@@ -235,7 +235,7 @@ pub fn handle_message<'a>(
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
+pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::StateContainer, state: &'a StateContainer) -> Container<'a, Message> {
     let button_height = Length::Units(BUTTON_HEIGHT);
     let button_width = Length::Units(BUTTON_WIDTH);
 
@@ -391,6 +391,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             &column_config,
             is_odd,
             &None,
+            home_state.node_synched,
         );
 
         // Adds the addon data cell to the scrollable.
