@@ -818,7 +818,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // Buttons to perform operations go here, but empty container for now
     let tx_list_display =
-        tx_list_display::data_container(config, &state.tx_list_display_state).height(Length::Fill);
+        tx_list_display::data_container(config, &state, &state.tx_list_display_state).height(Length::Fill);
 
     // Overall Home screen layout column
     let column = Column::new()
