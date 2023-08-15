@@ -130,7 +130,7 @@ pub fn parse_abs_tx_amount_fee(tx: &TxLogEntry, subtract_fee_from_amt: bool) -> 
 
 impl<L, C> WalletInterface<L, C>
 where
-    L: WalletLCProvider<'static, C, keychain::ExtKeychain>,
+    L: WalletLCProvider<'static, C, grin_keychain::keychain::ExtKeychain>,
     C: NodeClient + 'static + Clone,
 {
     pub fn new(node_client: C) -> Self {

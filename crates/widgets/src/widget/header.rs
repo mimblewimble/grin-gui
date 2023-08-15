@@ -41,7 +41,7 @@ where
         right_margin: Option<Length>,
     ) -> Self
     where
-        <Renderer as iced_native::Renderer>::Theme: iced_style::container::StyleSheet,
+        <Renderer as iced_native::Renderer>::Theme: iced_native::widget::container::StyleSheet,
     {
         let mut names = vec![];
         let mut left = false;

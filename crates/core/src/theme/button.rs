@@ -1,5 +1,5 @@
 use iced::widget::button;
-use iced::{Background, Color};
+use iced::{Color, Background};
 
 use super::Theme;
 
@@ -27,24 +27,24 @@ impl button::StyleSheet for Theme {
                     ..self.palette.normal.primary
                 },
                 border_width: 1.0,
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 text_color: self.palette.bright.primary,
                 ..button::Appearance::default()
             },
             ButtonStyle::Primary => button::Appearance {
                 text_color: self.palette.bright.primary,
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 ..Default::default()
             },
             ButtonStyle::Selected => button::Appearance {
                 background: Some(Background::Color(self.palette.normal.primary)),
                 text_color: self.palette.bright.primary,
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 ..button::Appearance::default()
             },
             ButtonStyle::NormalText =>  button::Appearance {
                 text_color: self.palette.normal.surface,
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 ..button::Appearance::default()
             },
             ButtonStyle::SelectedColumn => button::Appearance {
@@ -52,7 +52,7 @@ impl button::StyleSheet for Theme {
                 text_color: Color {
                     ..self.palette.bright.primary
                 },
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 ..button::Appearance::default()
             },
             ButtonStyle::ColumnHeader => button::Appearance {
@@ -60,7 +60,7 @@ impl button::StyleSheet for Theme {
                 text_color: Color {
                     ..self.palette.bright.surface
                 },
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 ..button::Appearance::default()
             },
         }
