@@ -2259,12 +2259,6 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.21.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
-
-[[package]]
-name = "glam"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42218cb640844e3872cc3c153dc975229e080a6c4733b34709ef445610550226"
@@ -2299,18 +2293,6 @@ dependencies = [
 
 [[package]]
 name = "glow"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8bd5877156a19b8ac83a29b2306fe20537429d318f3ff0a1a2119f8d9c61919"
-dependencies = [
- "js-sys",
- "slotmap",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "glow"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca0fe580e4b60a8ab24a868bc08e2f03cbcb20d3d676601fa909386713333728"
@@ -2319,56 +2301,6 @@ dependencies = [
  "slotmap",
  "wasm-bindgen",
  "web-sys",
-]
-
-[[package]]
-name = "glow_glyph"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f4e62c64947b9a24fe20e2bba9ad819ecb506ef5c8df7ffc4737464c6df9510"
-dependencies = [
- "bytemuck",
- "glow 0.11.2",
- "glyph_brush",
- "log",
-]
-
-[[package]]
-name = "glyph_brush"
-version = "0.7.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4edefd123f28a0b1d41ec4a489c2b43020b369180800977801611084f342978d"
-dependencies = [
- "glyph_brush_draw_cache",
- "glyph_brush_layout",
- "ordered-float 3.7.0",
- "rustc-hash",
- "twox-hash",
-]
-
-[[package]]
-name = "glyph_brush_draw_cache"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6010675390f6889e09a21e2c8b575b3ee25667ea8237a8d59423f73cb8c28610"
-dependencies = [
- "ab_glyph",
- "crossbeam-channel",
- "crossbeam-deque",
- "linked-hash-map",
- "rayon",
- "rustc-hash",
-]
-
-[[package]]
-name = "glyph_brush_layout"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc32c2334f00ca5ac3695c5009ae35da21da8c62d255b5b96d56e2597a637a38"
-dependencies = [
- "ab_glyph",
- "approx",
- "xi-unicode",
 ]
 
 [[package]]
@@ -2523,9 +2455,7 @@ dependencies = [
  "iced_aw",
  "iced_core 0.10.0",
  "iced_futures 0.7.0",
- "iced_glow",
- "iced_graphics 0.9.0",
- "iced_native",
+ "iced_graphics",
  "iced_style 0.9.0",
  "iced_wgpu",
  "isahc 1.7.2",
@@ -2556,7 +2486,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "iced_core 0.10.0",
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "iced_style 0.9.0",
  "iced_wgpu",
 ]
@@ -3527,38 +3457,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_glow"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adc5b081015f5c75777c96ad75e2288916e7d444c97396d6d136517877ef9129"
-dependencies = [
- "bytemuck",
- "euclid",
- "glow 0.11.2",
- "glow_glyph",
- "glyph_brush",
- "iced_graphics 0.8.0",
- "iced_native",
- "log",
-]
-
-[[package]]
-name = "iced_graphics"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "338a6aff7db906537074ad0fe8b720cfdb9512cdfea43c628c76bd1cf50fdcc0"
-dependencies = [
- "bitflags 1.3.2",
- "bytemuck",
- "glam 0.21.3",
- "iced_native",
- "iced_style 0.8.0",
- "log",
- "raw-window-handle 0.5.2",
- "thiserror",
-]
-
-[[package]]
 name = "iced_graphics"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3566,7 +3464,7 @@ checksum = "67ff14447a221e9e9205a13d84d7bbdf0636a3b1daa02cfca690ed09689c4d2b"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
- "glam 0.24.1",
+ "glam",
  "half",
  "iced_core 0.10.0",
  "log",
@@ -3596,7 +3494,7 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1033385b0db0099a0d13178c9ff93c1ce11e7d0177522acf578bf79febdb2af8"
 dependencies = [
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "iced_tiny_skia",
  "iced_wgpu",
  "log",
@@ -3645,7 +3543,7 @@ checksum = "c7715f6222c9470bbbd75a39f70478fa0d1bdfb81a377a34fd1b090ffccc480b"
 dependencies = [
  "bytemuck",
  "cosmic-text",
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "kurbo",
  "log",
  "raw-window-handle 0.5.2",
@@ -3664,10 +3562,10 @@ dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
  "futures 0.3.28",
- "glam 0.24.1",
+ "glam",
  "glyphon",
  "guillotiere",
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "log",
  "lyon",
  "once_cell",
@@ -3698,7 +3596,7 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ecea26fcc8074373f6011d2193d63445617d900a428eb4df66c0e5658408fb6"
 dependencies = [
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "iced_runtime",
  "iced_style 0.9.0",
  "log",
@@ -5109,15 +5007,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordered-float"
-version = "3.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fc2dbde8f8a79f2102cc474ceb0ad68e3b80b85289ea62389b60e66777e4213"
-dependencies = [
- "num-traits 0.2.16",
-]
-
-[[package]]
 name = "ouroboros"
 version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5550,7 +5439,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b533be9c5ba7d80b7fd619fd5226c58bcae53db2c24b447fa82be25865c117e6"
 dependencies = [
- "iced_graphics 0.9.0",
+ "iced_graphics",
  "iced_widget",
  "once_cell",
  "plotters",
@@ -6634,7 +6523,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a65a7291a8a568adcae4c10a677ebcedbc6c9cec91c054dee2ce40b0e3290eb"
 dependencies = [
- "ordered-float 1.1.1",
+ "ordered-float",
  "serde",
 ]
 
@@ -8303,7 +8192,7 @@ dependencies = [
  "core-graphics-types",
  "d3d12",
  "foreign-types",
- "glow 0.12.3",
+ "glow",
  "gpu-alloc",
  "gpu-allocator",
  "gpu-descriptor",
@@ -8751,12 +8640,6 @@ checksum = "463705a63313cd4301184381c5e8042f0a7e9b4bb63653f216311d4ae74690b7"
 dependencies = [
  "nom 7.1.3",
 ]
-
-[[package]]
-name = "xi-unicode"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a67300977d3dc3f8034dae89778f502b6ba20b269527b3223ba59c0cf393bb8a"
 
 [[package]]
 name = "xml-rs"

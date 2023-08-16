@@ -24,7 +24,7 @@ impl pick_list::StyleSheet for Theme {
                     a: 0.5,
                     ..self.palette.normal.primary
                 },
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 handle_color: Color {
                     a: 0.5,
                     ..self.palette.normal.primary
@@ -63,7 +63,7 @@ impl menu::StyleSheet for Theme {
                 text_color: self.palette.bright.surface,
                 background: Background::Color(self.palette.base.foreground),
                 border_width: 1.0,
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_color: self.palette.base.background,
                 selected_background: Background::Color(Color {
                     a: 0.15,

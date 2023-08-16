@@ -45,7 +45,7 @@ impl container::StyleSheet for Theme {
                 ..container::Appearance::default()
             },
             ContainerStyle::Segmented => container::Appearance {
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
@@ -71,14 +71,14 @@ impl container::StyleSheet for Theme {
             ContainerStyle::PanelForeground => container::Appearance {
                 background: Some(Background::Color(self.palette.base.foreground)),
                 text_color: Some(self.palette.bright.primary),
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
             },
             ContainerStyle::PanelBordered => container::Appearance {
                 background: Some(Background::Color(Color::TRANSPARENT)),
                 text_color: Some(self.palette.bright.primary),
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,

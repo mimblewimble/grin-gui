@@ -1,6 +1,8 @@
 use crate::fs;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+#[cfg(feature = "gui")]
+use iced_core::Renderer as IRenderer;
 
 #[cfg(feature = "wgpu")]
 use iced_wgpu::Renderer as IRenderer;
@@ -42,11 +44,12 @@ pub async fn load_user_themes() -> Vec<Theme> {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Theme {
+
     pub name: String,
     pub palette: ColorPalette,
 }
 
-pub type Renderer = IRenderer<Theme>;
+pub type Renderer = dyn IRenderer<Theme = Theme>;
 pub type Element<'a, Message> = iced::Element<'a, Message, Renderer>;
 pub type Container<'a, Message> = iced::widget::Container<'a, Message, Renderer>;
 pub type Column<'a, Message> = iced::widget::Column<'a, Message, Renderer>;

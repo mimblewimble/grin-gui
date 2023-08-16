@@ -1,7 +1,8 @@
 use iced_futures::{
     self,
-    futures::{channel::mpsc, stream::StreamExt},
+    futures::{channel::mpsc, stream::StreamExt}, subscription,
 };
+use iced_core::Hasher;
 use std::hash::Hash;
 
 pub use grin_servers::ServerStats;
@@ -30,14 +31,13 @@ pub struct NodeSubscriber<I> {
     id: I,
 }
 
-impl<H, I, T> iced_native::subscription::Recipe<H, I> for NodeSubscriber<T>
+impl<T> iced_futures::subscription::Recipe for NodeSubscriber<T>
 where
     T: 'static + Hash + Copy + Send,
-    H: std::hash::Hasher,
 {
     type Output = (T, UIMessage, Option<mpsc::Sender<UIMessage>>);
 
-    fn hash(&self, state: &mut H) {
+    fn hash(&self, state: &mut Hasher) {
         struct Marker;
         std::any::TypeId::of::<Marker>().hash(state);
         self.id.hash(state);
@@ -45,7 +45,7 @@ where
 
     fn stream(
         self: Box<Self>,
-        _input: futures::stream::BoxStream<'static, I>,
+        _input: subscription::EventStream,
     ) -> futures::stream::BoxStream<'static, Self::Output> {
         let id = self.id;
         Box::pin(futures::stream::unfold(
