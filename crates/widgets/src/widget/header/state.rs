@@ -1,4 +1,4 @@
-use iced_native::Point;
+use iced_core::Point;
 
 #[derive(Clone, Debug, Default)]
 pub struct State {

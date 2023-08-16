@@ -9,15 +9,15 @@ repository = "https://github.com/mimblewimble/grin-gui"
 edition = "2018"
 
 [features]
-default = ["opengl"]
+#default = ["opengl"]
 wgpu = ["iced_wgpu"]
-opengl = ["iced_glow"]
+#opengl = ["iced_glow"]
 
 [dependencies]
-iced = { version = "0.10", default-features = false, features = ["default"] }
-iced_native = { version = "0.10" }
+iced = { version = "0.10", features = ["advanced", "lazy", "tokio"] }
+#iced_native = { version = "0.10" }
 iced_graphics = { version = "0.9" }
 iced_core = { version = "0.10" }
 iced_wgpu = { version = "0.11", optional = true }
-iced_glow = { version = "0.8", optional = true }
+#iced_glow = { version = "0.8", optional = true }
 iced_style = "0.9"

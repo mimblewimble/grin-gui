@@ -1,7 +1,6 @@
 #![allow(clippy::type_complexity)]
 use crate::style::table_row::StyleSheet;
-use iced::{Background, Color};
-use iced_native::{
+use iced_core::{
     event, layout, mouse, overlay, renderer, widget, widget::Tree, Alignment, Clipboard, Element,
     Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
@@ -9,7 +8,7 @@ use iced_native::{
 #[allow(missing_debug_implementations)]
 pub struct TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -28,7 +27,7 @@ where
 
 impl<'a, Message, Renderer> TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -129,7 +128,7 @@ where
 
 impl<'a, Message, Renderer> Widget<Message, Renderer> for TableRow<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -168,9 +167,10 @@ where
         theme: &Renderer::Theme,
         style: &renderer::Style,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
     ) {
+        let cursor_position = cursor.position().unwrap_or_default();
         let bounds = layout.bounds();
         let mut custom_bounds = layout.bounds();
         let tree = Tree::new(&self.content);
@@ -189,7 +189,7 @@ where
             theme.appearance(&self.style)
         };
 
-        let background = iced_native::renderer::Quad {
+        let background = iced_core::renderer::Quad {
             bounds: Rectangle {
                 x: bounds.x + appearance.offset_left as f32,
                 y: bounds.y,
@@ -204,8 +204,8 @@ where
         renderer.fill_quad(
             background.into(),
             appearance
-                .background
-                .unwrap_or(Background::Color(Color::TRANSPARENT)),
+                .background.unwrap()
+                //.unwrap_or(Background::Color(Color::TRANSPARENT)),
         );
 
         self.content.as_widget().draw(
@@ -214,7 +214,7 @@ where
             theme,
             style,
             content_layout,
-            cursor_position,
+            cursor,
             viewport,
         );
     }
@@ -223,10 +223,11 @@ where
         &self,
         _tree: &Tree,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
+        let cursor_position = cursor.position().unwrap_or_default();
         let bounds = layout.bounds();
         let is_mouse_over = bounds.contains(cursor_position);
 
@@ -273,20 +274,23 @@ where
         _tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
+        viewport: &Rectangle,
     ) -> event::Status {
+        let cursor_position = cursor.position().unwrap_or_default();
         let mut tree = Tree::new(&self.content);
         let status_from_content = self.content.as_widget_mut().on_event(
             &mut tree,
             event.clone(),
             layout.children().next().unwrap(),
-            cursor_position,
+            cursor,
             renderer,
             clipboard,
             shell,
+            viewport,
         );
         match status_from_content {
             event::Status::Ignored => {
@@ -325,8 +329,8 @@ where
 
 impl<'a, Message, Renderer> From<TableRow<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
-    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
+    Renderer: 'a + iced_core::Renderer,
+    Renderer::Theme: StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn from(table_row: TableRow<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
