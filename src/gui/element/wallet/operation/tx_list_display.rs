@@ -8,7 +8,7 @@ use grin_gui_core::{
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::{borrow::Borrow, path::PathBuf, str::FromStr};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};

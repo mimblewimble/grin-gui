@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 
-use iced_native::Widget;
+use iced_core::Widget;
 
 use {
     super::super::super::{BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},

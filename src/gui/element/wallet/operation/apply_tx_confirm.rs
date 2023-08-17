@@ -7,7 +7,7 @@ use grin_gui_core::{
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;

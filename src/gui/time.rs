@@ -6,7 +6,7 @@ pub fn every(duration: std::time::Duration) -> iced::Subscription<chrono::DateTi
 
 struct Every(std::time::Duration);
 
-impl<H, I> iced_native::subscription::Recipe<H, I> for Every
+impl<H, I> iced_futures::subscription::Recipe<H, I> for Every
 where
     H: std::hash::Hasher,
 {

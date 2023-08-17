@@ -15,7 +15,7 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced::Point;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use plotters::{
     coord::{types::RangedCoordf32, ReverseCoordTranslate},
     prelude::*,
@@ -521,7 +521,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let close_wallet_label_container =
         Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
-            .height(Length::Fixed(14))
+            .height(Length::Fixed(14.0))
             .width(Length::Fixed(30.0))
             .center_y()
             .center_x();

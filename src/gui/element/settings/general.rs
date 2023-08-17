@@ -369,7 +369,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
         let current_scale_text = Text::new(format!("  {:.2}  ", state.scale_state.scale))
             .size(DEFAULT_FONT_SIZE)
-            .vertical_alignment(iced_native::alignment::Vertical::Center);
+            .vertical_alignment(iced_core::alignment::Vertical::Center);
         let current_scale_container = Container::new(current_scale_text)
             .height(Length::Fill)
             .center_y()

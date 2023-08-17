@@ -9,7 +9,7 @@ use grin_gui_core::{
 //use grin_gui_core::widgets::widget::header;
 use iced::alignment;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};

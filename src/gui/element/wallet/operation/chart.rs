@@ -11,11 +11,13 @@ use iced::{
     alignment::{Horizontal, Vertical},
     executor,
     widget::{
-        canvas::{self, event, Cache, Cursor, Frame, Geometry},
+        canvas::{self, event, Cache, Frame, Geometry},
         Space,
     },
+    mouse::Cursor,
     Alignment, Command, Font, Length, Point, Settings, Size, Subscription,
 };
+
 use plotters::{
     coord::{types::RangedCoordf32, ReverseCoordTranslate},
     prelude::*,
@@ -97,8 +99,8 @@ impl Chart<Message> for BalanceChart {
         _state: &mut Self::State,
         event: canvas::Event,
         bounds: iced::Rectangle,
-        cursor: canvas::Cursor,
-    ) -> (iced_native::event::Status, Option<Message>) {
+        cursor: Cursor,
+    ) -> (iced_core::event::Status, Option<Message>) {
         if let Cursor::Available(point) = cursor {
             match event {
                 canvas::Event::Mouse(_evt) if bounds.contains(point) => {
@@ -126,7 +128,7 @@ impl Chart<Message> for BalanceChart {
                     }
 
                     return (
-                        iced_native::event::Status::Captured,
+                        iced_core::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::MouseIndex(cursor_index, caption_index),
@@ -136,7 +138,7 @@ impl Chart<Message> for BalanceChart {
                 }
                 _ => {
                     return (
-                        iced_native::event::Status::Captured,
+                        iced_core::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::MouseExit,

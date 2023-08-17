@@ -21,8 +21,6 @@ use iced::widget::{
     button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
 
-//use iced_native::alignment;
-
 use iced_aw::{modal, Card, Modal};
 
 use iced_futures::futures::channel::mpsc;
@@ -129,7 +127,7 @@ pub enum Message {
     SendNodeMessage((usize, UIMessage, Option<mpsc::Sender<UIMessage>>)),
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
-    RuntimeEvent(iced_native::Event),
+    RuntimeEvent(iced::iced_core::Event),
     None(()),
 }
 
@@ -201,7 +199,7 @@ impl Application for GrinGui {
     }*/
 
     fn subscription(&self) -> Subscription<Message> {
-        let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
+        let runtime_subscription = iced_futures::subscription::events().map(Message::RuntimeEvent);
         let tick_subscription = time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
         let node_subscription = subscriber::subscriber(0).map(|e| 
             Message::SendNodeMessage(e)
