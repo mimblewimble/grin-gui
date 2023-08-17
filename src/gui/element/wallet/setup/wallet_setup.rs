@@ -302,11 +302,11 @@ pub fn data_container<'a>(
         let password_input = TextInput::new(
             &localized_string("password")[..],
             &state.password_state.input_value,
-            |s| {
+            /*|s| {
                 Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::PasswordInput(
                     s,
                 ))
-            },
+            },*/
         )
         .on_submit(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,
@@ -322,11 +322,11 @@ pub fn data_container<'a>(
         let repeat_password_input = TextInput::new(
             &localized_string("password-repeat")[..],
             &state.password_state.repeat_input_value,
-            |s| {
+            /*|s| {
                 Interaction::WalletSetupWalletViewInteraction(
                     LocalViewInteraction::PasswordRepeatInput(s),
                 )
-            },
+            },*/
         )
         .on_submit(Interaction::WalletSetupWalletViewInteraction(
             LocalViewInteraction::PasswordRepeatInputEnterPressed,
@@ -415,9 +415,9 @@ pub fn data_container<'a>(
     };
 
     // ** start hideable restore from seed section
-    let seed_input: Element<Interaction> = TextInput::new("seed", &state.seed_input_value, |s| {
+    let seed_input: Element<Interaction> = TextInput::new("seed", &state.seed_input_value/*, |s| {
         Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedInput(s))
-    })
+    }*/)
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Fixed(200.0))
@@ -446,7 +446,7 @@ pub fn data_container<'a>(
     let display_name_input = TextInput::new(
         default_display_name,
         &state.advanced_options_state.display_name_value,
-        |s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),
+        /*|s| Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s)),*/
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)

@@ -260,7 +260,7 @@ impl Application for GrinGui {
             }
         }
  
-        let content: Element<Message> = 
+        let underlay: Element<Message> = 
         // Wraps everything in a container.
         Container::new(content)
             .width(Length::Fill)
@@ -268,7 +268,7 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-        Modal::new(self.show_modal, content, move|| {
+        let content: Element<Message> =
             match self.modal_type {
                 ModalType::Exit => element::modal::exit_card().into(),
                 ModalType::Error => {
@@ -278,8 +278,9 @@ impl Application for GrinGui {
 
                     element::modal::error_card(error_cause.clone()).into()
                 }
-            }
-        })
+            };
+
+        Modal::new(self.show_modal, underlay, content)
         .on_esc(Message::Interaction(Interaction::CloseErrorModal))
         .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
@@ -337,7 +338,7 @@ pub fn run(opts: Opts, config: Config) {
         .expect("loading icon")
         .to_rgba8();
     let (width, height) = image.dimensions();
-    let icon = iced::window::Icon::from_rgba(image.into_raw(), width, height);
+    let icon = iced_core::window::icon::from_rgba(image.into_raw(), width, height);
     settings.window.icon = Some(icon.unwrap());
 
     settings.flags = config;
