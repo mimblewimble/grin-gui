@@ -165,7 +165,7 @@ pub fn data_container<'a>(
         let error_detail_button: Element<Interaction> = error_detail_button.into();
 
         error_column = Column::with_children(vec![
-            Space::with_height(Length::Units(5)).into(),
+            Space::with_height(Length::Fixed(5.0)).into(),
             error_text.into(),
             error_detail_button.map(Message::Interaction),
         ])
@@ -218,7 +218,7 @@ pub fn data_container<'a>(
 
     let settings_row = Row::with_children(vec![
         segmented_addon_container.into(),
-        Space::with_width(Length::Units(DEFAULT_PADDING)).into(),
+        Space::with_width(Length::Fixed(DEFAULT_PADDING)).into(),
         error_container.into(),
         version_container.into(),
         segmented_mode_control_container.into(),

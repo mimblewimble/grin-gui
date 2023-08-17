@@ -149,8 +149,8 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
 }
 
 pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
@@ -366,7 +366,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
     let button_row = Row::new()
         .push(load_container)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(select_container)
         .height(Length::Shrink);
 
@@ -382,7 +382,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let row = Row::new().push(
         Column::new()
             .push(table_container)
-            .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+            .push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
             .push(button_row),
     );
 

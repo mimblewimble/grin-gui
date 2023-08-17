@@ -69,11 +69,11 @@ pub fn data_container<'a>(
     let column = Column::new()
         .spacing(1)
         .push(grin_gui_title_container)
-        .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING)))
         .push(button_row)
-        .push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING)))
         .push(changelog_title_container)
-        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
         .push(changelog_text_container);
 
     let mut scrollable = Scrollable::new(column)
@@ -82,7 +82,7 @@ pub fn data_container<'a>(
 
     let col = Column::new().push(scrollable);
     let row = Row::new()
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0)))
         .push(col);
 
     // Returns the final container.

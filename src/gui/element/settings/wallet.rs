@@ -61,7 +61,7 @@ pub fn data_container<'a>(
 
         Column::new()
             .push(title)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
     };
 
     let scrollable = Scrollable::new(language_container)
@@ -69,11 +69,11 @@ pub fn data_container<'a>(
     .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
     let col = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(scrollable)
-        .push(Space::new(Length::Units(0), Length::Units(20)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20)));
     let row = Row::new()
-        .push(Space::new(Length::Units(5), Length::Units(0)))
+        .push(Space::new(Length::Fixed(5.0), Length::Fixed(0.0)))
         .push(col);
 
     // Returns the final container.

@@ -26,8 +26,8 @@ impl Default for StateContainer {
 }
 
 pub fn exit_card() -> Card<'static, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let yes_button_label =
         Container::new(Text::new(localized_string("yes")).size(DEFAULT_FONT_SIZE))
@@ -70,7 +70,7 @@ pub fn exit_card() -> Card<'static, Message> {
 
     let button_row = Row::new()
         .push(yes_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
         .push(cancel_container);
 
     Card::new(

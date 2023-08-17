@@ -284,7 +284,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let sender_address = Text::new(sp_sending_address).size(DEFAULT_FONT_SIZE);
-    //.width(Length::Units(400))
+    //.width(Length::Fixed(400))
     //.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let sender_address_container = Container::new(sender_address)
@@ -310,11 +310,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let column = Column::new()
         .push(state_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(sender_address_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(instruction_label_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(instruction_label_container_2);
 
     let wrapper_column = Column::new().height(Length::Fill).push(column);

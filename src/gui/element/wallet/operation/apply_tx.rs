@@ -229,8 +229,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let show_slate_label_container = Container::new(
             Text::new(localized_string("tx-show-full-slatepack")).size(SMALLER_FONT_SIZE),
         )
-        .height(Length::Units(14))
-        .width(Length::Units(60))
+        .height(Length::Fixed(14))
+        .width(Length::Fixed(60))
         .center_y()
         .center_x();
 
@@ -245,8 +245,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let paste_again_label_container = Container::new(
             Text::new(localized_string("tx-paste-again")).size(SMALLER_FONT_SIZE),
         )
-        .height(Length::Units(14))
-        .width(Length::Units(60))
+        .height(Length::Fixed(14))
+        .width(Length::Fixed(60))
         .center_y()
         .center_x();
 
@@ -257,9 +257,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .into();
 
         instruction_row = instruction_row
-            .push(Space::with_width(Length::Units(2)))
+            .push(Space::with_width(Length::Fixed(2)))
             .push(show_slate_button.map(Message::Interaction))
-            .push(Space::with_width(Length::Units(2)))
+            .push(Space::with_width(Length::Fixed(2)))
             .push(paste_again_button.map(Message::Interaction));
     }
 
@@ -273,7 +273,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
         instruction_col = instruction_col
             .push(pasted_tx_label_container)
-            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
     }
 
     instruction_col = instruction_col.push(instruction_row);
@@ -286,7 +286,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let decrypted_tx_label_container = Container::new(decrypted_tx_label)
             .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
         instruction_col = instruction_col
-            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
             .push(decrypted_tx_label_container)
     }
 
@@ -301,8 +301,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let slatepack_area_container = Container::new(slatepack_area);
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("tx-paste")).size(DEFAULT_FONT_SIZE))
@@ -366,27 +366,27 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let mut button_row = Row::new();
     if !state.can_continue {
         button_row = button_row.push(submit_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)));
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)));
     } else {
         button_row = button_row
             .push(continue_container)
-            .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+            .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
     }
 
     button_row = button_row.push(cancel_container);
 
     let column = Column::new()
         .push(header_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(instruction_col)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(slatepack_area_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(button_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ));
 
     let form_container = Container::new(column)

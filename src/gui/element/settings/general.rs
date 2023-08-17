@@ -264,17 +264,17 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             ))
         })
         .text_size(14)
-        .width(Length::Units(120))
+        .width(Length::Fixed(120))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         let container = Container::new(pick_list)
             .center_y()
-            .width(Length::Units(120))
+            .width(Length::Fixed(120))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
             .push(title)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
             .push(container)
     };
 
@@ -288,17 +288,17 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             ))
         })
         .text_size(14)
-        .width(Length::Units(120))
+        .width(Length::Fixed(120))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         let container = Container::new(pick_list)
             .center_y()
-            .width(Length::Units(120))
+            .width(Length::Fixed(120))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
             .push(title)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
             .push(container)
     };
 
@@ -325,18 +325,18 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             },
         )
         .text_size(DEFAULT_FONT_SIZE)
-        .width(Length::Units(120))
+        .width(Length::Fixed(120))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         // Data row for theme picker list.
         let theme_data_row = Row::new()
             .push(theme_pick_list)
             .align_items(Alignment::Center)
-            .height(Length::Units(26));
+            .height(Length::Fixed(26));
 
         Column::new()
             .push(title_container)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
             .push(theme_data_row)
     };
 
@@ -380,11 +380,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             .push(current_scale_container)
             .push(scale_up_button.map(Message::Interaction))
             .align_items(Alignment::Center)
-            .height(Length::Units(26));
+            .height(Length::Fixed(26));
 
         Column::new()
             .push(scale_title_row)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
             .push(scale_buttons_row)
     };
 
@@ -400,7 +400,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(185))
+        .width(Length::Fixed(185))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
         let theme_input: Element<Interaction> = theme_input.into();
@@ -424,11 +424,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             .push(import_button.map(Message::Interaction))
             .spacing(DEFAULT_PADDING)
             .align_items(Alignment::Center)
-            .height(Length::Units(26));
+            .height(Length::Fixed(26));
 
         Column::new()
             .push(title_container)
-            .push(Space::new(Length::Units(0), Length::Units(5)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
             .push(theme_input_row)
     };
 
@@ -447,7 +447,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         Row::new()
             .push(open_button.map(Message::Interaction))
             .align_items(Alignment::Center)
-            .height(Length::Units(26))
+            .height(Length::Fixed(26))
     };
 
     let theme_scale_row = Row::new()
@@ -513,11 +513,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let mut column = Column::new()
         .spacing(1)
         .push(language_container)
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(currency_container)
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(theme_scale_row)
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(open_theme_row)
         .spacing(1);
 
@@ -525,11 +525,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     #[cfg(target_os = "windows")]
     {
         column = column
-            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
             .push(close_to_tray_column)
-            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
             .push(start_closed_to_tray_column)
-            .push(Space::new(Length::Units(0), Length::Units(10)))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
             .push(toggle_autostart_column);
     }
 
@@ -541,11 +541,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     //scrollable = scrollable.height(Length::Fill);
 
     let col = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(10)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(scrollable)
-        .push(Space::new(Length::Units(0), Length::Units(20)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20)));
     let row = Row::new()
-        .push(Space::new(Length::Units(5), Length::Units(0)))
+        .push(Space::new(Length::Fixed(5.0), Length::Fixed(0.0)))
         .push(col);
 
     // Returns the final container.

@@ -81,8 +81,8 @@ pub fn data_container<'a>(
 
     let unit_spacing = 15;
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("ok-caps")).size(DEFAULT_FONT_SIZE))
@@ -110,13 +110,13 @@ pub fn data_container<'a>(
     let column = Column::new()
         .push(description_container)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5),
         ))
         .push(button_row)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ));
 
     let form_container = Container::new(column)

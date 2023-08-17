@@ -226,7 +226,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Units(400))
+    .width(Length::Fixed(400))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
@@ -254,7 +254,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Units(100))
+    .width(Length::Fixed(100))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let amount_input: Element<Interaction> = amount_input.into();
@@ -275,8 +275,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let address_instruction_container =
         Container::new(address_instruction_container).style(ContainerStyle::NormalBackground);
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("tx-create-submit")).size(DEFAULT_FONT_SIZE))
@@ -322,41 +322,41 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let unit_spacing = 15;
     let button_row = Row::new()
         .push(submit_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
         .push(cancel_container);
 
     let mut column = Column::new()
         .push(recipient_address_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(address_instruction_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(recipient_address_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     if state.slatepack_address_error {
         column = column
             .push(address_error_container)
-            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
 
     column = column
         .push(amount_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(amount_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     if state.amount_error {
         column = column
             .push(amount_error_container)
-            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
 
     column = column
         .push(button_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ));
 
     let form_container = Container::new(column)

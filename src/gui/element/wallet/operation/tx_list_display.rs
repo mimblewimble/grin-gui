@@ -236,8 +236,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::StateContainer, state: &'a StateContainer) -> Container<'a, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let title = Text::new(localized_string("tx-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
@@ -305,7 +305,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
     // add additional buttons here
     let button_row = Row::new()
         .push(latest_container_wrap)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(outstanding_container_wrap);
 
     /*let segmented_mode_container = Container::new(button_row).padding(1);

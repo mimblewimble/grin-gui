@@ -226,7 +226,7 @@ impl Application for GrinGui {
         ));
 
         // Spacer between menu and content.
-        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+        //content = content.push(Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING)));
         match menu_state.mode {
             element::menu::Mode::Wallet => {
                 let setup_container = element::wallet::data_container(
@@ -488,21 +488,21 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                 .get_mut(1)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*local_version_width);
+                .width = Length::Fixed(*local_version_width);
             grin_gui
                 .header_state
                 .columns
                 .get_mut(2)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*remote_version_width);
+                .width = Length::Fixed(*remote_version_width);
             grin_gui
                 .header_state
                 .columns
                 .get_mut(3)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*status_width);
+                .width = Length::Fixed(*status_width);
         }
         ColumnConfig::V2 { columns } => {
             grin_gui.header_state.columns.iter_mut().for_each(|a| {
@@ -518,7 +518,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     })
                     .next()
                 {
-                    a.width = column.width.map_or(Length::Fill, Length::Units);
+                    a.width = column.width.map_or(Length::Fill, Length::Fixed);
                     a.hidden = column.hidden;
                     a.order = idx;
                 }
@@ -571,7 +571,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == ColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
 
                     a.hidden = column.hidden;
@@ -639,7 +639,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == CatalogColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
 
                     a.hidden = column.hidden;
@@ -669,7 +669,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == AuraColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
                 }
             });

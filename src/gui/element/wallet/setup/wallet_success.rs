@@ -109,18 +109,18 @@ pub fn data_container<'a>(
     let colum = Column::new()
         .push(title_row)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5),
         ))
         .push(description_container)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5),
         ))
         .push(recovery_phrase_card)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ))
         .push(next_button.map(Message::Interaction))
         .align_items(Alignment::Center);

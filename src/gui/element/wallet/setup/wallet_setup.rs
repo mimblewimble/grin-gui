@@ -316,7 +316,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(200))
+        .width(Length::Fixed(200))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
         .password();
 
@@ -336,7 +336,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Units(200))
+        .width(Length::Fixed(200))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
         .password();
 
@@ -423,7 +423,7 @@ pub fn data_container<'a>(
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Units(200))
+    .width(Length::Fixed(200))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
     .into();
 
@@ -431,7 +431,7 @@ pub fn data_container<'a>(
 
     if state.restore_from_seed {
         restore_from_seed_column = restore_from_seed_column
-            .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+            .push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
             .push(seed_column);
     }
 
@@ -453,7 +453,7 @@ pub fn data_container<'a>(
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Units(200))
+    .width(Length::Fixed(200))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let tld = Text::new(localized_string("top-level-domain"))
@@ -483,12 +483,12 @@ pub fn data_container<'a>(
         Container::new(current_tld).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let current_tld_column = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
         .push(current_tld_container);
 
     let folder_select_row = Row::new()
         .push(folder_select_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(DEFAULT_PADDING), Length::Units(0)))
+        .push(Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0)))
         .push(current_tld_column);
 
     let display_name_input: Element<Interaction> = display_name_input.into();
@@ -508,20 +508,20 @@ pub fn data_container<'a>(
     let advanced_options_column = Column::new()
         .push(display_name_container)
         .push(display_name_input.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
         .push(tld_container)
         .spacing(DEFAULT_PADDING)
         .push(folder_select_row)
         .spacing(DEFAULT_PADDING)
-        .push(Space::new(Length::Units(0), Length::Units(5)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
         .push(is_testnet_row)
         .push(restore_from_seed_column)
         .align_items(Alignment::Start);
 
     // ** end hideable advanced options
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let submit_button_label_container = Container::new(
         Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
@@ -577,25 +577,25 @@ pub fn data_container<'a>(
     let unit_spacing = 15;
     let button_row = Row::new()
         .push(submit_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
         .push(cancel_container);
 
     let mut column = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(description_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(password_column)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(show_advanced_options_column)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ));
 
     if state.show_advanced_options {
         column = column.push(advanced_options_column).push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10),
         ));
     }
 
