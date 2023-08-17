@@ -197,9 +197,9 @@ pub fn data_container<'a>(
 
         Column::new()
             .push(line_label_container)
-            .push(Space::new(Length::Fill, Length::Units(2)))
+            .push(Space::new(Length::Fill, Length::Fixed(2.0)))
             .push(line_value_container)
-            .push(Space::new(Length::Fill, Length::Units(10)))
+            .push(Space::new(Length::Fill, Length::Fixed(10.0)))
             .align_items(Alignment::Center)
     }
     // Basic Info "Box"
@@ -217,9 +217,9 @@ pub fn data_container<'a>(
                 .align_items(Alignment::Center);
 
             let status_line_row = Row::new()
-                .push(Space::new(Length::Fill, Length::Units(0)))
+                .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .push(status_line_column)
-                .push(Space::new(Length::Fill, Length::Units(0)))
+                .push(Space::new(Length::Fill, Length::Fixed(0.0)))
                 .align_items(Alignment::Center);
 
             let status_line_title = match chain_type {
@@ -393,7 +393,7 @@ pub fn data_container<'a>(
         None => Container::new(Column::new()),
     };
 
-    let stats_info_container = stats_info_container.width(Length::Units(600));
+    let stats_info_container = stats_info_container.width(Length::Fixed(600.0));
     let scrollable = Scrollable::new(stats_info_container)
         //.align_items(Alignment::Center)
         .height(Length::Fill)

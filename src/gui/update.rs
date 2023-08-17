@@ -243,8 +243,8 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             }
             grin_gui.error = err;
         }
-        Message::RuntimeEvent(iced_native::Event::Window(
-            iced_native::window::Event::Resized { width, height },
+        Message::RuntimeEvent(iced_core::Event::Window(
+            iced_core::window::Event::Resized { width, height },
         )) => {
             let width = (width as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
             let height = (height as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
@@ -259,16 +259,16 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
         #[cfg(target_os = "macos")]
         // Application shutdown
-        Message::RuntimeEvent(iced_native::Event::Window(
-            iced_native::window::Event::CloseRequested,
+        Message::RuntimeEvent(iced_core::Event::Window(
+            iced_core::window::Event::CloseRequested,
         )) => {
             log::debug!("Message::RuntimeEvent(CloseRequested)");
             grin_gui.show_exit(true);
         }
 
         #[cfg(target_os = "windows")]
-        Message::RuntimeEvent(iced_native::Event::Window(
-            iced_native::window::Event::CloseRequested,
+        Message::RuntimeEvent(iced_core::Event::Window(
+            iced_core::window::Event::CloseRequested,
         )) => {
             log::debug!("Message::RuntimeEvent(CloseRequested)");
 
@@ -280,8 +280,8 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 }
             }
         }
-        Message::RuntimeEvent(iced_native::Event::Keyboard(
-            iced_native::keyboard::Event::KeyReleased {
+        Message::RuntimeEvent(iced_core::Event::Keyboard(
+            iced_core::keyboard::Event::KeyReleased {
                 key_code,
                 modifiers,
             },

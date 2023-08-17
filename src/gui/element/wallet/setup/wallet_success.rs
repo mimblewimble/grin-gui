@@ -88,7 +88,7 @@ pub fn data_container<'a>(
                 ))),
             ),
     )
-    .max_width(400)
+    .max_width(400.0)
     .style(grin_gui_core::theme::CardStyle::Normal);
 
     let submit_button_label_container =
@@ -104,23 +104,23 @@ pub fn data_container<'a>(
 
     let next_button: Element<Interaction> = next_button.into();
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     let colum = Column::new()
         .push(title_row)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5.0),
         ))
         .push(description_container)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5.0),
         ))
         .push(recovery_phrase_card)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10.0),
         ))
         .push(next_button.map(Message::Interaction))
         .align_items(Alignment::Center);

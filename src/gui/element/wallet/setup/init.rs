@@ -148,22 +148,22 @@ pub fn data_container<'a>() -> Container<'a, Message> {
         Column::new().push(checkbox_container)
     };*/
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     let select_column = Column::new()
         .push(create_default_wallet_button.map(Message::Interaction))
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(or_text_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(select_wallet_button_container)
         .align_items(Alignment::Center);
 
     let column = Column::new()
-        .push(Space::new(Length::Units(0), Length::Units(20)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20.0)))
         .push(title_row)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(description_container)
-        .push(Space::new(Length::Units(0), Length::Units(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(select_column)
         .align_items(Alignment::Center);
 

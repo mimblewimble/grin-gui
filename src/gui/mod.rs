@@ -21,8 +21,6 @@ use iced::widget::{
     button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
 
-//use iced_native::alignment;
-
 use iced_aw::{modal, Card, Modal};
 
 use iced_futures::futures::channel::mpsc;
@@ -129,7 +127,7 @@ pub enum Message {
     SendNodeMessage((usize, UIMessage, Option<mpsc::Sender<UIMessage>>)),
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
-    RuntimeEvent(iced_native::Event),
+    RuntimeEvent(iced_core::Event),
     None(()),
 }
 
@@ -201,7 +199,7 @@ impl Application for GrinGui {
     }*/
 
     fn subscription(&self) -> Subscription<Message> {
-        let runtime_subscription = iced_native::subscription::events().map(Message::RuntimeEvent);
+        let runtime_subscription = iced_futures::subscription::events().map(Message::RuntimeEvent);
         let tick_subscription = time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
         let node_subscription = subscriber::subscriber(0).map(|e| 
             Message::SendNodeMessage(e)
@@ -226,7 +224,7 @@ impl Application for GrinGui {
         ));
 
         // Spacer between menu and content.
-        //content = content.push(Space::new(Length::Units(0), Length::Units(DEFAULT_PADDING)));
+        //content = content.push(Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING)));
         match menu_state.mode {
             element::menu::Mode::Wallet => {
                 let setup_container = element::wallet::data_container(
@@ -262,7 +260,7 @@ impl Application for GrinGui {
             }
         }
  
-        let content: Element<Message> = 
+        let underlay: Element<Message> = 
         // Wraps everything in a container.
         Container::new(content)
             .width(Length::Fill)
@@ -270,7 +268,7 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-        Modal::new(self.show_modal, content, move|| {
+        let content: Element<Message> =
             match self.modal_type {
                 ModalType::Exit => element::modal::exit_card().into(),
                 ModalType::Error => {
@@ -280,8 +278,9 @@ impl Application for GrinGui {
 
                     element::modal::error_card(error_cause.clone()).into()
                 }
-            }
-        })
+            };
+
+        Modal::new(self.show_modal, underlay, content)
         .on_esc(Message::Interaction(Interaction::CloseErrorModal))
         .style(grin_gui_core::theme::ModalStyle::Normal)
         .into()
@@ -339,7 +338,7 @@ pub fn run(opts: Opts, config: Config) {
         .expect("loading icon")
         .to_rgba8();
     let (width, height) = image.dimensions();
-    let icon = iced::window::Icon::from_rgba(image.into_raw(), width, height);
+    let icon = iced_core::window::icon::from_rgba(image.into_raw(), width, height);
     settings.window.icon = Some(icon.unwrap());
 
     settings.flags = config;
@@ -488,21 +487,21 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                 .get_mut(1)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*local_version_width);
+                .width = Length::Fixed(*local_version_width);
             grin_gui
                 .header_state
                 .columns
                 .get_mut(2)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*remote_version_width);
+                .width = Length::Fixed(*remote_version_width);
             grin_gui
                 .header_state
                 .columns
                 .get_mut(3)
                 .as_mut()
                 .unwrap()
-                .width = Length::Units(*status_width);
+                .width = Length::Fixed(*status_width);
         }
         ColumnConfig::V2 { columns } => {
             grin_gui.header_state.columns.iter_mut().for_each(|a| {
@@ -518,7 +517,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     })
                     .next()
                 {
-                    a.width = column.width.map_or(Length::Fill, Length::Units);
+                    a.width = column.width.map_or(Length::Fill, Length::Fixed);
                     a.hidden = column.hidden;
                     a.order = idx;
                 }
@@ -571,7 +570,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == ColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
 
                     a.hidden = column.hidden;
@@ -639,7 +638,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == CatalogColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
 
                     a.hidden = column.hidden;
@@ -669,7 +668,7 @@ fn apply_config(grin_gui: &mut GrinGui, mut config: Config) {
                     a.width = if a.key == AuraColumnKey::Title {
                         Length::Fill
                     } else {
-                        column.width.map_or(Length::Fill, Length::Units)
+                        column.width.map_or(Length::Fill, Length::Fixed)
                     };
                 }
             });

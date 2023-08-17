@@ -8,7 +8,7 @@ use grin_gui_core::{
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
@@ -97,15 +97,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
-    let unit_spacing = 15;
-    let row_spacing = 5;
+    let unit_spacing = 15.0;
+    let row_spacing = 5.0;
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let mut column = Column::new();
 
@@ -129,7 +129,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(id_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Tx Type
         let tx_type_label = Text::new(format!("{}:  ", localized_string("tx-type")))
@@ -150,7 +150,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(tx_type_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
 
         // UUID
@@ -177,7 +177,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(shared_tx_id_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Creation Time
         let tx_creation_time_label = Text::new(format!("{}:  ", localized_string("tx-creation-time")))
@@ -198,7 +198,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(tx_creation_time_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // TTL Cutoff Height
         let ttl_cutoff_label = Text::new(format!("{}:  ", localized_string("tx-ttl-cutoff")))
@@ -224,7 +224,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(ttl_cutoff_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Confirmed
         let confirmed_label = Text::new(format!("{}:  ", localized_string("tx-is-confirmed")))
@@ -245,7 +245,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
         column = column
             .push(confirmed_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Confirmation Time
         let tx_confirmation_time_label = Text::new(format!("{}:  ", localized_string("tx-confirmation-time")))
@@ -270,7 +270,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_confirmation_time_row = Row::new().push(tx_confirmation_time_label_container).push(tx_confirmation_time_value_container);
         column = column
             .push(tx_confirmation_time_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Number of Inputs
         let tx_num_inputs_label = Text::new(format!("{}:  ", localized_string("tx-num-inputs")))
@@ -290,7 +290,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_num_inputs_row = Row::new().push(tx_num_inputs_label_container).push(tx_num_inputs_value_container);
         column = column
             .push(tx_num_inputs_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Number of Outputs
         let tx_num_outputs_label = Text::new(format!("{}:  ", localized_string("tx-num-outputs")))
@@ -310,7 +310,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_num_outputs_row = Row::new().push(tx_num_outputs_label_container).push(tx_num_outputs_value_container);
         column = column
             .push(tx_num_outputs_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Amount Credited
         let tx_amount_credited_label = Text::new(format!("{}:  ", localized_string("tx-amount-credited")))
@@ -330,7 +330,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_amount_credited_row = Row::new().push(tx_amount_credited_label_container).push(tx_amount_credited_value_container);
         column = column
             .push(tx_amount_credited_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Amount Debited
         let tx_amount_debited_label = Text::new(format!("{}:  ", localized_string("tx-amount-debited")))
@@ -350,7 +350,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_amount_debited_row = Row::new().push(tx_amount_debited_label_container).push(tx_amount_debited_value_container);
         column = column
             .push(tx_amount_debited_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Fee
         let tx_fee_label = Text::new(format!("{}:  ", localized_string("tx-fee")))
@@ -375,7 +375,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_fee_row = Row::new().push(tx_fee_label_container).push(tx_fee_value_container);
         column = column
             .push(tx_fee_row)
-            .push(Space::new(Length::Units(0), Length::Units(row_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
         // Net Difference
         let tx_net_difference_label = Text::new(format!("{}:  ", localized_string("tx-net-difference")))
@@ -404,7 +404,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let tx_net_difference_row = Row::new().push(tx_net_difference_label_container).push(tx_net_difference_value_container);
         column = column
             .push(tx_net_difference_row)
-            .push(Space::new(Length::Units(0), Length::Units(unit_spacing)));
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     }
 
@@ -430,7 +430,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let button_row = Row::new()
         .push(cancel_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)));
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)));
 
     column = column.push(button_row);
 

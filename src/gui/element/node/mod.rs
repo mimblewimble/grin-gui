@@ -41,7 +41,7 @@ pub fn data_container<'a>(
     };
 
     let column = Column::new()
-        //.push(Space::new(Length::Units(0), Length::Units(20)))
+        //.push(Space::new(Length::Fixed(0.0), Length::Fixed(20)))
         .push(content);
 
     Container::new(column)

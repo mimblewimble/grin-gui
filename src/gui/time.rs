@@ -1,4 +1,10 @@
-use iced::futures;
+use iced_futures::{
+    self,
+    subscription
+};
+
+use iced_core::Hasher;
+use std::hash::Hash;
 
 pub fn every(duration: std::time::Duration) -> iced::Subscription<chrono::DateTime<chrono::Local>> {
     iced::Subscription::from_recipe(Every(duration))
@@ -6,13 +12,11 @@ pub fn every(duration: std::time::Duration) -> iced::Subscription<chrono::DateTi
 
 struct Every(std::time::Duration);
 
-impl<H, I> iced_native::subscription::Recipe<H, I> for Every
-where
-    H: std::hash::Hasher,
+impl iced_futures::subscription::Recipe for Every
 {
     type Output = chrono::DateTime<chrono::Local>;
 
-    fn hash(&self, state: &mut H) {
+    fn hash(&self, state: &mut Hasher) {
         use std::hash::Hash;
 
         std::any::TypeId::of::<Self>().hash(state);
@@ -21,7 +25,7 @@ where
 
     fn stream(
         self: Box<Self>,
-        _input: futures::stream::BoxStream<'static, I>,
+        _input: subscription::EventStream,
     ) -> futures::stream::BoxStream<'static, Self::Output> {
         use futures::stream::StreamExt;
 

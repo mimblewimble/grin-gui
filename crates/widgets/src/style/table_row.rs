@@ -1,4 +1,4 @@
-use iced_core::{Background, Color};
+use iced::{Background, Color};
 
 /// The appearance of a table row.
 #[derive(Debug, Clone, Copy, Default)]

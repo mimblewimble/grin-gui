@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 #[cfg(feature = "wgpu")]
-use iced_wgpu::Renderer as IRenderer;
+use iced_renderer::Renderer as IRenderer;
 
 #[cfg(feature = "opengl")]
 use iced_glow::Renderer as IRenderer;
@@ -42,6 +42,7 @@ pub async fn load_user_themes() -> Vec<Theme> {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Theme {
+
     pub name: String,
     pub palette: ColorPalette,
 }
@@ -57,7 +58,7 @@ pub type Button<'a, Message> = iced::widget::Button<'a, Message, Renderer>;
 pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Renderer>;
 pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Renderer>;
-pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message, Renderer, Theme>;
+pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message>;
 pub type Header<'a, Message> = grin_gui_widgets::widget::header::Header<'a, Message, Renderer>;
 pub type TableRow<'a, Message> = grin_gui_widgets::widget::table_row::TableRow<'a, Message, Renderer>;
 
@@ -65,33 +66,33 @@ pub type TableRow<'a, Message> = grin_gui_widgets::widget::table_row::TableRow<'
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {
     #[serde(with = "serde_color")]
-    pub background: iced_native::Color,
+    pub background: iced::Color,
     #[serde(with = "serde_color")]
-    pub foreground: iced_native::Color,
+    pub foreground: iced::Color,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct NormalColors {
     #[serde(with = "serde_color")]
-    pub primary: iced_native::Color,
+    pub primary: iced::Color,
     #[serde(with = "serde_color")]
-    pub secondary: iced_native::Color,
+    pub secondary: iced::Color,
     #[serde(with = "serde_color")]
-    pub surface: iced_native::Color,
+    pub surface: iced::Color,
     #[serde(with = "serde_color")]
-    pub error: iced_native::Color,
+    pub error: iced::Color,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BrightColors {
     #[serde(with = "serde_color")]
-    pub primary: iced_native::Color,
+    pub primary: iced::Color,
     #[serde(with = "serde_color")]
-    pub secondary: iced_native::Color,
+    pub secondary: iced::Color,
     #[serde(with = "serde_color")]
-    pub surface: iced_native::Color,
+    pub surface: iced::Color,
     #[serde(with = "serde_color")]
-    pub error: iced_native::Color,
+    pub error: iced::Color,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
@@ -483,7 +484,7 @@ impl Theme {
     }
 }
 
-fn hex_to_color(hex: &str) -> Option<iced_native::Color> {
+fn hex_to_color(hex: &str) -> Option<iced::Color> {
     if hex.len() == 7 {
         let hash = &hex[0..1];
         let r = u8::from_str_radix(&hex[1..3], 16);
@@ -491,7 +492,7 @@ fn hex_to_color(hex: &str) -> Option<iced_native::Color> {
         let b = u8::from_str_radix(&hex[5..7], 16);
 
         return match (hash, r, g, b) {
-            ("#", Ok(r), Ok(g), Ok(b)) => Some(iced_native::Color {
+            ("#", Ok(r), Ok(g), Ok(b)) => Some(iced::Color {
                 r: r as f32 / 255.0,
                 g: g as f32 / 255.0,
                 b: b as f32 / 255.0,
@@ -504,10 +505,10 @@ fn hex_to_color(hex: &str) -> Option<iced_native::Color> {
     None
 }
 
-fn color_to_hex(color: &iced_native::Color) -> String {
+fn color_to_hex(color: &iced::Color) -> String {
     let mut color_str = String::from("#");
 
-    let iced_native::Color { r, g, b, .. } = color;
+    let iced::Color { r, g, b, .. } = color;
     color_str.push_str(&format!("{:02X}", (r * 255.0) as u8));
     color_str.push_str(&format!("{:02X}", (g * 255.0) as u8));
     color_str.push_str(&format!("{:02X}", (b * 255.0) as u8));
@@ -536,7 +537,7 @@ impl Ord for Theme {
 }
 
 // Newtype on iced::Color so we can impl Deserialzer for it
-struct Color(iced_native::Color);
+struct Color(iced::Color);
 
 mod serde_color {
     use super::{color_to_hex, hex_to_color, Color};
@@ -544,7 +545,7 @@ mod serde_color {
     use serde::ser;
     use std::fmt;
 
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<iced_native::Color, D::Error>
+    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<iced::Color, D::Error>
     where
         D: de::Deserializer<'de>,
     {
@@ -573,7 +574,7 @@ mod serde_color {
         deserializer.deserialize_any(ColorVisitor).map(|c| c.0)
     }
 
-    pub(crate) fn serialize<S>(color: &iced_native::Color, serializer: S) -> Result<S::Ok, S::Error>
+    pub(crate) fn serialize<S>(color: &iced::Color, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: ser::Serializer,
     {
@@ -609,10 +610,10 @@ mod tests {
     #[test]
     fn test_hex_color_ser() {
         let color = super::NormalColors {
-            primary: iced_native::Color::from_rgb(1.0, 1.0, 1.0),
-            secondary: iced_native::Color::from_rgb(0.5, 0.6, 0.75789),
-            surface: iced_native::Color::from_rgb(0.1, 0.2, 0.3),
-            error: iced_native::Color::from_rgb(0.0, 0.0, 0.0),
+            primary: iced::Color::from_rgb(1.0, 1.0, 1.0),
+            secondary: iced::Color::from_rgb(0.5, 0.6, 0.75789),
+            surface: iced::Color::from_rgb(0.1, 0.2, 0.3),
+            error: iced::Color::from_rgb(0.0, 0.0, 0.0),
         };
 
         let ser = serde_yaml::to_string(&color).unwrap();

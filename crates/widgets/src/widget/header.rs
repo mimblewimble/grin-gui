@@ -1,17 +1,19 @@
 #![allow(clippy::type_complexity)]
 use crate::style::header::StyleSheet;
-use iced_native::{
+use iced_core::{
     event, layout, mouse,
-    widget::{self, space::Space, Container, Tree},
-    Alignment, Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
+    widget::{self, Tree},
+    Alignment, Clipboard, Element, Event, Layout, Length, Padding, Rectangle, Shell, Widget,
 };
+
+use iced::widget::{space::Space, Container};
 
 mod state;
 pub use state::State;
 
 pub struct Header<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -30,7 +32,7 @@ where
 
 impl<'a, Message, Renderer> Header<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -41,7 +43,7 @@ where
         right_margin: Option<Length>,
     ) -> Self
     where
-        <Renderer as iced_native::Renderer>::Theme: iced_style::container::StyleSheet,
+        <Renderer as iced_core::Renderer>::Theme: iced::widget::container::StyleSheet,
     {
         let mut names = vec![];
         let mut left = false;
@@ -133,7 +135,7 @@ where
 
 impl<'a, Message, Renderer> Widget<Message, Renderer> for Header<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
     Renderer::Theme: StyleSheet,
     Message: 'a,
 {
@@ -172,11 +174,13 @@ where
         tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
+        viewport: &Rectangle,
     ) -> event::Status {
+        let cursor_position = cursor.position().unwrap_or_default();
         let in_bounds = layout.bounds().contains(cursor_position);
 
         if self.state.resizing || in_bounds {
@@ -284,10 +288,11 @@ where
                     state,
                     event.clone(),
                     layout,
-                    cursor_position,
+                    cursor,
                     renderer,
                     clipboard,
                     shell,
+                    viewport
                 )
             })
             .fold(event::Status::Ignored, event::Status::merge)
@@ -298,12 +303,11 @@ where
         tree: &Tree,
         renderer: &mut Renderer,
         theme: &Renderer::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_core::renderer::Style,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
     ) {
-
         for ((child, state), layout) in self
             .children
             .iter()
@@ -316,7 +320,7 @@ where
                 theme,
                 style,
                 layout,
-                cursor_position,
+                cursor,
                 viewport,
             );
         }
@@ -326,11 +330,12 @@ where
         &self,
         tree: &Tree,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
         let bounds = layout.bounds();
+        let cursor_position = cursor.position().unwrap_or_default();
         let is_mouse_over = bounds.contains(cursor_position);
 
         if is_mouse_over {
@@ -361,8 +366,8 @@ where
 
 impl<'a, Message, Renderer> From<Header<'a, Message, Renderer>> for Element<'a, Message, Renderer>
 where
-    Renderer: 'a + iced_native::Renderer,
-    Renderer::Theme: StyleSheet + widget::container::StyleSheet + widget::text::StyleSheet,
+    Renderer: 'a + iced_core::Renderer,
+    Renderer::Theme: StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
     Message: 'a,
 {
     fn from(header: Header<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {

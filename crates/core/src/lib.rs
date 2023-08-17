@@ -11,7 +11,7 @@ pub mod error;
 pub mod fs;
 pub mod theme;
 pub mod network;
-#[cfg(feature = "gui")]
+#[cfg(feature = "wgpu")]
 pub mod utility;
 
 #[macro_use]

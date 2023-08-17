@@ -9,7 +9,7 @@ use grin_gui_core::{
 //use grin_gui_core::widgets::widget::header;
 use iced::alignment;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};
@@ -92,7 +92,7 @@ pub fn data_container<'a>(
     state: &'a StateContainer,
     home_state: &'a super::home::StateContainer,
 ) -> Container<'a, Message> {
-    let button_width = Length::Units(70);
+    let button_width = Length::Fixed(70.0);
 
     let description = Text::new(localized_string("tx-transact"))
         .size(DEFAULT_FONT_SIZE)
@@ -157,9 +157,9 @@ pub fn data_container<'a>(
 
     let menu_column = Row::new()
         .push(description_container)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(create_container)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(apply_container);
 
     Container::new(menu_column).padding(iced::Padding::from([

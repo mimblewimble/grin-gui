@@ -10,11 +10,9 @@ edition = "2018"
 build = "src/build/build.rs"
 
 [features]
-default = ["opengl", "gui"]
-gui = ['iced_native']
+default = ["wgpu"]
 no-self-update = []
-wgpu = ["iced_wgpu"]
-opengl = ["iced_glow"]
+wgpu = ["iced_renderer/wgpu"]
 
 [build-dependencies]
 built = { version = "0.4", features = ["git2"] }
@@ -23,21 +21,21 @@ built = { version = "0.4", features = ["git2"] }
 
 ############ Release ################
 ### Node
-grin_config = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
-grin_chain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_config = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+grin_core = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+grin_util = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+grin_servers = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+grin_keychain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+grin_chain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
 
 ### Wallet
-grin_wallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_config = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_util = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_controller = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_api = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_impls = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
-grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
+grin_wallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_config = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_util = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_controller = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_api = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_impls = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
+grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin-gui-widgets = { path = "../widgets" }
 
 
@@ -92,16 +90,13 @@ log4rs = { version = "0.12", features = [
 backtrace = "0.3"
 lazy_static = "1"
 
-iced = { version = "0.7.0", default-features = false, features = ["default"] }
-iced_futures = { version = "0.5", features = ["async-std"] }
-iced_core = { version = "0.7.0" }
-iced_style = "0.6.0"
-iced_graphics = { version = "0.6.0" }
-iced_native = { version = "0.8.0", optional = true }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw.git" }
-
-iced_wgpu = { version = "0.8.0", optional = true }
-iced_glow = { version = "0.6.0", optional = true }
+iced = { version = "0.10", features = ["advanced", "tokio"] }
+iced_futures = { version = "0.7", features = ["async-std"] }
+iced_core = { version = "0.10" }
+iced_style = "0.9"
+iced_graphics = { version = "0.9" }
+iced_renderer = { version = "0.1", features = ["wgpu"] }
+iced_aw = { version = "0.6", default-features = false, features = ["card", "modal"]}
 
 [dev-dependencies]
 tempfile = "3.2.0"

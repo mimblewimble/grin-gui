@@ -11,11 +11,13 @@ use iced::{
     alignment::{Horizontal, Vertical},
     executor,
     widget::{
-        canvas::{self, event, Cache, Cursor, Frame, Geometry},
+        canvas::{self, event, Cache, Frame, Geometry},
         Space,
     },
+    mouse::Cursor,
     Alignment, Command, Font, Length, Point, Settings, Size, Subscription,
 };
+
 use plotters::{
     coord::{types::RangedCoordf32, ReverseCoordTranslate},
     prelude::*,
@@ -28,7 +30,7 @@ use std::{borrow::Borrow, collections::VecDeque};
 const CHART_CAPTION_HEAD: u16 = 20;
 const CHART_CAPTION_SUB: u16 = 12;
 
-const FONT_REGULAR: Font = Font::External {
+/*const FONT_REGULAR: Font = Font::External {
     name: "sans-serif-regular",
     bytes: include_bytes!("../../../../../fonts/notosans-regular.ttf"),
 };
@@ -36,7 +38,7 @@ const FONT_REGULAR: Font = Font::External {
 const FONT_BOLD: Font = Font::External {
     name: "sans-serif-bold",
     bytes: include_bytes!("../../../../../fonts/notosans-bold.ttf"),
-};
+};*/
 
 #[derive(Default)]
 pub struct BalanceChart {
@@ -68,14 +70,14 @@ impl BalanceChart {
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .spacing(5)
-                .push(
+                /* .push(
                     ChartWidget::new(chart).height(Length::Fill).resolve_font(
                         |_, style| match style {
                             plotters_backend::FontStyle::Bold => FONT_BOLD,
                             _ => FONT_REGULAR,
                         },
                     ),
-                ),
+                ),*/
         )
         .width(Length::Fill)
         .height(Length::Fill)
@@ -97,8 +99,8 @@ impl Chart<Message> for BalanceChart {
         _state: &mut Self::State,
         event: canvas::Event,
         bounds: iced::Rectangle,
-        cursor: canvas::Cursor,
-    ) -> (iced_native::event::Status, Option<Message>) {
+        cursor: Cursor,
+    ) -> (iced_core::event::Status, Option<Message>) {
         if let Cursor::Available(point) = cursor {
             match event {
                 canvas::Event::Mouse(_evt) if bounds.contains(point) => {
@@ -126,7 +128,7 @@ impl Chart<Message> for BalanceChart {
                     }
 
                     return (
-                        iced_native::event::Status::Captured,
+                        iced_core::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::MouseIndex(cursor_index, caption_index),
@@ -136,7 +138,7 @@ impl Chart<Message> for BalanceChart {
                 }
                 _ => {
                     return (
-                        iced_native::event::Status::Captured,
+                        iced_core::event::Status::Captured,
                         Some(Message::Interaction(
                             crate::gui::Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::MouseExit,

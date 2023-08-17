@@ -17,9 +17,10 @@ impl text_input::StyleSheet for Theme {
         match style {
             TextInputStyle::AddonsQuery => text_input::Appearance {
                 background: Background::Color(self.palette.base.foreground),
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_width: 1.0,
                 border_color: self.palette.base.foreground,
+                icon_color: self.palette.base.foreground,
             },
             _ => todo!("default"),
         }
@@ -30,12 +31,16 @@ impl text_input::StyleSheet for Theme {
         match style {
             TextInputStyle::AddonsQuery => text_input::Appearance {
                 background: Background::Color(self.palette.base.foreground),
-                border_radius: 2.0,
+                border_radius: 2.0.into(),
                 border_width: 1.0,
                 border_color: Color {
                     a: 0.5,
                     ..self.palette.normal.primary
                 },
+                icon_color: Color {
+                    a: 1.0,
+                    ..self.palette.normal.primary
+                }
             },
             _ => todo!("default"),
         }
@@ -60,6 +65,17 @@ impl text_input::StyleSheet for Theme {
             TextInputStyle::AddonsQuery => self.palette.bright.secondary, 
             _ => todo!("default"),
         }
+    }
+
+    fn disabled_color(&self, style: &Self::Style) -> Color {
+        match style {
+            TextInputStyle::AddonsQuery => self.palette.normal.secondary, 
+            _ => todo!("default"),
+        }
+    }
+
+    fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
+        todo!("default")
     }
 
     /// Produces the style of an hovered text input.

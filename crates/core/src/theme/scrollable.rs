@@ -16,12 +16,12 @@ impl scrollable::StyleSheet for Theme {
         match style {
             ScrollableStyle::Default => scrollable::Scrollbar {
                 background: Some(Background::Color(Color::TRANSPARENT)),
-                border_radius: 0.0,
+                border_radius: 0.0.into(),
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
                 scroller: scrollable::Scroller {
                     color: Color::TRANSPARENT,
-                    border_radius: 2.0,
+                    border_radius: 2.0.into(),
                     border_width: 0.0,
                     border_color: Color::TRANSPARENT,
                 },
@@ -29,12 +29,12 @@ impl scrollable::StyleSheet for Theme {
 
             ScrollableStyle::Primary =>  scrollable::Scrollbar {
                 background: Some(Background::Color(self.palette.base.background)),
-                border_radius: 0.0,
+                border_radius: 0.0.into(),
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
                 scroller: scrollable::Scroller {
                     color: self.palette.base.foreground,
-                    border_radius: 2.0,
+                    border_radius: 2.0.into(),
                     border_width: 0.0,
                     border_color: Color::TRANSPARENT,
                 },
@@ -42,7 +42,7 @@ impl scrollable::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: &Self::Style) -> scrollable::Scrollbar {
+    fn hovered(&self, style: &Self::Style, _is_mouse_over_scrollbar: bool) -> scrollable::Scrollbar {
         let active = self.active(style);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..active.scroller },
@@ -51,7 +51,7 @@ impl scrollable::StyleSheet for Theme {
     }
 
     fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
-        let hovered = self.hovered(style);
+        let hovered = self.hovered(style, true);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..hovered.scroller },
             ..hovered

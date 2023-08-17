@@ -16,8 +16,8 @@ impl checkbox::StyleSheet for Theme {
         match style {
             CheckboxStyle::Normal =>  checkbox::Appearance {
                 background: Background::Color(self.palette.base.background),
-                checkmark_color: self.palette.bright.primary,
-                border_radius: 2.0,
+                icon_color: self.palette.bright.primary,
+                border_radius: 2.0.into(),
                 border_width: 1.0,
                 border_color: self.palette.normal.primary,
                 text_color: Some(self.palette.normal.surface),
@@ -30,8 +30,8 @@ impl checkbox::StyleSheet for Theme {
         match style {
             CheckboxStyle::Normal => checkbox::Appearance {
                 background: Background::Color(self.palette.base.foreground),
-                checkmark_color: self.palette.bright.primary,
-                border_radius: 2.0,
+                icon_color: self.palette.bright.primary,
+                border_radius: 2.0.into(),
                 border_width: 2.0,
                 border_color: self.palette.bright.primary,
                 text_color: Some(self.palette.normal.surface),

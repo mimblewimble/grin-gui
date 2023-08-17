@@ -149,8 +149,8 @@ fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
 }
 
 pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let title = Text::new(localized_string("wallet-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
@@ -191,7 +191,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -227,7 +227,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let table_header_container = Container::new(table_header_row)
         .padding(iced::Padding::from([
             9,               // top
-            DEFAULT_PADDING, // right - should roughly match width of content scroll bar to align table headers
+            DEFAULT_PADDING as u16, // right - should roughly match width of content scroll bar to align table headers
             9,               // bottom
             9,               // left
         ]))
@@ -366,7 +366,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
     let button_row = Row::new()
         .push(load_container)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(select_container)
         .height(Length::Shrink);
 
@@ -382,7 +382,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let row = Row::new().push(
         Column::new()
             .push(table_container)
-            .push(Space::with_height(Length::Units(DEFAULT_PADDING)))
+            .push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
             .push(button_row),
     );
 

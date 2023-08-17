@@ -8,7 +8,7 @@ use grin_gui_core::{
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
-use iced_native::Widget;
+use iced_core::Widget;
 use std::{borrow::Borrow, path::PathBuf, str::FromStr};
 
 use super::tx_list::{HeaderState, TxList, TxLogEntryWrap};
@@ -236,8 +236,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::StateContainer, state: &'a StateContainer) -> Container<'a, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let title = Text::new(localized_string("tx-list")).size(DEFAULT_HEADER_FONT_SIZE);
     let title_container = Container::new(title)
@@ -305,7 +305,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
     // add additional buttons here
     let button_row = Row::new()
         .push(latest_container_wrap)
-        .push(Space::with_width(Length::Units(DEFAULT_PADDING)))
+        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
         .push(outstanding_container_wrap);
 
     /*let segmented_mode_container = Container::new(button_row).padding(1);
@@ -322,7 +322,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -342,7 +342,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
 
     let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
         0,                   // top
-        DEFAULT_PADDING * 3, // right - should roughly match width of content scroll bar to align table headers
+        DEFAULT_PADDING as u16 * 3, // right - should roughly match width of content scroll bar to align table headers
         0,                   // bottom
         0,                   // left
     ]));

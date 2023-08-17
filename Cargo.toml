@@ -4,22 +4,23 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["opengl"]
-wgpu = [ "iced/wgpu", "iced/default_system_font"]
-opengl = [ "iced/glow"]
+default = ["wgpu"]
+wgpu = [ "iced_renderer/wgpu" ]
 no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
 [dependencies]
-grin-gui-core = { version = "0.1.0", path = "crates/core", features=['gui'] }
+grin-gui-core = { version = "0.1.0", path = "crates/core", features = ["wgpu"]}
 grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
 
-iced = { version = "0.7.0", features = ["canvas", "tokio", "default_system_font"] }
-iced_futures = { version = "0.5", features = ["async-std"] }
-iced_style = {version = "0.6.0"}
-iced_native = { version = "0.8.0" }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw.git" }
-plotters-iced = "0.6.0"
+iced = { version = "0.10", features = ["canvas", "tokio"]  }
+iced_futures = { version = "0.7", features = ["async-std"] }
+iced_style = {version = "0.9"}
+iced_renderer = { version = "0.1" }
+iced_core = { version = "0.10" }
+iced_aw = { version = "0.6", default-features = false, features = ["card", "modal"]}
+
+plotters-iced = "0.9.0"
 plotters="0.3"
 plotters-backend = "0.3"
 rand = "0.8.3"

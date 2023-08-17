@@ -26,8 +26,8 @@ impl Default for StateContainer {
 }
 
 pub fn exit_card() -> Card<'static, Message> {
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let yes_button_label =
         Container::new(Text::new(localized_string("yes")).size(DEFAULT_FONT_SIZE))
@@ -56,7 +56,7 @@ pub fn exit_card() -> Card<'static, Message> {
             .on_press(Interaction::ExitCancel)
             .into();
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     // button lipstick
     let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
@@ -70,7 +70,7 @@ pub fn exit_card() -> Card<'static, Message> {
 
     let button_row = Row::new()
         .push(yes_container)
-        .push(Space::new(Length::Units(unit_spacing), Length::Units(0)))
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
         .push(cancel_container);
 
     Card::new(
@@ -87,7 +87,7 @@ pub fn exit_card() -> Card<'static, Message> {
             .align_items(Alignment::Center)
             .push(button_row),
     )
-    .max_width(500)
+    .max_width(500.0)
     .on_close(Message::Interaction(Interaction::ExitCancel))
     .style(grin_gui_core::theme::CardStyle::Normal)
 }
@@ -126,7 +126,7 @@ pub fn error_card(
                 ))),
             ),
     )
-    .max_width(500)
+    .max_width(500.0)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
     .style(grin_gui_core::theme::CardStyle::Normal)
 }

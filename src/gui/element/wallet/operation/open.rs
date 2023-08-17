@@ -1,7 +1,6 @@
 use crate::gui::element::{self, BUTTON_HEIGHT, BUTTON_WIDTH};
 use crate::log_error;
 //use iced::button::StyleSheet;
-//use iced_native::Widget;
 //use std::path::PathBuf;
 
 use {
@@ -23,8 +22,8 @@ use {
     std::sync::{Arc, RwLock},
 };
 
-static INPUT_WIDTH: u16 = 212;
-static UNIT_SPACE: u16 = 15;
+static INPUT_WIDTH: f32 = 212.0;
+static UNIT_SPACE: f32 = 15.0;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
@@ -190,11 +189,11 @@ pub fn data_container<'a>(
             // &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            |s| {
+            /*|s| {
                 Interaction::WalletOperationOpenViewInteraction(
                     LocalViewInteraction::PasswordInput(s),
                 )
-            },
+            }*/
         )
         .on_submit(Interaction::WalletOperationOpenViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,
@@ -219,15 +218,15 @@ pub fn data_container<'a>(
         .horizontal_alignment(alignment::Horizontal::Center);
 
     let description_container = Container::new(description)
-        .width(Length::Units(INPUT_WIDTH))
+        .width(Length::Fixed(INPUT_WIDTH))
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground).padding(6);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
             .center_x()
             .center_y()
-            .width(Length::Units(BUTTON_WIDTH))
-            .height(Length::Units(BUTTON_HEIGHT))
+            .width(Length::Fixed(BUTTON_WIDTH))
+            .height(Length::Fixed(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut submit_button = Button::new(submit_button_label_container)
@@ -243,8 +242,8 @@ pub fn data_container<'a>(
         Container::new(Text::new(localized_string("cancel")).size(DEFAULT_FONT_SIZE))
             .center_x()
             .center_y()
-            .width(Length::Units(BUTTON_WIDTH))
-            .height(Length::Units(BUTTON_HEIGHT))
+            .width(Length::Fixed(BUTTON_WIDTH))
+            .height(Length::Fixed(BUTTON_HEIGHT))
             .align_x(alignment::Horizontal::Center);
 
     let mut cancel_button = Button::new(
@@ -272,24 +271,24 @@ pub fn data_container<'a>(
 
     let button_row = Row::new()
         .push(submit_container)
-        .push(Space::with_width(Length::Units(UNIT_SPACE)))
+        .push(Space::with_width(Length::Fixed(UNIT_SPACE)))
         .push(cancel_container);
 
     let input_container = Container::new(
         Column::new()
             .push(description_container)
-            .push(Space::with_height(Length::Units(UNIT_SPACE/2)))
+            .push(Space::with_height(Length::Fixed(UNIT_SPACE/2.0)))
             .push(password_column),
     )
-    .width(Length::Units(INPUT_WIDTH));
+    .width(Length::Fixed(INPUT_WIDTH));
 
     let column = Column::new()
         .push(display_name_container)
-        .push(Space::with_height(Length::Units(
+        .push(Space::with_height(Length::Fixed(
             UNIT_SPACE,
         )))
         .push(input_container)
-        .push(Space::with_height(Length::Units(
+        .push(Space::with_height(Length::Fixed(
             UNIT_SPACE + DEFAULT_PADDING,
         )))
         .push(button_row)

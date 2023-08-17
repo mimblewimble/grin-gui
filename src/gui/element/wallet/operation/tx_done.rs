@@ -69,7 +69,7 @@ pub fn data_container<'a>(
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -79,10 +79,10 @@ pub fn data_container<'a>(
     let description_container =
         Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
-    let button_height = Length::Units(BUTTON_HEIGHT);
-    let button_width = Length::Units(BUTTON_WIDTH);
+    let button_height = Length::Fixed(BUTTON_HEIGHT);
+    let button_width = Length::Fixed(BUTTON_WIDTH);
 
     let cancel_button_label_container =
         Container::new(Text::new(localized_string("ok-caps")).size(DEFAULT_FONT_SIZE))
@@ -104,19 +104,19 @@ pub fn data_container<'a>(
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
     let button_row = Row::new().push(cancel_container);
 
     let column = Column::new()
         .push(description_container)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 5),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 5.0),
         ))
         .push(button_row)
         .push(Space::new(
-            Length::Units(0),
-            Length::Units(unit_spacing + 10),
+            Length::Fixed(0.0),
+            Length::Fixed(unit_spacing + 10.0),
         ));
 
     let form_container = Container::new(column)
