@@ -178,7 +178,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -229,8 +229,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let show_slate_label_container = Container::new(
             Text::new(localized_string("tx-show-full-slatepack")).size(SMALLER_FONT_SIZE),
         )
-        .height(Length::Fixed(14))
-        .width(Length::Fixed(60))
+        .height(Length::Fixed(14.0))
+        .width(Length::Fixed(60.0))
         .center_y()
         .center_x();
 
@@ -245,8 +245,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         let paste_again_label_container = Container::new(
             Text::new(localized_string("tx-paste-again")).size(SMALLER_FONT_SIZE),
         )
-        .height(Length::Fixed(14))
-        .width(Length::Fixed(60))
+        .height(Length::Fixed(14.0))
+        .width(Length::Fixed(60.0))
         .center_y()
         .center_x();
 
@@ -257,9 +257,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .into();
 
         instruction_row = instruction_row
-            .push(Space::with_width(Length::Fixed(2)))
+            .push(Space::with_width(Length::Fixed(2.0)))
             .push(show_slate_button.map(Message::Interaction))
-            .push(Space::with_width(Length::Fixed(2)))
+            .push(Space::with_width(Length::Fixed(2.0)))
             .push(paste_again_button.map(Message::Interaction));
     }
 
@@ -386,7 +386,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ));
 
     let form_container = Container::new(column)

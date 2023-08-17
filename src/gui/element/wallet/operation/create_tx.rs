@@ -208,7 +208,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -226,7 +226,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Fixed(400))
+    .width(Length::Fixed(400.0))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
@@ -254,7 +254,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Fixed(100))
+    .width(Length::Fixed(100.0))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let amount_input: Element<Interaction> = amount_input.into();
@@ -356,7 +356,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ));
 
     let form_container = Container::new(column)

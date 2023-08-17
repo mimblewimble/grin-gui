@@ -952,7 +952,7 @@ pub fn titles_row_header<'a>(
         None,
     )
     .spacing(1)
-    .height(Length::Fixed(25))
+    .height(Length::Fixed(25.0))
     /* .on_resize(3, |event| {
         //TODO
         //Message::Interaction(Interaction::ResizeColumn(Mode::Catalog, event))

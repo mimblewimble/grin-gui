@@ -522,7 +522,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let close_wallet_label_container =
         Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
             .height(Length::Fixed(14))
-            .width(Length::Fixed(30))
+            .width(Length::Fixed(30.0))
             .center_y()
             .center_x();
 
@@ -536,7 +536,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let subtitle_row = Row::new()
         .push(subtitle_container)
-        .push(Space::with_width(Length::Fixed(2)))
+        .push(Space::with_width(Length::Fixed(2.0)))
         .push(close_wallet_button.map(Message::Interaction));
 
     let address_label = Text::new(format!(
@@ -578,8 +578,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let copy_address_label_container =
         Container::new(Text::new(localized_string("copy-to-clipboard")).size(SMALLER_FONT_SIZE))
-            .height(Length::Fixed(14))
-            .width(Length::Fixed(30))
+            .height(Length::Fixed(14.0))
+            .width(Length::Fixed(30.0))
             .center_y()
             .center_x();
 
@@ -591,9 +591,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let address_row = Row::new()
         .push(address_label_container)
-        .push(Space::with_width(Length::Fixed(2)))
+        .push(Space::with_width(Length::Fixed(2.0)))
         .push(address_container)
-        .push(Space::with_width(Length::Fixed(2)))
+        .push(Space::with_width(Length::Fixed(2.0)))
         .push(copy_address_button.map(Message::Interaction));
 
     let title_container = Container::new(
@@ -617,7 +617,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -719,17 +719,17 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .spacing(7);
 
     let wallet_info_card_container = Container::new(info_column)
-        .width(Length::Fixed(240))
+        .width(Length::Fixed(240.0))
         .padding(iced::Padding::from([
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right
             DEFAULT_PADDING, // bottom
-            5,               // left
+            5.0,               // left
         ]));
 
     let mut first_row_container = Row::new()
         .push(wallet_info_card_container)
-        .height(Length::Fixed(120));
+        .height(Length::Fixed(120.0));
 
     // if there is transaction data, display the balance chart
     let mut balance_data = state.tx_list_display_state.balance_data.clone();
@@ -808,7 +808,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let status_container = Container::new(status_container_contents)
         .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
-        .height(Length::Fixed(25))
+        .height(Length::Fixed(25.0))
         .width(Length::Fill);
 
     let status_row = Row::new()
@@ -824,7 +824,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let column = Column::new()
         .push(header_container)
         .push(first_row_container)
-        .push(Space::with_height(Length::Fixed(DEFAULT_PADDING * 3)))
+        .push(Space::with_height(Length::Fixed(DEFAULT_PADDING * 3.0)))
         .push(tx_list_display)
         .push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
         .push(status_row)

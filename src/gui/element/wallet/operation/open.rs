@@ -23,8 +23,8 @@ use {
     std::sync::{Arc, RwLock},
 };
 
-static INPUT_WIDTH: u16 = 212;
-static UNIT_SPACE: u16 = 15;
+static INPUT_WIDTH: f32 = 212.0;
+static UNIT_SPACE: f32 = 15.0;
 
 pub struct StateContainer {
     pub password_state: PasswordState,
@@ -278,7 +278,7 @@ pub fn data_container<'a>(
     let input_container = Container::new(
         Column::new()
             .push(description_container)
-            .push(Space::with_height(Length::Fixed(UNIT_SPACE/2)))
+            .push(Space::with_height(Length::Fixed(UNIT_SPACE/2.0)))
             .push(password_column),
     )
     .width(Length::Fixed(INPUT_WIDTH));

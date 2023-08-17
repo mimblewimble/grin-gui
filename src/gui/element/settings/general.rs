@@ -264,12 +264,12 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             ))
         })
         .text_size(14)
-        .width(Length::Fixed(120))
+        .width(Length::Fixed(120.0))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         let container = Container::new(pick_list)
             .center_y()
-            .width(Length::Fixed(120))
+            .width(Length::Fixed(120.0))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
@@ -288,12 +288,12 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             ))
         })
         .text_size(14)
-        .width(Length::Fixed(120))
+        .width(Length::Fixed(120.0))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         let container = Container::new(pick_list)
             .center_y()
-            .width(Length::Fixed(120))
+            .width(Length::Fixed(120.0))
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
         Column::new()
@@ -325,14 +325,14 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             },
         )
         .text_size(DEFAULT_FONT_SIZE)
-        .width(Length::Fixed(120))
+        .width(Length::Fixed(120.0))
         .style(grin_gui_core::theme::PickListStyle::Primary);
 
         // Data row for theme picker list.
         let theme_data_row = Row::new()
             .push(theme_pick_list)
             .align_items(Alignment::Center)
-            .height(Length::Fixed(26));
+            .height(Length::Fixed(26.0));
 
         Column::new()
             .push(title_container)
@@ -380,7 +380,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             .push(current_scale_container)
             .push(scale_up_button.map(Message::Interaction))
             .align_items(Alignment::Center)
-            .height(Length::Fixed(26));
+            .height(Length::Fixed(26.0));
 
         Column::new()
             .push(scale_title_row)
@@ -400,7 +400,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Fixed(185))
+        .width(Length::Fixed(185.0))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
         let theme_input: Element<Interaction> = theme_input.into();
@@ -424,7 +424,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
             .push(import_button.map(Message::Interaction))
             .spacing(DEFAULT_PADDING)
             .align_items(Alignment::Center)
-            .height(Length::Fixed(26));
+            .height(Length::Fixed(26.0));
 
         Column::new()
             .push(title_container)
@@ -447,7 +447,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         Row::new()
             .push(open_button.map(Message::Interaction))
             .align_items(Alignment::Center)
-            .height(Length::Fixed(26))
+            .height(Length::Fixed(26.0))
     };
 
     let theme_scale_row = Row::new()
@@ -543,7 +543,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
     let col = Column::new()
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(scrollable)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20.0)));
     let row = Row::new()
         .push(Space::new(Length::Fixed(5.0), Length::Fixed(0.0)))
         .push(col);

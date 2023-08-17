@@ -197,7 +197,7 @@ pub fn data_container<'a>(
 
         Column::new()
             .push(line_label_container)
-            .push(Space::new(Length::Fill, Length::Fixed(2)))
+            .push(Space::new(Length::Fill, Length::Fixed(2.0)))
             .push(line_value_container)
             .push(Space::new(Length::Fill, Length::Fixed(10.0)))
             .align_items(Alignment::Center)

@@ -92,7 +92,7 @@ pub fn data_container<'a>(
     state: &'a StateContainer,
     home_state: &'a super::home::StateContainer,
 ) -> Container<'a, Message> {
-    let button_width = Length::Fixed(70);
+    let button_width = Length::Fixed(70.0);
 
     let description = Text::new(localized_string("tx-transact"))
         .size(DEFAULT_FONT_SIZE)

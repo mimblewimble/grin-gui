@@ -66,7 +66,7 @@ pub fn data_container<'a>(
     let col = Column::new()
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(10.0)))
         .push(scrollable)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20)));
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20.0)));
     let row = Row::new()
         .push(Space::new(Length::Fixed(5.0), Length::Fixed(0.0)))
         .push(col);
