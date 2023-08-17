@@ -75,7 +75,7 @@ impl text_input::StyleSheet for Theme {
     }
 
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
-        self.disabled(style)
+        todo!("default")
     }
 
     /// Produces the style of an hovered text input.

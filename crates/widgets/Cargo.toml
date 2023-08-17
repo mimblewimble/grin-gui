@@ -9,7 +9,7 @@ repository = "https://github.com/mimblewimble/grin-gui"
 edition = "2018"
 
 [features]
-#default = ["opengl"]
+default = ["wgpu"]
 wgpu = ["iced_wgpu"]
 #opengl = ["iced_glow"]
 

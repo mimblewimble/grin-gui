@@ -9,11 +9,11 @@ use std::sync::Mutex;
 
 pub mod backup;
 mod save;
-#[cfg(feature = "gui")]
+#[cfg(feature = "default")]
 mod theme;
 
 pub use save::PersistentData;
-#[cfg(feature = "gui")]
+#[cfg(feature = "default")]
 pub use theme::{import_theme, load_user_themes};
 
 pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {

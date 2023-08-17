@@ -10,11 +10,9 @@ edition = "2018"
 build = "src/build/build.rs"
 
 [features]
-default = ["gui"]
-gui = ['default']
+default = ["wgpu"]
 no-self-update = []
-wgpu = ["iced_wgpu"]
-#opengl = ["iced_core"]
+wgpu = ["iced_renderer/wgpu"]
 
 [build-dependencies]
 built = { version = "0.4", features = ["git2"] }
@@ -97,10 +95,8 @@ iced_futures = { version = "0.7", features = ["async-std"] }
 iced_core = { version = "0.10" }
 iced_style = "0.9"
 iced_graphics = { version = "0.9" }
-#iced_native = { version = "0.10", optional = true }
+iced_renderer = { version = "0.1", features = ["wgpu"] }
 iced_aw = { version = "0.6", default-features = false, features = ["card", "modal"]}
-iced_wgpu = { version = "0.11", optional = true }
-#iced_glow = { version = "0.8", optional = true }
 
 [dev-dependencies]
 tempfile = "3.2.0"
