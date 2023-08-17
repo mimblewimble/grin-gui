@@ -297,7 +297,7 @@ pub fn data_container<'a>(
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -316,7 +316,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Fixed(200))
+        .width(Length::Fixed(200.0))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
         .password();
 
@@ -336,7 +336,7 @@ pub fn data_container<'a>(
         ))
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
-        .width(Length::Fixed(200))
+        .width(Length::Fixed(200.0))
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
         .password();
 
@@ -423,7 +423,7 @@ pub fn data_container<'a>(
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Fixed(200))
+    .width(Length::Fixed(200.0))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
     .into();
 
@@ -453,7 +453,7 @@ pub fn data_container<'a>(
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
-    .width(Length::Fixed(200))
+    .width(Length::Fixed(200.0))
     .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let tld = Text::new(localized_string("top-level-domain"))
@@ -574,7 +574,7 @@ pub fn data_container<'a>(
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
     let button_row = Row::new()
         .push(submit_container)
         .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
@@ -589,13 +589,13 @@ pub fn data_container<'a>(
         .push(show_advanced_options_column)
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ));
 
     if state.show_advanced_options {
         column = column.push(advanced_options_column).push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ));
     }
 

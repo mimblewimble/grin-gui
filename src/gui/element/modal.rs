@@ -56,7 +56,7 @@ pub fn exit_card() -> Card<'static, Message> {
             .on_press(Interaction::ExitCancel)
             .into();
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     // button lipstick
     let yes_container = Container::new(yes_button.map(Message::Interaction)).padding(1);
@@ -87,7 +87,7 @@ pub fn exit_card() -> Card<'static, Message> {
             .align_items(Alignment::Center)
             .push(button_row),
     )
-    .max_width(500)
+    .max_width(500.0)
     .on_close(Message::Interaction(Interaction::ExitCancel))
     .style(grin_gui_core::theme::CardStyle::Normal)
 }
@@ -126,7 +126,7 @@ pub fn error_card(
                 ))),
             ),
     )
-    .max_width(500)
+    .max_width(500.0)
     .on_close(Message::Interaction(Interaction::CloseErrorModal))
     .style(grin_gui_core::theme::CardStyle::Normal)
 }

@@ -393,7 +393,7 @@ pub fn data_container<'a>(
         None => Container::new(Column::new()),
     };
 
-    let stats_info_container = stats_info_container.width(Length::Fixed(600));
+    let stats_info_container = stats_info_container.width(Length::Fixed(600.0));
     let scrollable = Scrollable::new(stats_info_container)
         //.align_items(Alignment::Center)
         .height(Length::Fill)

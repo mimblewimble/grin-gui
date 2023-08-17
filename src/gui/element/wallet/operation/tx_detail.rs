@@ -97,12 +97,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
-    let unit_spacing = 15;
-    let row_spacing = 5;
+    let unit_spacing = 15.0;
+    let row_spacing = 5.0;
 
     let button_height = Length::Fixed(BUTTON_HEIGHT);
     let button_width = Length::Fixed(BUTTON_WIDTH);

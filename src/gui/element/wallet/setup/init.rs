@@ -148,7 +148,7 @@ pub fn data_container<'a>() -> Container<'a, Message> {
         Column::new().push(checkbox_container)
     };*/
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     let select_column = Column::new()
         .push(create_default_wallet_button.map(Message::Interaction))
@@ -159,7 +159,7 @@ pub fn data_container<'a>() -> Container<'a, Message> {
         .align_items(Alignment::Center);
 
     let column = Column::new()
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(20.0)))
         .push(title_row)
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(description_container)

@@ -267,126 +267,126 @@ impl Default for HeaderState {
                 ColumnState {
                     key: ColumnKey::Id,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(20),
+                    width: Length::Fixed(20.0),
                     hidden: true,
                     order: 0,
                 },
                 ColumnState {
                     key: ColumnKey::NetDifference,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: false,
                     order: 1,
                 },
                 ColumnState {
                     key: ColumnKey::CreationTime,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: false,
                     order: 2,
                 },
                 ColumnState {
                     key: ColumnKey::Status,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(300),
+                    width: Length::Fixed(300.0),
                     hidden: false,
                     order: 3,
                 },
                 ColumnState {
                     key: ColumnKey::ConfirmationTime,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 4,
                 },
                 ColumnState {
                     key: ColumnKey::Type,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(150),
+                    width: Length::Fixed(150.0),
                     hidden: true,
                     order: 5,
                 },
                 ColumnState {
                     key: ColumnKey::SharedTransactionId,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(150),
+                    width: Length::Fixed(150.0),
                     hidden: true,
                     order: 6,
                 },
                 ColumnState {
                     key: ColumnKey::TTLCutoff,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 7,
                 },
                 ColumnState {
                     key: ColumnKey::Height,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 8,
                 },
                 ColumnState {
                     key: ColumnKey::IsConfirmed,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 9,
                 },
                 ColumnState {
                     key: ColumnKey::NumInputs,
                     // btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 10,
                 },
                 ColumnState {
                     key: ColumnKey::NumOutputs,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 11,
                 },
                 ColumnState {
                     key: ColumnKey::AmountCredited,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 12,
                 },
                 ColumnState {
                     key: ColumnKey::AmountDebited,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 13,
                 },
                 ColumnState {
                     key: ColumnKey::Fee,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 14,
                 },
                 ColumnState {
                     key: ColumnKey::PaymentProof,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 15,
                 },
                 ColumnState {
                     key: ColumnKey::Kernel,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 16,
                 },
                 ColumnState {
                     key: ColumnKey::TxData,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: true,
                     order: 17,
                 },
@@ -627,126 +627,126 @@ impl Default for TxListHeaderState {
                 TxListColumnState {
                     key: ColumnKey::Id,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(20),
+                    width: Length::Fixed(20.0),
                     hidden: false,
                     order: 0,
                 },
                 TxListColumnState {
                     key: ColumnKey::NetDifference,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 1,
                 },
                 TxListColumnState {
                     key: ColumnKey::CreationTime,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(105),
+                    width: Length::Fixed(105.0),
                     hidden: true,
                     order: 2,
                 },
                 TxListColumnState {
                     key: ColumnKey::Status,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(105),
+                    width: Length::Fixed(105.0),
                     hidden: false,
                     order: 3,
                 },
                 TxListColumnState {
                     key: ColumnKey::ConfirmationTime,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(105),
+                    width: Length::Fixed(105.0),
                     hidden: false,
                     order: 4,
                 },
                 TxListColumnState {
                     key: ColumnKey::Type,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(150),
+                    width: Length::Fixed(150.0),
                     hidden: true,
                     order: 5,
                 },
                 TxListColumnState {
                     key: ColumnKey::SharedTransactionId,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(110),
+                    width: Length::Fixed(110.0),
                     hidden: false,
                     order: 6,
                 },
                 TxListColumnState {
                     key: ColumnKey::TTLCutoff,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(105),
+                    width: Length::Fixed(105.0),
                     hidden: true,
                     order: 7,
                 },
                 TxListColumnState {
                     key: ColumnKey::Height,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(105),
+                    width: Length::Fixed(105.0),
                     hidden: false,
                     order: 8,
                 },
                 TxListColumnState {
                     key: ColumnKey::IsConfirmed,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: false,
                     order: 9,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumInputs,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 10,
                 },
                 TxListColumnState {
                     key: ColumnKey::NumOutputs,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 11,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountCredited,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 12,
                 },
                 TxListColumnState {
                     key: ColumnKey::AmountDebited,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 13,
                 },
                 TxListColumnState {
                     key: ColumnKey::Fee,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 14,
                 },
                 TxListColumnState {
                     key: ColumnKey::PaymentProof,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 15,
                 },
                 TxListColumnState {
                     key: ColumnKey::Kernel,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 16,
                 },
                 TxListColumnState {
                     key: ColumnKey::TxData,
                     //  btn_state: Default::default(),
-                    width: Length::Fixed(85),
+                    width: Length::Fixed(85.0),
                     hidden: true,
                     order: 17,
                 },
@@ -979,7 +979,7 @@ pub fn data_row_container<'a, 'b>(
     pending_confirmation: &Option<Confirm>,
     node_synched: bool,
 ) -> Container<'a, Message> {
-    let default_height = Length::Fixed(26);
+    let default_height = Length::Fixed(26.0);
     let mut default_row_height = 26;
 
     let mut row_containers = vec![];
@@ -1496,7 +1496,7 @@ pub fn data_row_container<'a, 'b>(
     }*/
 
     let left_spacer = Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0));
-    let right_spacer = Space::new(Length::Fixed(DEFAULT_PADDING + 5), Length::Fixed(0.0));
+    let right_spacer = Space::new(Length::Fixed(DEFAULT_PADDING + 5.0), Length::Fixed(0.0));
 
     //let mut row = Row::new().push(left_spacer).spacing(1);
     let mut row = Row::new().spacing(1);
@@ -1565,8 +1565,8 @@ pub fn data_row_container<'a, 'b>(
                 /*let notes = notes.unwrap_or_else(|| localized_string("no-addon-description"));
                 let author = author.unwrap_or_else(|| "-".to_string());*/
                 let left_spacer = Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0));
-                let space = Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING * 2));
-                let bottom_space = Space::new(Length::Fixed(0.0), Length::Fixed(4));
+                let space = Space::new(Length::Fixed(0.0), Length::Fixed(DEFAULT_PADDING * 2.0));
+                let bottom_space = Space::new(Length::Fixed(0.0), Length::Fixed(4.0));
 
                 let confirmed = tx_cloned.tx.confirmed;
 
@@ -1586,14 +1586,14 @@ pub fn data_row_container<'a, 'b>(
                     .into();
 
                 let tx_details_wrap =
-                    Container::new(tx_details_button.map(Message::Interaction)).padding(1);
+                    Container::new(tx_details_button.map(Message::Interaction)).padding(1.0);
                 let tx_details_wrap = Container::new(tx_details_wrap)
                     .style(grin_gui_core::theme::ContainerStyle::Segmented)
                     .padding(1);
 
                 action_button_row = Row::new()
                     .push(Space::new(
-                        Length::Fixed(DEFAULT_PADDING * 3),
+                        Length::Fixed(DEFAULT_PADDING * 3.0),
                         Length::Fixed(0.0),
                     ))
                     .push(tx_details_wrap)
@@ -1604,13 +1604,13 @@ pub fn data_row_container<'a, 'b>(
                     let tx_reload_slate_container = Container::new(
                         Text::new(localized_string("tx-reload-slate")).size(DEFAULT_FONT_SIZE),
                     )
-                    .width(Length::Fixed(BUTTON_WIDTH * 2))
+                    .width(Length::Fixed(BUTTON_WIDTH * 2.0))
                     .align_y(alignment::Vertical::Center)
                     .align_x(alignment::Horizontal::Center);
 
                     let tx_reload_slate_button: Element<Interaction> =
                         Button::new(tx_reload_slate_container)
-                            .width(Length::Fixed(BUTTON_WIDTH * 2))
+                            .width(Length::Fixed(BUTTON_WIDTH * 2.0))
                             .style(grin_gui_core::theme::ButtonStyle::Primary)
                             .on_press(Interaction::WalletOperationHomeViewInteraction(
                                 super::home::LocalViewInteraction::ReloadTxSlate(
@@ -1815,9 +1815,9 @@ pub fn data_row_container<'a, 'b>(
                 .width(Length::Fill);*/
                 let column = Column::new()
                     .push(id_row)
-                    .push(Space::new(Length::Fixed(0.0), Length::Fixed(3)))
+                    .push(Space::new(Length::Fixed(0.0), Length::Fixed(3.0)))
                     .push(uuid_row)
-                    .push(Space::new(Length::Fixed(0.0), Length::Fixed(3)))
+                    .push(Space::new(Length::Fixed(0.0), Length::Fixed(3.0)))
                     .push(type_row);
                 //.push(Space::new(Length::Fixed(0.0), Length::Fixed(3)))
                 /* .push(notes_title_container)
@@ -1839,12 +1839,12 @@ pub fn data_row_container<'a, 'b>(
                     .push(left_spacer)
                     .push(details_container)
                     .push(Space::new(
-                        Length::Fixed(DEFAULT_PADDING + 5),
+                        Length::Fixed(DEFAULT_PADDING + 5.0),
                         Length::Fixed(0.0),
                     ))
                     .spacing(1);
                 tx_column = tx_column
-                    .push(Space::new(Length::FillPortion(1), Length::Fixed(1)))
+                    .push(Space::new(Length::FillPortion(1), Length::Fixed(1.0)))
                     .push(row);
             }
             ExpandType::None => {}
@@ -1874,7 +1874,7 @@ pub fn data_row_container<'a, 'b>(
     if is_tx_expanded {
         return_column = return_column.push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(DEFAULT_PADDING * 2),
+            Length::Fixed(DEFAULT_PADDING * 2.0),
         ));
     }
 

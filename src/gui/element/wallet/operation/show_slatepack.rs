@@ -133,10 +133,10 @@ pub fn data_container<'a>(
                 ))),
             ),
     )
-    .max_width(400)
+    .max_width(400.0)
     .style(grin_gui_core::theme::CardStyle::Normal);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     let button_height = Length::Fixed(BUTTON_HEIGHT);
     let button_width = Length::Fixed(BUTTON_WIDTH);
@@ -161,24 +161,24 @@ pub fn data_container<'a>(
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
     let button_row = Row::new().push(cancel_container);
 
     let column = Column::new()
         .push(description_container)
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 5),
+            Length::Fixed(unit_spacing + 5.0),
         ))
         .push(encrypted_slate_card)
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ))
         .push(button_row)
         .push(Space::new(
             Length::Fixed(0.0),
-            Length::Fixed(unit_spacing + 10),
+            Length::Fixed(unit_spacing + 10.0),
         ));
 
     let form_container = Container::new(column)

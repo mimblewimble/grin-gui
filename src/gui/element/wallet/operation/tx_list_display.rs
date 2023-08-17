@@ -322,7 +322,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
     let header_container = Container::new(header_row).padding(iced::Padding::from([
         0,               // top
         0,               // right
-        DEFAULT_PADDING, // bottom
+        DEFAULT_PADDING as u16, // bottom
         0,               // left
     ]));
 
@@ -342,7 +342,7 @@ pub fn data_container<'a>(config: &'a Config, home_state: &'a super::home::State
 
     let table_header_container = Container::new(table_header_row).padding(iced::Padding::from([
         0,                   // top
-        DEFAULT_PADDING * 3, // right - should roughly match width of content scroll bar to align table headers
+        DEFAULT_PADDING as u16 * 3, // right - should roughly match width of content scroll bar to align table headers
         0,                   // bottom
         0,                   // left
     ]));

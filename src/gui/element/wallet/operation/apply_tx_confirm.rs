@@ -226,7 +226,7 @@ fn parse_info_strings(in_str: &str, amount: &str) -> String {
 }
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
 
     if state.slatepack_parsed.is_none() {
         return Container::new(Text::new(

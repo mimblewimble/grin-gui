@@ -319,7 +319,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
     let button_row = Row::new()
         .push(submit_container)
         .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))

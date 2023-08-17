@@ -150,7 +150,7 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
-    let unit_spacing = 15;
+    let unit_spacing = 15.0;
     let mut title_key = localized_string("apply-tx");
 
     // Just display Signing... and return while signing futures are being called
