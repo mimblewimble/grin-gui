@@ -189,11 +189,11 @@ pub fn data_container<'a>(
             // &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            |s| {
+            /*|s| {
                 Interaction::WalletOperationOpenViewInteraction(
                     LocalViewInteraction::PasswordInput(s),
                 )
-            },
+            }*/
         )
         .on_submit(Interaction::WalletOperationOpenViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,

@@ -127,7 +127,7 @@ pub enum Message {
     SendNodeMessage((usize, UIMessage, Option<mpsc::Sender<UIMessage>>)),
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
-    RuntimeEvent(iced::iced_core::Event),
+    RuntimeEvent(iced_core::Event),
     None(()),
 }
 

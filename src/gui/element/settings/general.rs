@@ -396,7 +396,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
         let theme_input = TextInput::new(
             &localized_string("paste-url")[..],
             &state.theme_state.input_url,
-            |s| Interaction::GeneralSettingsViewInteraction(LocalViewInteraction::ThemeUrlInput(s)),
+            //|s| Interaction::GeneralSettingsViewInteraction(LocalViewInteraction::ThemeUrlInput(s)),
         )
         .size(DEFAULT_FONT_SIZE)
         .padding(6)

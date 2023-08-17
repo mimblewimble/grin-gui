@@ -219,11 +219,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let recipient_address_container = Container::new(recipient_address)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let recipient_address_input = TextInput::new("", &state.recipient_address_value, |s| {
+    let recipient_address_input = TextInput::new("", &state.recipient_address_value,/*  |s| {
         Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::RecipientAddress(
             s,
         ))
-    })
+    }*/)
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Fixed(400.0))
@@ -250,7 +250,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         // &mut state.amount_input_state,
         "",
         &state.amount_value,
-        |s| Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::Amount(s)),
+        //|s| Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::Amount(s)),
     )
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
