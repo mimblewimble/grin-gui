@@ -156,18 +156,18 @@ pub fn handle_message<'a>(
 
         LocalViewInteraction::WalletOpenError(err) => {
             //grin_gui.error = err.write().unwrap().take();
-            // display wallet message to user 
+            // display wallet message to user
             state.wallet_message = localized_string("open-wallet-error");
-            err.write().unwrap().take().and_then(|e| Some(log_error(&e)));
+            err.write()
+                .unwrap()
+                .take()
+                .and_then(|e| Some(log_error(&e)));
         }
     }
     Ok(Command::none())
 }
 
-pub fn data_container<'a>(
-    state: &'a StateContainer,
-    config: &Config,
-) -> Container<'a, Message> {
+pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {
     let mut display_name_string = match config.current_wallet_index {
         Some(index) => config.wallets[index].display_name.clone(),
         None => "".to_owned(),
@@ -181,23 +181,21 @@ pub fn data_container<'a>(
     let display_name = Text::new(display_name_string)
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
-    let display_name_container = Container::new(display_name)
-        .style(grin_gui_core::theme::ContainerStyle::BrightBackground);
+    let display_name_container =
+        Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::BrightBackground);
 
     let password_column = {
         let password_input = TextInput::new(
             // &mut state.password_state.input_state,
             &localized_string("password")[..],
             &state.password_state.input_value,
-            /*|s| {
-                Interaction::WalletOperationOpenViewInteraction(
-                    LocalViewInteraction::PasswordInput(s),
-                )
-            }*/
         )
         .on_submit(Interaction::WalletOperationOpenViewInteraction(
             LocalViewInteraction::PasswordInputEnterPressed,
         ))
+        .on_input(|s| {
+            Interaction::WalletOperationOpenViewInteraction(LocalViewInteraction::PasswordInput(s))
+        })
         .size(DEFAULT_FONT_SIZE)
         .padding(6)
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
@@ -219,7 +217,8 @@ pub fn data_container<'a>(
 
     let description_container = Container::new(description)
         .width(Length::Fixed(INPUT_WIDTH))
-        .style(grin_gui_core::theme::ContainerStyle::NormalBackground).padding(6);
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
+        .padding(6);
 
     let submit_button_label_container =
         Container::new(Text::new(localized_string("open")).size(DEFAULT_FONT_SIZE))
@@ -277,16 +276,14 @@ pub fn data_container<'a>(
     let input_container = Container::new(
         Column::new()
             .push(description_container)
-            .push(Space::with_height(Length::Fixed(UNIT_SPACE/2.0)))
+            .push(Space::with_height(Length::Fixed(UNIT_SPACE / 2.0)))
             .push(password_column),
     )
     .width(Length::Fixed(INPUT_WIDTH));
 
     let column = Column::new()
         .push(display_name_container)
-        .push(Space::with_height(Length::Fixed(
-            UNIT_SPACE,
-        )))
+        .push(Space::with_height(Length::Fixed(UNIT_SPACE)))
         .push(input_container)
         .push(Space::with_height(Length::Fixed(
             UNIT_SPACE + DEFAULT_PADDING,

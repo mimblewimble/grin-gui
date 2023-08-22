@@ -30,7 +30,7 @@ use std::{borrow::Borrow, collections::VecDeque};
 const CHART_CAPTION_HEAD: u16 = 20;
 const CHART_CAPTION_SUB: u16 = 12;
 
-/*const FONT_REGULAR: Font = Font::External {
+const FONT_REGULAR: Font = Font::External {
     name: "sans-serif-regular",
     bytes: include_bytes!("../../../../../fonts/notosans-regular.ttf"),
 };
@@ -38,7 +38,7 @@ const CHART_CAPTION_SUB: u16 = 12;
 const FONT_BOLD: Font = Font::External {
     name: "sans-serif-bold",
     bytes: include_bytes!("../../../../../fonts/notosans-bold.ttf"),
-};*/
+};
 
 #[derive(Default)]
 pub struct BalanceChart {
@@ -70,14 +70,14 @@ impl BalanceChart {
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .spacing(5)
-                /* .push(
+                .push(
                     ChartWidget::new(chart).height(Length::Fill).resolve_font(
                         |_, style| match style {
                             plotters_backend::FontStyle::Bold => FONT_BOLD,
                             _ => FONT_REGULAR,
                         },
                     ),
-                ),*/
+                ),
         )
         .width(Length::Fill)
         .height(Length::Fill)
