@@ -16,7 +16,7 @@ use grin_gui_core::{
     node::{NodeInterface, subscriber::{self, UIMessage}, ChainTypes},
 };
 
-use iced::{alignment, Alignment, Application, Command, Length, Subscription, Settings, window};
+use iced::{alignment, font, Alignment, Application, Command, Length, Subscription, Settings, window};
 use iced::widget::{
     button, pick_list, scrollable, text_input, Checkbox, Space, TextInput,
 };
@@ -128,6 +128,7 @@ pub enum Message {
     Interaction(Interaction),
     Tick(chrono::DateTime<chrono::Local>),
     RuntimeEvent(iced_core::Event),
+    FontLoaded(Result<(), font::Error>),
     None(()),
 }
 
@@ -173,8 +174,9 @@ impl Application for GrinGui {
         }*/
 
         apply_config(&mut grin_gui, config);
-
-        (grin_gui, Command::batch(vec![]))
+        let load_font_reg = iced::font::load(include_bytes!("../../fonts/notosans-regular.ttf").as_slice()).map(Message::FontLoaded);
+        let load_font_bold = iced::font::load(include_bytes!("../../fonts/notosans-bold.ttf").as_slice()).map(Message::FontLoaded);
+        (grin_gui, Command::batch(vec![load_font_reg, load_font_bold]))
     }
 
     fn title(&self) -> String {

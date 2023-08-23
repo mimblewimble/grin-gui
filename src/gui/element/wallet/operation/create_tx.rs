@@ -163,7 +163,7 @@ pub fn handle_message<'a>(
                 .operation_state
                 .show_slatepack_state
                 .desc = localized_string("tx-create-success-desc");
-  
+
             // create a directory to which files will be output, if it doesn't exist
             if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
                 let out_file_name = format!("{}/{}.slatepack", dir, unencrypted_slate.id);
@@ -206,10 +206,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_row = Row::new().push(title_container);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
+        0,                      // top
+        0,                      // right
         DEFAULT_PADDING as u16, // bottom
-        0,               // left
+        0,                      // left
     ]));
 
     let recipient_address = Text::new(localized_string("recipient-address"))
@@ -219,15 +219,16 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let recipient_address_container = Container::new(recipient_address)
         .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-    let recipient_address_input = TextInput::new("", &state.recipient_address_value,/*  |s| {
-        Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::RecipientAddress(
-            s,
-        ))
-    }*/)
-    .size(DEFAULT_FONT_SIZE)
-    .padding(6)
-    .width(Length::Fixed(400.0))
-    .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+    let recipient_address_input = TextInput::new("", &state.recipient_address_value)
+        .on_input(|s| {
+            Interaction::WalletOperationCreateTxViewInteraction(
+                LocalViewInteraction::RecipientAddress(s),
+            )
+        })
+        .size(DEFAULT_FONT_SIZE)
+        .padding(6)
+        .width(Length::Fixed(400.0))
+        .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
 
@@ -250,8 +251,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         // &mut state.amount_input_state,
         "",
         &state.amount_value,
-        //|s| Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::Amount(s)),
     )
+    .on_input(|s| {
+        Interaction::WalletOperationCreateTxViewInteraction(LocalViewInteraction::Amount(s))
+    })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
     .width(Length::Fixed(100.0))
