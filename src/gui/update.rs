@@ -100,6 +100,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
+        Message::FontLoaded(f)=> {debug!("Font Loaded: {:?}", f)},
         // Ticks, for stuff that happens frequently, like checking wallet status
         Message::Tick(time) => {
             // Call all views 'registered' for ticks
