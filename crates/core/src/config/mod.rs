@@ -68,6 +68,9 @@ pub struct Config {
     #[serde(default)]
     #[cfg(target_os = "windows")]
     pub start_closed_to_tray: bool,
+
+    #[serde(default)]
+    pub tx_method: TxMethod,
 }
 
 impl Config {
@@ -197,6 +200,38 @@ impl Default for Language {
         Language::English
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord)]
+pub enum TxMethod {
+    Legacy,
+    Contracts,
+}
+
+impl TxMethod {
+    // Alphabetically sorted based on their local name (@see `impl Display`).
+    pub const ALL: [TxMethod; 2] = [TxMethod::Legacy, TxMethod::Contracts];
+}
+
+
+impl std::fmt::Display for TxMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                TxMethod::Legacy => "Legacy",
+                TxMethod::Contracts => "Contracts",
+            }
+        )
+    }
+}
+
+impl Default for TxMethod {
+    fn default() -> TxMethod {
+        TxMethod::Legacy
+    }
+}
+
 
 #[derive(
     Default, Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash, PartialOrd, Ord,
