@@ -26,6 +26,10 @@ pub use grin_wallet_libwallet::{
     SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
 };
 
+pub use grin_wallet_libwallet::contract::types::{
+    ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI,
+};
+
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
 
@@ -534,6 +538,59 @@ where
         if let Some(o) = &w.owner_api {
             o.cancel_tx(None, Some(id), None)?;
             return Ok(id);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn contract_new(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        args: &ContractNewArgsAPI,
+    ) -> Result<Slate, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let slate = o.contract_new(None, args)?;
+            return Ok(slate);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn contract_sign(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        slate: Slate,
+        args: &ContractSetupArgsAPI,
+    ) -> Result<Slate, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let slate = o.contract_sign(None, &slate, args)?;
+            return Ok(slate);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn contract_revoke(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        args: &ContractRevokeArgsAPI,
+    ) -> Result<Option<Slate>, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let slate = o.contract_revoke(None, args)?;
+            return Ok(slate);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn get_slate_index_matching_my_context(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        slate: &Slate,
+    ) -> Result<usize, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let index = o.get_slate_index_matching_my_context(None, slate)?;
+            return Ok(index);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
