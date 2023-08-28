@@ -25,24 +25,32 @@ use {
     crate::Result,
     anyhow::Context,
     grin_gui_core::theme::{
-        Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-        TextInput,
+        Button, Column, Container, Element, Header, PickList, Radio, Row, Scrollable, TableRow,
+        Text, TextInput,
     },
     grin_gui_core::wallet::{InitTxArgs, Slate, StatusMessage, WalletInfo, WalletInterface},
     grin_gui_core::{
         node::{amount_from_hr_string, amount_to_hr_string},
         theme::{ButtonStyle, ColorPalette, ContainerStyle},
     },
-    iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
+    iced::widget::{button, pick_list, radio, scrollable, text_input, Checkbox, Space},
     iced::{alignment, Alignment, Command, Length},
     serde::{Deserialize, Serialize},
     std::sync::{Arc, RwLock},
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ContributionChoice {
+    Credit,
+    Debit,
+}
+
 pub struct StateContainer {
     pub recipient_address_value: String,
     // pub amount_input_state: text_input::State,
     pub amount_value: String,
+    // Choice of contribution to transaction
+    pub contribution_choice: ContributionChoice,
     // whether amount has errored
     amount_error: bool,
     // slatepack address error
@@ -53,6 +61,7 @@ impl Default for StateContainer {
     fn default() -> Self {
         Self {
             recipient_address_value: Default::default(),
+            contribution_choice: ContributionChoice::Debit,
             amount_value: Default::default(),
             amount_error: false,
             slatepack_address_error: false,
@@ -67,6 +76,7 @@ pub enum Action {}
 pub enum LocalViewInteraction {
     Back,
     RecipientAddress(String),
+    ContributionChoice(ContributionChoice),
     Amount(String),
     CreateTransaction(),
 
@@ -79,7 +89,10 @@ pub fn handle_message<'a>(
     grin_gui: &mut GrinGui,
     message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-    let state = &mut grin_gui.wallet_state.operation_state.create_tx_contracts_state;
+    let state = &mut grin_gui
+        .wallet_state
+        .operation_state
+        .create_tx_contracts_state;
 
     match message {
         LocalViewInteraction::Back => {
@@ -89,6 +102,10 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::RecipientAddress(s) => {
             state.recipient_address_value = s;
+        }
+        LocalViewInteraction::ContributionChoice(c) => {
+            log::debug!("Chosen: {:?}", c);
+            state.contribution_choice = c;
         }
         LocalViewInteraction::Amount(s) => {
             state.amount_value = s;
@@ -125,22 +142,24 @@ pub fn handle_message<'a>(
                 move || WalletInterface::create_tx(w, args, state.recipient_address_value.clone());
 
             return Ok(Command::perform(fut(), |r| match r {
-                Ok((enc_slate, unenc_slate)) => {
-                    Message::Interaction(Interaction::WalletOperationCreateTxContractsViewInteraction(
+                Ok((enc_slate, unenc_slate)) => Message::Interaction(
+                    Interaction::WalletOperationCreateTxContractsViewInteraction(
                         LocalViewInteraction::TxCreatedOk(enc_slate, unenc_slate),
-                    ))
-                }
+                    ),
+                ),
                 Err(e) => match e {
-                    GrinWalletInterfaceError::InvalidSlatepackAddress => {
-                        Message::Interaction(Interaction::WalletOperationCreateTxContractsViewInteraction(
+                    GrinWalletInterfaceError::InvalidSlatepackAddress => Message::Interaction(
+                        Interaction::WalletOperationCreateTxContractsViewInteraction(
                             LocalViewInteraction::SlatepackAddressError,
-                        ))
-                    }
-                    _ => Message::Interaction(Interaction::WalletOperationCreateTxContractsViewInteraction(
-                        LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
-                            anyhow::Error::from(e),
-                        )))),
-                    )),
+                        ),
+                    ),
+                    _ => Message::Interaction(
+                        Interaction::WalletOperationCreateTxContractsViewInteraction(
+                            LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
+                                anyhow::Error::from(e),
+                            )))),
+                        ),
+                    ),
                 },
             }));
         }
@@ -189,7 +208,7 @@ pub fn handle_message<'a>(
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
     // Title row
-    let title = Text::new(localized_string("create-tx"))
+    let title = Text::new(localized_string("wallet-create-contract"))
         .size(DEFAULT_HEADER_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Center);
 
@@ -212,7 +231,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         0,                      // left
     ]));
 
-    let recipient_address = Text::new(localized_string("recipient-address"))
+    let recipient_address = Text::new(localized_string("wallet-create-contract-other-address"))
         .size(DEFAULT_FONT_SIZE)
         .horizontal_alignment(alignment::Horizontal::Left);
 
@@ -231,6 +250,36 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
+
+    let a: Element<Interaction> = Radio::new(
+        localized_string("tx-contract-debit"),
+        ContributionChoice::Debit,
+        Some(state.contribution_choice),
+        |c| {
+            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                LocalViewInteraction::ContributionChoice(c),
+            )
+        },
+    )
+    .style(grin_gui_core::theme::radio::RadioStyle::Primary)
+    .into();
+
+    let b: Element<Interaction> = Radio::new(
+        localized_string("tx-contract-credit"),
+        ContributionChoice::Credit,
+        Some(state.contribution_choice),
+        |c| {
+            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                LocalViewInteraction::ContributionChoice(c),
+            )
+        },
+    )
+    .style(grin_gui_core::theme::radio::RadioStyle::Primary)
+    .into();
+
+    let radio_column = Column::new()
+        .push(a.map(Message::Interaction))
+        .push(b.map(Message::Interaction));
 
     let address_error = Text::new(localized_string("create-tx-address-error"))
         .size(DEFAULT_FONT_SIZE)
@@ -253,7 +302,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         &state.amount_value,
     )
     .on_input(|s| {
-        Interaction::WalletOperationCreateTxContractsViewInteraction(LocalViewInteraction::Amount(s))
+        Interaction::WalletOperationCreateTxContractsViewInteraction(LocalViewInteraction::Amount(
+            s,
+        ))
     })
     .size(DEFAULT_FONT_SIZE)
     .padding(6)
@@ -271,7 +322,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         Container::new(amount_error).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
     let address_instruction_container =
-        Text::new(localized_string("recipient-address-instruction"))
+        Text::new(localized_string("recipient-address-instruction-contract"))
             .size(SMALLER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
 
@@ -291,10 +342,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut submit_button = Button::new(submit_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary);
-    let submit_button =
-        submit_button.on_press(Interaction::WalletOperationCreateTxContractsViewInteraction(
+    let submit_button = submit_button.on_press(
+        Interaction::WalletOperationCreateTxContractsViewInteraction(
             LocalViewInteraction::CreateTransaction(),
-        ));
+        ),
+    );
     let submit_button: Element<Interaction> = submit_button.into();
 
     let cancel_button_label_container =
@@ -307,9 +359,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
         .style(grin_gui_core::theme::ButtonStyle::Primary)
-        .on_press(Interaction::WalletOperationCreateTxContractsViewInteraction(
-            LocalViewInteraction::Back,
-        ))
+        .on_press(
+            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                LocalViewInteraction::Back,
+            ),
+        )
         .into();
 
     let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
@@ -341,6 +395,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .push(address_error_container)
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
+
+    column = column
+        .push(radio_column)
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     column = column
         .push(amount_container)
