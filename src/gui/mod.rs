@@ -423,6 +423,7 @@ pub enum Interaction {
     WalletOperationShowSlatepackViewInteraction(element::wallet::operation::show_slatepack::LocalViewInteraction),
     WalletOperationTxDetailViewInteraction(element::wallet::operation::tx_detail::LocalViewInteraction),
     WalletOperationTxDoneViewInteraction(element::wallet::operation::tx_done::LocalViewInteraction),
+    WalletOperationCreateTxContractsViewInteraction(element::wallet::operation::create_tx_contracts::LocalViewInteraction),
     ViewInteraction(String, String),
     ModeSelected(Mode),
     ModeSelectedSettings(element::settings::Mode),
