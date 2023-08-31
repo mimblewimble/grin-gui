@@ -462,11 +462,11 @@ where
 
     pub async fn get_slatepack_address(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
-    ) -> Result<String, GrinWalletInterfaceError> {
+    ) -> Result<(String, SlatepackAddress), GrinWalletInterfaceError> {
         let w = wallet_interface.read().unwrap();
         if let Some(o) = &w.owner_api {
             let res = o.get_slatepack_address(None, 0)?;
-            return Ok(res.to_string());
+            return Ok((res.to_string(), res));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
@@ -564,11 +564,26 @@ where
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slate: Slate,
         args: ContractSetupArgsAPI,
-    ) -> Result<Slate, GrinWalletInterfaceError> {
+        dest_slatepack_address: String,
+        send_to_chain_if_ready: bool,
+    ) -> Result<(Slate, Option<String>), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let slate = o.contract_sign(None, &slate, &args)?;
-            return Ok(slate);
+            if send_to_chain_if_ready {
+                if slate.state == SlateState::Standard3 || slate.state == SlateState::Standard3 {
+                    o.post_tx(None, &slate, true)?;
+                    return Ok((slate.clone(), None));
+                }
+            }
+            return Ok((
+                slate.clone(),
+                Some(WalletInterface::encrypt_slatepack(
+                    o,
+                    &dest_slatepack_address,
+                    &slate,
+                )?),
+            ));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }

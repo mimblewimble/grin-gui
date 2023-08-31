@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{TxLogEntry, TxLogEntryType, ContractNewArgsAPI, ContractSetupArgsAPI},
+    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -123,18 +123,18 @@ pub fn handle_message<'a>(
                 Ok(0) | Err(_) => {
                     state.amount_error = true;
                     return Ok(Command::none());
-                },
+                }
                 Ok(a) => {
                     if a > std::i64::MAX as u64 {
                         state.amount_error = true;
                         return Ok(Command::none());
                     }
                     a as i64
-                },
+                }
             };
 
-            let args = ContractNewArgsAPI {
-                setup_args:ContractSetupArgsAPI {
+            let mut args = ContractNewArgsAPI {
+                setup_args: ContractSetupArgsAPI {
                     net_change: match state.contribution_choice {
                         ContributionChoice::Credit => Some(amount),
                         ContributionChoice::Debit => Some(-amount),
@@ -144,8 +144,15 @@ pub fn handle_message<'a>(
                 ..Default::default()
             };
 
-           let fut =
-                move || WalletInterface::contract_new(w, args, state.recipient_address_value.clone());
+            if state.contribution_choice == ContributionChoice::Credit {
+                if let Some(a) = &grin_gui.wallet_state.operation_state.home_state.address {
+                    args.setup_args.proof_args.sender_address = Some(a.pub_key);
+                }
+            };
+
+            let fut = move || {
+                WalletInterface::contract_new(w, args, state.recipient_address_value.clone())
+            };
 
             return Ok(Command::perform(fut(), |r| match r {
                 Ok((enc_slate, unenc_slate)) => Message::Interaction(
