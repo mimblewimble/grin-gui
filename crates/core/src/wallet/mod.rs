@@ -545,12 +545,16 @@ where
 
     pub async fn contract_new(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
-        args: &ContractNewArgsAPI,
-    ) -> Result<Slate, GrinWalletInterfaceError> {
+        args: ContractNewArgsAPI,
+        dest_slatepack_address: String,
+    ) -> Result<(Slate, String), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
-            let slate = o.contract_new(None, args)?;
-            return Ok(slate);
+            let slate = o.contract_new(None, &args)?;
+            return Ok((
+                slate.clone(),
+                WalletInterface::encrypt_slatepack(o, &dest_slatepack_address, &slate)?,
+            ));
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
@@ -559,11 +563,11 @@ where
     pub async fn contract_sign(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         slate: Slate,
-        args: &ContractSetupArgsAPI,
+        args: ContractSetupArgsAPI,
     ) -> Result<Slate, GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
-            let slate = o.contract_sign(None, &slate, args)?;
+            let slate = o.contract_sign(None, &slate, &args)?;
             return Ok(slate);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
