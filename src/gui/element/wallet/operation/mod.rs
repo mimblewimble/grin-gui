@@ -3,6 +3,7 @@ pub mod apply_tx;
 pub mod apply_tx_confirm;
 pub mod chart;
 pub mod create_tx;
+pub mod create_tx_contracts;
 pub mod show_slatepack;
 pub mod home;
 pub mod open;
@@ -14,7 +15,7 @@ pub mod tx_done;
 use {
     crate::gui::{GrinGui, Message},
     crate::Result,
-    grin_gui_core::config::Config,
+    grin_gui_core::config::{Config, TxMethod},
     grin_gui_core::theme::ColorPalette,
     grin_gui_core::theme::{
         Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
@@ -27,6 +28,7 @@ pub struct StateContainer {
     pub open_state: open::StateContainer,
     pub home_state: home::StateContainer,
     pub create_tx_state: create_tx::StateContainer,
+    pub create_tx_contracts_state: create_tx_contracts::StateContainer,
     pub show_slatepack_state: show_slatepack::StateContainer,
     pub apply_tx_state: apply_tx::StateContainer,
     pub tx_detail_state: tx_detail::StateContainer,
@@ -53,6 +55,7 @@ impl Default for StateContainer {
             open_state: Default::default(),
             home_state: Default::default(),
             create_tx_state: Default::default(),
+            create_tx_contracts_state: Default::default(),
             show_slatepack_state: Default::default(),
             apply_tx_state: Default::default(),
             tx_detail_state: Default::default(),
@@ -91,7 +94,10 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
     let content = match state.mode {
         Mode::Open => open::data_container(&state.open_state, config),
         Mode::Home => home::data_container(config, &state.home_state),
-        Mode::CreateTx => create_tx::data_container(config, &state.create_tx_state),
+        Mode::CreateTx => match config.tx_method {
+            TxMethod::Legacy => create_tx::data_container(config, &state.create_tx_state),
+            TxMethod::Contracts => create_tx_contracts::data_container(config, &state.create_tx_contracts_state),
+        }
         Mode::ShowSlatepack => {
             show_slatepack::data_container(config, &state.show_slatepack_state)
         }

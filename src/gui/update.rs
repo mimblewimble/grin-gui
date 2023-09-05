@@ -223,7 +223,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationTxDoneViewInteraction(l)) => {
             return element::wallet::operation::tx_done::handle_message(grin_gui, l);
         }
-         Message::Interaction(Interaction::ModeSelected(mode)) => {
+        // Wallet -> Operation -> CreateTxContract
+        Message::Interaction(Interaction::WalletOperationCreateTxContractsViewInteraction(l)) => {
+            return element::wallet::operation::create_tx_contracts::handle_message(grin_gui, l);
+        }
+        Message::Interaction(Interaction::ModeSelected(mode)) => {
             log::debug!("Interaction::ModeSelected({:?})", mode);
             // Set Mode
             grin_gui.mode = mode;

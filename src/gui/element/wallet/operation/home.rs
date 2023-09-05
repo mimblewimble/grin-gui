@@ -8,6 +8,7 @@ use async_std::{prelude::FutureExt, task::current};
 use chrono::{DateTime, DurationRound, TimeZone, Utc};
 use grin_gui_core::error::GrinWalletInterfaceError;
 use grin_gui_core::node::SyncStatus;
+use grin_gui_core::wallet::SlatepackAddress;
 use grin_gui_core::{
     config::{Config, Currency},
     wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
@@ -55,6 +56,7 @@ pub struct StateContainer {
     pub action_menu_state: action_menu::StateContainer,
     pub tx_list_display_state: tx_list_display::StateContainer,
     pub address_value: Option<String>,
+    pub address: Option<SlatepackAddress>,
 
     wallet_info: Option<WalletInfo>,
     wallet_status: String,
@@ -96,7 +98,7 @@ pub enum LocalViewInteraction {
     /// was updated from node, info
     WalletInfoUpdateSuccess(bool, WalletInfo),
     WalletInfoUpdateFailure(Arc<RwLock<Option<anyhow::Error>>>),
-    WalletSlatepackAddressUpdateSuccess(String),
+    WalletSlatepackAddressUpdateSuccess((String, SlatepackAddress)),
     WalletCloseError(Arc<RwLock<Option<anyhow::Error>>>),
     WalletCloseSuccess,
     CancelTx(u32, String),
@@ -337,6 +339,7 @@ pub fn handle_message<'a>(
             // so it doesn't appear when opening another wallet
             state.wallet_info = None;
             state.address_value = None;
+            state.address = None;
             grin_gui
                 .wallet_state
                 .operation_state
@@ -352,8 +355,9 @@ pub fn handle_message<'a>(
                 log_error(e);
             }
         }
-        LocalViewInteraction::WalletSlatepackAddressUpdateSuccess(address) => {
-            state.address_value = Some(address);
+        LocalViewInteraction::WalletSlatepackAddressUpdateSuccess((address_string, address)) => {
+            state.address_value = Some(address_string);
+            state.address = Some(address);
         }
         LocalViewInteraction::TxDetails(tx_log_entry_wrap) => {
             log::debug!("Interaction::WalletOperationHomeViewInteraction::TxDetails");

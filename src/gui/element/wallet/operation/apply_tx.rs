@@ -3,7 +3,7 @@ use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
-    wallet::{TxLogEntry, TxLogEntryType},
+    wallet::{TxLogEntry, TxLogEntryType, Slatepack, Slate},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -52,6 +52,14 @@ impl Default for StateContainer {
             can_continue: false,
             confirm_state: Default::default(),
         }
+    }
+}
+
+impl StateContainer {
+    pub fn set_slate_direct(&mut self, slate:  Slate) {
+        self.confirm_state.slatepack_parsed = Some((Slatepack::default(), slate, None));
+        self.confirm_state.is_self_send = true;
+        self.can_continue = true;
     }
 }
 
@@ -176,10 +184,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_row = Row::new().push(title_container);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
+        0,                      // top
+        0,                      // right
         DEFAULT_PADDING as u16, // bottom
-        0,               // left
+        0,                      // left
     ]));
 
     if state.confirm_state.is_signing {
@@ -242,13 +250,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .padding(2)
             .into();
 
-        let paste_again_label_container = Container::new(
-            Text::new(localized_string("tx-paste-again")).size(SMALLER_FONT_SIZE),
-        )
-        .height(Length::Fixed(14.0))
-        .width(Length::Fixed(60.0))
-        .center_y()
-        .center_x();
+        let paste_again_label_container =
+            Container::new(Text::new(localized_string("tx-paste-again")).size(SMALLER_FONT_SIZE))
+                .height(Length::Fixed(14.0))
+                .width(Length::Fixed(60.0))
+                .center_y()
+                .center_x();
 
         let paste_again_button: Element<Interaction> = Button::new(paste_again_label_container)
             .style(grin_gui_core::theme::ButtonStyle::Bordered)
@@ -365,8 +372,9 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut button_row = Row::new();
     if !state.can_continue {
-        button_row = button_row.push(submit_container)
-        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)));
+        button_row = button_row
+            .push(submit_container)
+            .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)));
     } else {
         button_row = button_row
             .push(continue_container)

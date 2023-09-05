@@ -1,34 +1,33 @@
 use {
     super::{DEFAULT_FONT_SIZE},
-    crate::gui::{GrinGui, Message},
+    crate::gui::{GrinGui, Interaction, Message},
     crate::localization::localized_string,
-    grin_gui_core::{theme::ColorPalette},
+    grin_gui_core::config::{Config, TxMethod},
     grin_gui_core::theme::{Button, Column, Container, PickList, Row, Scrollable, Text, TextInput},
+    grin_gui_core::fs::PersistentData,
     iced::Length,
     iced::widget::{
         button, pick_list, scrollable, text_input, Checkbox, Space,
     },
+    iced::Alignment,
     serde::{Deserialize, Serialize},
 };
 
 #[derive(Debug, Clone)]
 pub struct StateContainer {
-    pub mode: Mode,
     // scrollable_state: scrollable::State,
 }
 
 impl Default for StateContainer {
     fn default() -> Self {
         Self {
-            mode: Mode::Wallet,
-            // scrollable_state: Default::default(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum LocalViewInteraction {
-    SelectMode(Mode),
+    TxMethodSelected(TxMethod),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -43,28 +42,56 @@ pub fn handle_message(
     message: LocalViewInteraction,
 ) {
     match message {
-        LocalViewInteraction::SelectMode(mode) => {
-            log::debug!("Interaction::ModeSelectedSettings({:?})", mode);
+        LocalViewInteraction::TxMethodSelected(method) => {
+            log::debug!("Interaction::TxMethodSelectedSettings({:?})", method);
             // Set Mode
-            grin_gui.wallet_settings_state.mode = mode;
+            grin_gui.config.tx_method = method;
+            let _ = grin_gui.config.save();
         }
     }
 }
 
 pub fn data_container<'a>(
     state: &'a StateContainer,
+    config: &Config,
 ) -> Container<'a, Message> {
    
-    let language_container = {
-        let title = Container::new(Text::new(localized_string("todo")).size(DEFAULT_FONT_SIZE))
-            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+    let tx_method_column = {
+        let tx_method_container =
+            Container::new(Text::new(localized_string("tx-method")).size(DEFAULT_FONT_SIZE))
+                .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+        let tx_method_pick_list = PickList::new(
+            &TxMethod::ALL[..],
+            Some(config.tx_method),
+            |t| {
+                Message::Interaction(Interaction::WalletSettingsViewInteraction(
+                    LocalViewInteraction::TxMethodSelected(t),
+                ))
+            },
+        )
+        .text_size(DEFAULT_FONT_SIZE)
+        .width(Length::Fixed(120.0))
+        .style(grin_gui_core::theme::PickListStyle::Primary);
+
+        // Data row for theme picker list.
+        let tx_method_data_row = Row::new()
+            .push(tx_method_pick_list)
+            .align_items(Alignment::Center)
+            .height(Length::Fixed(26.0));
 
         Column::new()
-            .push(title)
+            .push(tx_method_container)
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
+            .push(tx_method_data_row)
     };
 
-    let scrollable = Scrollable::new(language_container)
+    let wrap = {
+        Column::new()
+            .push(tx_method_column)
+    };
+
+    let scrollable = Scrollable::new(wrap)
     .height(Length::Fill)
     .style(grin_gui_core::theme::ScrollableStyle::Primary);
 
@@ -75,7 +102,7 @@ pub fn data_container<'a>(
     let row = Row::new()
         .push(Space::new(Length::Fixed(5.0), Length::Fixed(0.0)))
         .push(col);
-
+ 
     // Returns the final container.
     Container::new(row)
         .width(Length::Fill)

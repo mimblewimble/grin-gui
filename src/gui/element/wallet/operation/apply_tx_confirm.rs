@@ -2,8 +2,11 @@ use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
-    config::Config,
-    wallet::{Slate, SlateState, Slatepack, TxLogEntry, TxLogEntryType},
+    config::{Config, TxMethod},
+    wallet::{
+        ContractNewArgsAPI, ContractSetupArgsAPI, Slate, SlateState, Slatepack, TxLogEntry,
+        TxLogEntryType,
+    },
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -46,6 +49,8 @@ pub struct StateContainer {
     pub slatepack_parsed: Option<(Slatepack, Slate, Option<TxLogEntry>)>,
     // In the state of applying slatepack
     pub is_signing: bool,
+    // Is a self send
+    pub is_self_send: bool,
 }
 
 impl Default for StateContainer {
@@ -58,6 +63,7 @@ impl Default for StateContainer {
             slatepack_read_result: localized_string("tx-slatepack-read-result-default"),
             slatepack_parsed: None,
             is_signing: false,
+            is_self_send: false,
         }
     }
 }
@@ -84,7 +90,7 @@ pub fn handle_message<'a>(
         .confirm_state;
     match message {
         LocalViewInteraction::Back => {
-            log::debug!("Interaction::WalletOperationApplyTxConfirmViewInteraction(Cancel)");
+            log::debug!("Interaction::Back");
             state.is_signing = false;
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
@@ -107,20 +113,130 @@ pub fn handle_message<'a>(
 
             let w = grin_gui.wallet_interface.clone();
             let out_slate = slate.clone();
-            match slate.state {
-                SlateState::Standard1 => {
-                    state.is_signing = true;
+            if grin_gui.config.tx_method == TxMethod::Legacy {
+                match slate.state {
+                    SlateState::Standard1 => {
+                        state.is_signing = true;
+                        let fut = move || {
+                            WalletInterface::receive_tx_from_s1(w, out_slate, sp_sending_address)
+                        };
+
+                        return Ok(Command::perform(fut(), |r| {
+                            match r.context("Failed to Progress Transaction") {
+                                Ok((slate, enc_slate)) => Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptSuccess(
+                                            slate, enc_slate, false,
+                                        ),
+                                    ),
+                                ),
+                                Err(e) => Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptFailure(Arc::new(
+                                            RwLock::new(Some(e)),
+                                        )),
+                                    ),
+                                ),
+                            }
+                        }));
+                    }
+                    SlateState::Standard2 => {
+                        state.is_signing = true;
+                        let fut = move || WalletInterface::finalize_from_s2(w, out_slate, true);
+
+                        return Ok(Command::perform(fut(), |r| {
+                            match r.context("Failed to Progress Transaction") {
+                                Ok((slate, enc_slate)) => Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptSuccess(
+                                            slate, enc_slate, true,
+                                        ),
+                                    ),
+                                ),
+                                Err(e) => Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptFailure(Arc::new(
+                                            RwLock::new(Some(e)),
+                                        )),
+                                    ),
+                                ),
+                            }
+                        }));
+                    }
+                    _ => {
+                        log::error!("Slate state not yet supported");
+                        return Ok(Command::none());
+                    }
+                }
+            } else {
+                let sp_sending_address = match &slatepack.sender {
+                    None => "None".to_string(),
+                    Some(s) => s.to_string(),
+                };
+
+                // Can we just dumbly do opposite here?
+                let net_change = match slate.state {
+                    SlateState::Standard1 | SlateState::Invoice1 => Some(-(slate.amount as i64)),
+                    SlateState::Standard2 | SlateState::Invoice2 => None,
+                    _ => {
+                        log::error!("Slate state not yet supported");
+                        return Ok(Command::none());
+                    }
+                };
+
+                // Should be a simplified context flow here, where we can be recipient or sender!
+                let args = ContractSetupArgsAPI {
+                    net_change,
+                    ..Default::default()
+                };
+                state.is_signing = true;
+
+                if state.is_self_send {
                     let fut = move || {
-                        WalletInterface::receive_tx_from_s1(w, out_slate, sp_sending_address)
+                        WalletInterface::post_tx(w, out_slate)
+                    };
+                    return Ok(Command::perform(fut(), |r| {
+                        match r.context("Failed to Progress Transaction") {
+                            Ok((slate, enc_slate)) => {
+                                debug!("SLATE STATE SELF_SEND: {}", slate.state);
+                                let finished = slate.state == SlateState::Standard3
+                                    || slate.state == SlateState::Invoice3;
+                                Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptSuccess(
+                                            slate, enc_slate, true,
+                                        ),
+                                    ),
+                                )
+                            }
+                            Err(e) => Message::Interaction(
+                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                    LocalViewInteraction::TxAcceptFailure(Arc::new(RwLock::new(
+                                        Some(e),
+                                    ))),
+                                ),
+                            ),
+                        }
+                    }));
+                } else {
+                    let fut = move || {
+                        WalletInterface::contract_sign(w, out_slate, args, sp_sending_address, true)
                     };
 
                     return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
-                            Ok((slate, enc_slate)) => Message::Interaction(
-                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate, false),
-                                ),
-                            ),
+                            Ok((slate, enc_slate)) => {
+                                debug!("SLATE STATE: {}", slate.state);
+                                let finished = slate.state == SlateState::Standard3
+                                    || slate.state == SlateState::Invoice3;
+                                Message::Interaction(
+                                    Interaction::WalletOperationApplyTxConfirmViewInteraction(
+                                        LocalViewInteraction::TxAcceptSuccess(
+                                            slate, enc_slate, finished,
+                                        ),
+                                    ),
+                                )
+                            }
                             Err(e) => Message::Interaction(
                                 Interaction::WalletOperationApplyTxConfirmViewInteraction(
                                     LocalViewInteraction::TxAcceptFailure(Arc::new(RwLock::new(
@@ -130,31 +246,6 @@ pub fn handle_message<'a>(
                             ),
                         }
                     }));
-                }
-                SlateState::Standard2 => {
-                    state.is_signing = true;
-                    let fut = move || WalletInterface::finalize_from_s2(w, out_slate, true);
-
-                    return Ok(Command::perform(fut(), |r| {
-                        match r.context("Failed to Progress Transaction") {
-                            Ok((slate, enc_slate)) => Message::Interaction(
-                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptSuccess(slate, enc_slate, true),
-                                ),
-                            ),
-                            Err(e) => Message::Interaction(
-                                Interaction::WalletOperationApplyTxConfirmViewInteraction(
-                                    LocalViewInteraction::TxAcceptFailure(Arc::new(RwLock::new(
-                                        Some(e),
-                                    ))),
-                                ),
-                            ),
-                        }
-                    }));
-                }
-                _ => {
-                    log::error!("Slate state not yet supported");
-                    return Ok(Command::none());
                 }
             }
         }
@@ -248,7 +339,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let mut reception_instruction_2 = localized_string("tx-reception-instruction-2");
 
     // TODO: What's displayed here should change based on the slate state
-    let state_text = match slate.state {
+    let mut state_text = match slate.state {
         SlateState::Standard1 => parse_info_strings(&localized_string("tx-reception"), &amount),
         SlateState::Standard2 => {
             let mut fee = String::default();
@@ -266,6 +357,35 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         SlateState::Standard3 => "This transaction is finalised - Standard workflow".to_owned(),
         _ => "Support still in development".to_owned(),
     };
+
+    if config.tx_method == TxMethod::Contracts {
+        state_text = match slate.state {
+            SlateState::Invoice1 => {
+                other_wallet_label = localized_string("tx-recipient-name");
+                parse_info_strings(&localized_string("tx-sending"), &amount)
+            }
+            SlateState::Invoice2 => {
+                let mut fee = String::default();
+                other_wallet_label = localized_string("tx-sender-name");
+                reception_instruction_2 =
+                    parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
+                if let Some(tx) = tx_log_entry {
+                    (amount, fee) = parse_abs_tx_amount_fee(tx, true);
+                }
+                reception_instruction_1 =
+                    parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
+                let amt_stmt =
+                    parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount);
+                amt_stmt
+            }
+            SlateState::Invoice3 => "This transaction is finalised - Invoice workflow".to_owned(),
+            _ => state_text,
+        };
+
+        if state.is_self_send {
+            other_wallet_label = localized_string("wallet-self-send-instruction");
+        }
+    }
 
     // TX State (i.e. Stage)
     let state = Text::new(state_text).size(DEFAULT_FONT_SIZE);

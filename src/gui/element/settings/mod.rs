@@ -162,7 +162,7 @@ pub fn data_container<'a>(
     match state.mode {
         Mode::Wallet => {
             wrapper_column =
-                wrapper_column.push(wallet::data_container(wallet_settings_state))
+                wrapper_column.push(wallet::data_container(wallet_settings_state, config))
         }
         Mode::Node => {
             wrapper_column =
