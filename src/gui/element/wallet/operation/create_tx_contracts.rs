@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, TxLogEntry, TxLogEntryType},
+    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, TxLogEntry, TxLogEntryType, Slatepack},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -51,6 +51,8 @@ pub struct StateContainer {
     pub amount_value: String,
     // Choice of contribution to transaction
     pub contribution_choice: ContributionChoice,
+    // Self-send checkbox
+    pub is_self_send: bool,
     // whether amount has errored
     amount_error: bool,
     // slatepack address error
@@ -63,6 +65,7 @@ impl Default for StateContainer {
             recipient_address_value: Default::default(),
             contribution_choice: ContributionChoice::Debit,
             amount_value: Default::default(),
+            is_self_send: false,
             amount_error: false,
             slatepack_address_error: false,
         }
@@ -79,8 +82,10 @@ pub enum LocalViewInteraction {
     ContributionChoice(ContributionChoice),
     Amount(String),
     CreateTransaction(),
+    SelfSendSelected(bool),
 
     TxCreatedOk(Slate, String),
+    SelfSendCreatedOk(Slate),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     SlatepackAddressError,
 }
@@ -102,6 +107,17 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::RecipientAddress(s) => {
             state.recipient_address_value = s;
+            if Some(state.recipient_address_value.clone())
+                == grin_gui
+                    .wallet_state
+                    .operation_state
+                    .home_state
+                    .address_value
+            {
+                state.is_self_send = true;
+            } else {
+                state.is_self_send = false;
+            }
         }
         LocalViewInteraction::ContributionChoice(c) => {
             log::debug!("Chosen: {:?}", c);
@@ -109,6 +125,17 @@ pub fn handle_message<'a>(
         }
         LocalViewInteraction::Amount(s) => {
             state.amount_value = s;
+        }
+        LocalViewInteraction::SelfSendSelected(v) => {
+            state.is_self_send = v;
+            if let Some(ref a) = grin_gui
+                .wallet_state
+                .operation_state
+                .home_state
+                .address_value
+            {
+                state.recipient_address_value = a.clone();
+            }
         }
         LocalViewInteraction::CreateTransaction() => {
             grin_gui.error.take();
@@ -144,37 +171,65 @@ pub fn handle_message<'a>(
                 ..Default::default()
             };
 
-            if state.contribution_choice == ContributionChoice::Credit {
+            if state.contribution_choice == ContributionChoice::Credit || state.is_self_send {
                 if let Some(a) = &grin_gui.wallet_state.operation_state.home_state.address {
                     args.setup_args.proof_args.sender_address = Some(a.pub_key);
                 }
             };
 
-            let fut = move || {
-                WalletInterface::contract_new(w, args, state.recipient_address_value.clone())
-            };
+            if state.is_self_send {
+                let fut = move || {
+                    WalletInterface::contract_self_send(w, args)
+                };
 
-            return Ok(Command::perform(fut(), |r| match r {
-                Ok((enc_slate, unenc_slate)) => Message::Interaction(
-                    Interaction::WalletOperationCreateTxContractsViewInteraction(
-                        LocalViewInteraction::TxCreatedOk(enc_slate, unenc_slate),
-                    ),
-                ),
-                Err(e) => match e {
-                    GrinWalletInterfaceError::InvalidSlatepackAddress => Message::Interaction(
+                return Ok(Command::perform(fut(), |r| match r {
+                    Ok(unenc_slate) => Message::Interaction(
                         Interaction::WalletOperationCreateTxContractsViewInteraction(
-                            LocalViewInteraction::SlatepackAddressError,
+                            LocalViewInteraction::SelfSendCreatedOk(unenc_slate),
                         ),
                     ),
-                    _ => Message::Interaction(
+                    Err(e) => match e {
+                        GrinWalletInterfaceError::InvalidSlatepackAddress => Message::Interaction(
+                            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                                LocalViewInteraction::SlatepackAddressError,
+                            ),
+                        ),
+                        _ => Message::Interaction(
+                            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                                LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
+                                    anyhow::Error::from(e),
+                                )))),
+                            ),
+                        ),
+                    },
+                }));
+             } else {
+                let fut = move || {
+                    WalletInterface::contract_new(w, args, state.recipient_address_value.clone())
+                };
+
+                return Ok(Command::perform(fut(), |r| match r {
+                    Ok((enc_slate, unenc_slate)) => Message::Interaction(
                         Interaction::WalletOperationCreateTxContractsViewInteraction(
-                            LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
-                                anyhow::Error::from(e),
-                            )))),
+                            LocalViewInteraction::TxCreatedOk(enc_slate, unenc_slate),
                         ),
                     ),
-                },
-            }));
+                    Err(e) => match e {
+                        GrinWalletInterfaceError::InvalidSlatepackAddress => Message::Interaction(
+                            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                                LocalViewInteraction::SlatepackAddressError,
+                            ),
+                        ),
+                        _ => Message::Interaction(
+                            Interaction::WalletOperationCreateTxContractsViewInteraction(
+                                LocalViewInteraction::TxCreateError(Arc::new(RwLock::new(Some(
+                                    anyhow::Error::from(e),
+                                )))),
+                            ),
+                        ),
+                    },
+                }));
+            }
         }
         LocalViewInteraction::TxCreatedOk(unencrypted_slate, encrypted_slate) => {
             log::debug!("{:?}", encrypted_slate);
@@ -207,7 +262,16 @@ pub fn handle_message<'a>(
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
-        LocalViewInteraction::TxCreateError(err) => {
+        LocalViewInteraction::SelfSendCreatedOk(unencrypted_slate) => {
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state.set_slate_direct(unencrypted_slate);
+
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::ApplyTx;
+        }
+         LocalViewInteraction::TxCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
@@ -220,6 +284,8 @@ pub fn handle_message<'a>(
 }
 
 pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
+    let unit_spacing = 15.0;
+
     // Title row
     let title = Text::new(localized_string("wallet-create-contract"))
         .size(DEFAULT_HEADER_FONT_SIZE)
@@ -263,6 +329,42 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
     let recipient_address_input: Element<Interaction> = recipient_address_input.into();
+
+    /*let self_send_check = Text::new(localized_string("wallet-self-send"))
+        .size(DEFAULT_FONT_SIZE)
+        .horizontal_alignment(alignment::Horizontal::Left);
+
+    let self_send_container = Container::new(self_send_check)
+        .style(grin_gui_core::theme::ContainerStyle::NormalBackground);*/
+
+    let checkbox_column = {
+        let checkbox = Checkbox::new(
+            localized_string("wallet-self-send"),
+            state.is_self_send,
+            |v| {
+                Interaction::WalletOperationCreateTxContractsViewInteraction(
+                    LocalViewInteraction::SelfSendSelected(v),
+                )
+            },
+        )
+        .style(grin_gui_core::theme::CheckboxStyle::Normal)
+        .text_size(DEFAULT_FONT_SIZE)
+        .spacing(5);
+
+        let checkbox: Element<Interaction> = checkbox.into();
+
+        let checkbox_container = Container::new(checkbox.map(Message::Interaction))
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
+            .align_y(alignment::Vertical::Bottom);
+        Column::new().push(checkbox_container)
+    };
+
+    let address_row = Row::new()
+        //.push(recipient_address_container)
+        .push(recipient_address_input.map(Message::Interaction))
+        .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
+        .push(checkbox_column)
+        .align_items(Alignment::End);
 
     let a: Element<Interaction> = Radio::new(
         localized_string("tx-contract-debit"),
@@ -389,7 +491,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .style(grin_gui_core::theme::ContainerStyle::Segmented)
         .padding(1);
 
-    let unit_spacing = 15.0;
     let button_row = Row::new()
         .push(submit_container)
         .push(Space::new(Length::Fixed(unit_spacing), Length::Fixed(0.0)))
@@ -400,7 +501,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(address_instruction_container)
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-        .push(recipient_address_input.map(Message::Interaction))
+        .push(address_row)
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     if state.slatepack_address_error {

@@ -239,6 +239,8 @@
     "wallet-home": "Wallet - Set Name Here TBD",
     "wallet-create-contract": "Create Contract",
     "wallet-create-contract-other-address": "Other Party's Slatepack Address",
+    "wallet-self-send": "Self-send",
+    "wallet-self-send-instruction": "This is a self-send",
     "tx-contract-debit": "I will agree to PAY",
     "tx-contract-credit": "I will agree to RECEIVE",
     "apply-tx": "Continue Transaction",
