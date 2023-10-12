@@ -557,7 +557,6 @@ where
         }
     }
 
-
     pub async fn contract_new(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         args: ContractNewArgsAPI,
@@ -607,14 +606,18 @@ where
     pub async fn contract_self_send(
         wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
         args: ContractNewArgsAPI,
-    ) -> Result<Slate, GrinWalletInterfaceError> {
+    ) -> Result<(Slate, TxLogEntry), GrinWalletInterfaceError> {
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let slate = o.contract_new(None, &args)?;
             let slate = o.contract_sign(None, &slate, &args.setup_args)?;
-            return Ok(
-                slate.clone(),
-            );
+            let tx_log_entry = o.retrieve_txs(None, false, None, Some(slate.id), None);
+            if let Ok(e) = tx_log_entry {
+                if !e.1.is_empty() {
+                    return Ok((slate.clone(), e.1[0].clone()));
+                }
+            }
+            return Err(GrinWalletInterfaceError::InvalidTxLogState);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }

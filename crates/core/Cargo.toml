@@ -21,12 +21,21 @@ built = { version = "0.4", features = ["git2"] }
 
 ############ Release ################
 ### Node
-grin_config = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
-grin_core = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
-grin_util = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
-grin_servers = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
-grin_keychain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
-grin_chain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_config = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_core = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_util = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_servers = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_keychain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+#grin_chain = { git = "https://github.com/mimblewimble/grin", tag = "v5.2.0-beta.3" }
+
+grin_config = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+grin_chain = { git = "https://github.com/mimblewimble/grin", branch = "master"}
+
+
 
 ### Wallet
 grin_wallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }

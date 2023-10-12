@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, TxLogEntry, TxLogEntryType, Slatepack},
+    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, Slatepack, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -85,7 +85,7 @@ pub enum LocalViewInteraction {
     SelfSendSelected(bool),
 
     TxCreatedOk(Slate, String),
-    SelfSendCreatedOk(Slate),
+    SelfSendCreatedOk(Slate, TxLogEntry),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     SlatepackAddressError,
 }
@@ -178,14 +178,12 @@ pub fn handle_message<'a>(
             };
 
             if state.is_self_send {
-                let fut = move || {
-                    WalletInterface::contract_self_send(w, args)
-                };
+                let fut = move || WalletInterface::contract_self_send(w, args);
 
                 return Ok(Command::perform(fut(), |r| match r {
-                    Ok(unenc_slate) => Message::Interaction(
+                    Ok((unenc_slate, tx_log_entry)) => Message::Interaction(
                         Interaction::WalletOperationCreateTxContractsViewInteraction(
-                            LocalViewInteraction::SelfSendCreatedOk(unenc_slate),
+                            LocalViewInteraction::SelfSendCreatedOk(unenc_slate, tx_log_entry),
                         ),
                     ),
                     Err(e) => match e {
@@ -203,7 +201,7 @@ pub fn handle_message<'a>(
                         ),
                     },
                 }));
-             } else {
+            } else {
                 let fut = move || {
                     WalletInterface::contract_new(w, args, state.recipient_address_value.clone())
                 };
@@ -259,19 +257,22 @@ pub fn handle_message<'a>(
                 output.sync_all()?;
             }
 
+            grin_gui.wallet_state.operation_state.apply_tx_state.confirm_state.is_self_send = false;
+
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
         }
-        LocalViewInteraction::SelfSendCreatedOk(unencrypted_slate) => {
+        LocalViewInteraction::SelfSendCreatedOk(unencrypted_slate, tx_log_entry) => {
             grin_gui
                 .wallet_state
                 .operation_state
-                .apply_tx_state.set_slate_direct(unencrypted_slate);
+                .apply_tx_state
+                .set_slate_direct(unencrypted_slate, tx_log_entry);
 
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ApplyTx;
         }
-         LocalViewInteraction::TxCreateError(err) => {
+        LocalViewInteraction::TxCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
@@ -510,9 +511,11 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
 
-    column = column
-        .push(radio_column)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+    if !state.is_self_send {
+        column = column
+            .push(radio_column)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+    }
 
     column = column
         .push(amount_container)
