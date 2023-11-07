@@ -194,7 +194,7 @@ pub fn handle_message<'a>(
                 if state.is_self_send {
                     debug!("SLATE STATE SELF_SEND: {}", slate.state);
                     let fut = move || {
-                        WalletInterface::contract_sign(w, out_slate, args, sp_sending_address, true)
+                        WalletInterface::post_tx(w, out_slate)
                     };
                     return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
@@ -347,7 +347,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             reception_instruction_2 =
                 parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
             if let Some(tx) = tx_log_entry {
-                (amount, fee) = parse_abs_tx_amount_fee(tx, true);
+                (amount, fee) = parse_abs_tx_amount_fee(tx, !state.is_self_send);
             }
             reception_instruction_1 =
                 parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
@@ -370,7 +370,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
                 reception_instruction_2 =
                     parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
                 if let Some(tx) = tx_log_entry {
-                    (amount, fee) = parse_abs_tx_amount_fee(tx, true);
+                    (amount, fee) = parse_abs_tx_amount_fee(tx, !state.is_self_send);
                 }
                 reception_instruction_1 =
                     parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);

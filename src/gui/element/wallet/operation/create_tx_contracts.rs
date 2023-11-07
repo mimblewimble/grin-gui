@@ -148,23 +148,36 @@ pub fn handle_message<'a>(
 
             let amount = match amount_from_hr_string(&state.amount_value) {
                 Ok(0) | Err(_) => {
-                    state.amount_error = true;
-                    return Ok(Command::none());
+                    if !state.is_self_send {
+                        state.amount_error = true;
+                        return Ok(Command::none());
+                    } else {
+                        0i64
+                    }
                 }
                 Ok(a) => {
                     if a > std::i64::MAX as u64 {
                         state.amount_error = true;
                         return Ok(Command::none());
                     }
-                    a as i64
+                    if state.is_self_send {
+                        0i64
+                    } else {
+                        a as i64
+                    }
                 }
             };
 
             let mut args = ContractNewArgsAPI {
                 setup_args: ContractSetupArgsAPI {
-                    net_change: match state.contribution_choice {
-                        ContributionChoice::Credit => Some(amount),
-                        ContributionChoice::Debit => Some(-amount),
+                    net_change: if state.is_self_send {
+                        // None makes the contracts API cry for now
+                        Some(0)
+                    } else {
+                        match state.contribution_choice {
+                            ContributionChoice::Credit => Some(amount),
+                            ContributionChoice::Debit => Some(-amount),
+                        }
                     },
                     ..Default::default()
                 },
@@ -257,7 +270,12 @@ pub fn handle_message<'a>(
                 output.sync_all()?;
             }
 
-            grin_gui.wallet_state.operation_state.apply_tx_state.confirm_state.is_self_send = false;
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state
+                .confirm_state
+                .is_self_send = false;
 
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ShowSlatepack;
@@ -514,14 +532,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     if !state.is_self_send {
         column = column
             .push(radio_column)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+            .push(amount_container)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+            .push(amount_input.map(Message::Interaction))
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
-
-    column = column
-        .push(amount_container)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-        .push(amount_input.map(Message::Interaction))
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
 
     if state.amount_error {
         column = column
