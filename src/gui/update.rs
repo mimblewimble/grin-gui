@@ -24,9 +24,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             match &grin_gui.config.wallets[index].tld {
                 Some(t) => {
                     let wallet_interface = grin_gui.wallet_interface.clone();
-                    let w = wallet_interface.read().unwrap();
-                    if !w.config_exists(t.to_str().unwrap()) {
-                        grin_gui.wallet_state.set_config_missing();
+                    let r = wallet_interface.read();
+                    if let Ok(w) = r {
+                        if !w.config_exists(t.to_str().unwrap()) {
+                            grin_gui.wallet_state.set_config_missing();
+                        }
                     }
                 }
                 None => {
@@ -39,9 +41,12 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         if !grin_gui.wallet_state.config_missing()
             && !grin_gui.wallet_state.operation_state.wallet_not_open()
         {
-            let w = grin_gui.wallet_interface.read().unwrap();
-            if !w.wallet_is_open() {
-                grin_gui.wallet_state.operation_state.set_wallet_not_open()
+            let wallet_interface = grin_gui.wallet_interface.clone();
+            let r = wallet_interface.read();
+            if let Ok(w) = r {
+                if !w.wallet_is_open() {
+                    grin_gui.wallet_state.operation_state.set_wallet_not_open()
+                }
             }
         }
         // Check if embedded node needs starting
@@ -100,7 +105,9 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
     }
 
     match message {
-        Message::FontLoaded(f)=> {debug!("Font Loaded: {:?}", f)},
+        Message::FontLoaded(f) => {
+            debug!("Font Loaded: {:?}", f)
+        }
         // Ticks, for stuff that happens frequently, like checking wallet status
         Message::Tick(time) => {
             // Call all views 'registered' for ticks
@@ -117,7 +124,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
                 match msg {
                     UIMessage::None => {}
                     UIMessage::UpdateStatus(stats) => {
-                        grin_gui.wallet_state.operation_state.home_state.update_node_status(&stats);
+                        grin_gui
+                            .wallet_state
+                            .operation_state
+                            .home_state
+                            .update_node_status(&stats);
                         grin_gui.node_state.embedded_state.server_stats = Some(stats);
                     }
                 }
@@ -125,7 +136,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             }
         },
         // Error modal state
-        Message::Interaction(Interaction::OpenErrorModal) =>  grin_gui.show_modal = true,
+        Message::Interaction(Interaction::OpenErrorModal) => grin_gui.show_modal = true,
         Message::Interaction(Interaction::CloseErrorModal) => grin_gui.show_modal = false,
         // Clipboard messages
         Message::Interaction(Interaction::WriteToClipboard(contents)) => {
@@ -215,11 +226,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
         Message::Interaction(Interaction::WalletOperationTxDetailViewInteraction(l)) => {
             return element::wallet::operation::tx_detail::handle_message(grin_gui, l);
         }
-         // Wallet -> Operation -> Home -> Action
+        // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationHomeActionMenuViewInteraction(l)) => {
             return element::wallet::operation::action_menu::handle_message(grin_gui, l);
         }
-         // Wallet -> Operation -> Home -> Action
+        // Wallet -> Operation -> Home -> Action
         Message::Interaction(Interaction::WalletOperationTxDoneViewInteraction(l)) => {
             return element::wallet::operation::tx_done::handle_message(grin_gui, l);
         }
@@ -248,9 +259,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
             }
             grin_gui.error = err;
         }
-        Message::RuntimeEvent(iced_core::Event::Window(
-            iced_core::window::Event::Resized { width, height },
-        )) => {
+        Message::RuntimeEvent(iced_core::Event::Window(iced_core::window::Event::Resized {
+            width,
+            height,
+        })) => {
             let width = (width as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
             let height = (height as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
 

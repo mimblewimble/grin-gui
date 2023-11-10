@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, TxLogEntry, TxLogEntryType, Slatepack},
+    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, Slatepack, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -85,7 +85,7 @@ pub enum LocalViewInteraction {
     SelfSendSelected(bool),
 
     TxCreatedOk(Slate, String),
-    SelfSendCreatedOk(Slate),
+    SelfSendCreatedOk(Slate, TxLogEntry),
     TxCreateError(Arc<RwLock<Option<anyhow::Error>>>),
     SlatepackAddressError,
 }
@@ -148,23 +148,41 @@ pub fn handle_message<'a>(
 
             let amount = match amount_from_hr_string(&state.amount_value) {
                 Ok(0) | Err(_) => {
-                    state.amount_error = true;
-                    return Ok(Command::none());
+                    if !state.is_self_send {
+                        state.amount_error = true;
+                        return Ok(Command::none());
+                    } else {
+                        0i64
+                    }
                 }
                 Ok(a) => {
                     if a > std::i64::MAX as u64 {
                         state.amount_error = true;
                         return Ok(Command::none());
                     }
-                    a as i64
+                    if state.is_self_send {
+                        0i64
+                    } else {
+                        a as i64
+                    }
                 }
             };
 
             let mut args = ContractNewArgsAPI {
                 setup_args: ContractSetupArgsAPI {
-                    net_change: match state.contribution_choice {
-                        ContributionChoice::Credit => Some(amount),
-                        ContributionChoice::Debit => Some(-amount),
+                    net_change: if state.is_self_send {
+                        // None makes the contracts API cry for now
+                        Some(0)
+                    } else {
+                        match state.contribution_choice {
+                            ContributionChoice::Credit => Some(amount),
+                            ContributionChoice::Debit => Some(-amount),
+                        }
+                    },
+                    num_participants: if state.is_self_send {
+                        1
+                    } else {
+                        2
                     },
                     ..Default::default()
                 },
@@ -178,14 +196,12 @@ pub fn handle_message<'a>(
             };
 
             if state.is_self_send {
-                let fut = move || {
-                    WalletInterface::contract_self_send(w, args)
-                };
+                let fut = move || WalletInterface::contract_self_send(w, args);
 
                 return Ok(Command::perform(fut(), |r| match r {
-                    Ok(unenc_slate) => Message::Interaction(
+                    Ok((unenc_slate, tx_log_entry)) => Message::Interaction(
                         Interaction::WalletOperationCreateTxContractsViewInteraction(
-                            LocalViewInteraction::SelfSendCreatedOk(unenc_slate),
+                            LocalViewInteraction::SelfSendCreatedOk(unenc_slate, tx_log_entry),
                         ),
                     ),
                     Err(e) => match e {
@@ -203,7 +219,7 @@ pub fn handle_message<'a>(
                         ),
                     },
                 }));
-             } else {
+            } else {
                 let fut = move || {
                     WalletInterface::contract_new(w, args, state.recipient_address_value.clone())
                 };
@@ -259,19 +275,27 @@ pub fn handle_message<'a>(
                 output.sync_all()?;
             }
 
-            grin_gui.wallet_state.operation_state.mode =
-                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
-        }
-        LocalViewInteraction::SelfSendCreatedOk(unencrypted_slate) => {
             grin_gui
                 .wallet_state
                 .operation_state
-                .apply_tx_state.set_slate_direct(unencrypted_slate);
+                .apply_tx_state
+                .confirm_state
+                .is_self_send = false;
+
+            grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::ShowSlatepack;
+        }
+        LocalViewInteraction::SelfSendCreatedOk(unencrypted_slate, tx_log_entry) => {
+            grin_gui
+                .wallet_state
+                .operation_state
+                .apply_tx_state
+                .set_slate_direct(unencrypted_slate, tx_log_entry);
 
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::ApplyTx;
         }
-         LocalViewInteraction::TxCreateError(err) => {
+        LocalViewInteraction::TxCreateError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
@@ -510,15 +534,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
     }
 
-    column = column
-        .push(radio_column)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
-
-    column = column
-        .push(amount_container)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-        .push(amount_input.map(Message::Interaction))
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+    if !state.is_self_send {
+        column = column
+            .push(radio_column)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+            .push(amount_container)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+            .push(amount_input.map(Message::Interaction))
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+    }
 
     if state.amount_error {
         column = column

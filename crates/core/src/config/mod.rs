@@ -20,6 +20,9 @@ pub struct Config {
 
     /// Current wallet
     pub current_wallet_index: Option<usize>,
+    
+    /// MWMixnet Keys
+    pub mixnet_keys: Option<Vec<String>>,
 
     /// Current theme of GUI
     pub theme: Option<String>,

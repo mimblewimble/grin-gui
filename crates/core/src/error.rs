@@ -16,6 +16,8 @@ pub enum GrinWalletInterfaceError {
     InvalidSlatepackAddress,
     #[error("Can't load slatepack file at {file}")]
     InvalidSlatepackFile{file: String},
+    #[error("Invalid Tx Log State")]
+    InvalidTxLogState,
 }
 
 #[derive(thiserror::Error, Debug)]

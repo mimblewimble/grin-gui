@@ -185,20 +185,20 @@ pub fn handle_message<'a>(
                 };
 
                 // Should be a simplified context flow here, where we can be recipient or sender!
-                let args = ContractSetupArgsAPI {
+                let mut args = ContractSetupArgsAPI {
                     net_change,
                     ..Default::default()
                 };
                 state.is_signing = true;
 
                 if state.is_self_send {
+                    debug!("SLATE STATE SELF_SEND: {}", slate.state);
                     let fut = move || {
                         WalletInterface::post_tx(w, out_slate)
                     };
                     return Ok(Command::perform(fut(), |r| {
                         match r.context("Failed to Progress Transaction") {
                             Ok((slate, enc_slate)) => {
-                                debug!("SLATE STATE SELF_SEND: {}", slate.state);
                                 let finished = slate.state == SlateState::Standard3
                                     || slate.state == SlateState::Invoice3;
                                 Message::Interaction(
@@ -347,7 +347,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             reception_instruction_2 =
                 parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
             if let Some(tx) = tx_log_entry {
-                (amount, fee) = parse_abs_tx_amount_fee(tx, true);
+                (amount, fee) = parse_abs_tx_amount_fee(tx, !state.is_self_send);
             }
             reception_instruction_1 =
                 parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
@@ -360,25 +360,28 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     if config.tx_method == TxMethod::Contracts {
         state_text = match slate.state {
-            SlateState::Invoice1 => {
+            SlateState::Standard1 => {
                 other_wallet_label = localized_string("tx-recipient-name");
                 parse_info_strings(&localized_string("tx-sending"), &amount)
             }
-            SlateState::Invoice2 => {
+            SlateState::Standard2 => {
                 let mut fee = String::default();
                 other_wallet_label = localized_string("tx-sender-name");
                 reception_instruction_2 =
                     parse_info_strings(&localized_string("tx-s1-finalization-3"), &fee);
                 if let Some(tx) = tx_log_entry {
-                    (amount, fee) = parse_abs_tx_amount_fee(tx, true);
+                    (amount, fee) = parse_abs_tx_amount_fee(tx, !state.is_self_send);
                 }
                 reception_instruction_1 =
                     parse_info_strings(&localized_string("tx-s1-finalization-2"), &fee);
-                let amt_stmt =
-                    parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount);
+                let amt_stmt = match state.is_self_send {
+                    true => parse_info_strings(&localized_string("tx-s1-finalization-self-send"), &amount),
+                    false => parse_info_strings(&localized_string("tx-s1-finalization-1"), &amount),
+                };
+
                 amt_stmt
             }
-            SlateState::Invoice3 => "This transaction is finalised - Invoice workflow".to_owned(),
+            SlateState::Standard3 => "This transaction is finalised - Standard Workflow".to_owned(),
             _ => state_text,
         };
 

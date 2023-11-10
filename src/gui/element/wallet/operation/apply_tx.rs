@@ -3,7 +3,7 @@ use crate::log_error;
 use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
-    wallet::{TxLogEntry, TxLogEntryType, Slatepack, Slate},
+    wallet::{Slate, Slatepack, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -56,8 +56,8 @@ impl Default for StateContainer {
 }
 
 impl StateContainer {
-    pub fn set_slate_direct(&mut self, slate:  Slate) {
-        self.confirm_state.slatepack_parsed = Some((Slatepack::default(), slate, None));
+    pub fn set_slate_direct(&mut self, slate: Slate, tx_log_entry: TxLogEntry) {
+        self.confirm_state.slatepack_parsed = Some((Slatepack::default(), slate, Some(tx_log_entry)));
         self.confirm_state.is_self_send = true;
         self.can_continue = true;
     }
@@ -69,6 +69,7 @@ pub enum Action {}
 #[derive(Debug, Clone)]
 pub enum LocalViewInteraction {
     Back,
+    BackCleanup,
     Continue,
     Address(String),
     ApplyTransaction(String),
@@ -85,13 +86,52 @@ pub fn handle_message<'a>(
     match message {
         LocalViewInteraction::Back => {
             log::debug!("Interaction::WalletOperationApplyTxViewInteraction(Back)");
+            // If this was a self-send, cancel the transaction and remove from log
+            if state.confirm_state.is_self_send {
+                // Unwrap tx id
+                let tx_id = match state.confirm_state.slatepack_parsed.as_ref() {
+                    Some(p) => {
+                        if let Some (t) = p.2.as_ref() {
+                            Some(t.id)
+                        } else {
+                            None
+                        }
+                    },
+                    None => None,
+                };
+                let w = grin_gui.wallet_interface.clone();
+                let fut = move || {
+                    WalletInterface::cancel_tx(w, tx_id.unwrap())
+                };
+
+                return Ok(Command::perform(fut(), |_| {
+                    return Message::Interaction(
+                            Interaction::WalletOperationApplyTxViewInteraction(
+                                crate::gui::element::wallet::operation::apply_tx::LocalViewInteraction::BackCleanup,
+                            ),
+                        );
+                }));
+            } else {
+                let fut = move || async {};
+                return Ok(Command::perform(fut(), |_| {
+                    return Message::Interaction(
+                            Interaction::WalletOperationApplyTxViewInteraction(
+                                crate::gui::element::wallet::operation::apply_tx::LocalViewInteraction::BackCleanup,
+                            ),
+                        );
+                }));
+            }
+        },
+        LocalViewInteraction::BackCleanup => {
             state.slatepack_read_data = localized_string("tx-slatepack-read-result-default");
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::Home;
             state.confirm_state.slatepack_parsed = None;
             state.slatepack_read_data_full = Default::default();
+            state.confirm_state.is_self_send = false;
             state.can_continue = false;
-        }
+ 
+        },
         LocalViewInteraction::ReadFromClipboardSuccess(value) => {
             debug!("Read from clipboard: {}", value);
             let w = grin_gui.wallet_interface.clone();
@@ -383,13 +423,19 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     button_row = button_row.push(cancel_container);
 
-    let column = Column::new()
+    let mut column = Column::new()
         .push(header_container)
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-        .push(instruction_col)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(slatepack_area_container)
-        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+
+    if !state.confirm_state.is_self_send {
+        column = column
+            .push(instruction_col)
+        .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
+    }
+
+    column = column
         .push(button_row)
         .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
         .push(Space::new(

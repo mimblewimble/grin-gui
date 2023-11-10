@@ -291,6 +291,11 @@
     "tx-s1-finalization-1": "You are finalizing an agreement to pay [AMOUNT] Grin",
     "tx-s1-finalization-2": "Along with a mining fee of [AMOUNT]",
     "tx-s1-finalization-3": "This will complete the transaction and post it to the chain, at which point it becomes irreversible.",
+    "tx-s1-finalization-self-send": "You are self-sending [AMOUNT] Grin",
     "tx-done-instruction": "The transaction has been completed and posted to the chain. Please wait a few blocks for validation.",
-    "signing-tx": "Signing..."
+    "signing-tx": "Signing...",
+    "mw-mixnet-addresses": "MWMixnet Server Keys",
+    "mw-mixnet-address-1": "Server 1 Key",
+    "mw-mixnet-address-2": "Server 2 Key",
+    "mw-mixnet-address-3": "Server 3 Key"
 }
