@@ -523,7 +523,7 @@ where
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let ret_slate = o.finalize_tx(None, &slate)?;
-            o.post_tx(None, &ret_slate, true)?;
+            o.post_tx(None, &ret_slate, false)?;
             return Ok((ret_slate, None));
         } else {
             return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
@@ -550,7 +550,7 @@ where
         let w = wallet_interface.write().unwrap();
         if let Some(o) = &w.owner_api {
             let ret_slate = slate.clone();
-            o.post_tx(None, &ret_slate, true)?;
+            o.post_tx(None, &ret_slate, false)?;
             return Ok((ret_slate, None));
         } else {
             return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
@@ -586,7 +586,7 @@ where
             let slate = o.contract_sign(None, &slate, &args)?;
             if send_to_chain_if_ready {
                 if slate.state == SlateState::Standard3 || slate.state == SlateState::Standard3 {
-                    o.post_tx(None, &slate, true)?;
+                    o.post_tx(None, &slate, false)?;
                     return Ok((slate.clone(), None));
                 }
             }

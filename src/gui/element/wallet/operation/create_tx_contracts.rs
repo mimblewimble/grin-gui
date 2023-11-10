@@ -179,6 +179,11 @@ pub fn handle_message<'a>(
                             ContributionChoice::Debit => Some(-amount),
                         }
                     },
+                    num_participants: if state.is_self_send {
+                        1
+                    } else {
+                        2
+                    },
                     ..Default::default()
                 },
                 ..Default::default()

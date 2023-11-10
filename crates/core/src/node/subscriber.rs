@@ -61,7 +61,6 @@ where
                     }
                     State::Listening { mut receiver } => match receiver.next().await {
                         Some(msg) => {
-                            debug!("Message {:?}", msg);
                             Some((
                                 (id, msg, None),
                                 State::Listening { receiver },
