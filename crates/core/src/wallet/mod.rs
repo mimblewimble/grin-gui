@@ -23,11 +23,11 @@ pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
     InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlateState, Slatepack,
-    SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
+    SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo, 
 };
 
 pub use grin_wallet_libwallet::contract::types::{
-    ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI,
+    ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI, ProofArgs
 };
 
 use crate::error::GrinWalletInterfaceError;
@@ -90,7 +90,7 @@ pub type WalletInterfaceHttpNodeClient = WalletInterface<
 
 pub struct WalletInterface<L, C>
 where
-    L: WalletLCProvider<'static, C, keychain::ExtKeychain> + 'static,
+    L: WalletLCProvider<'static, C, grin_keychain::keychain::ExtKeychain> + 'static,
     C: NodeClient + 'static + Clone,
 {
     pub chain_type: Option<grin_core::global::ChainTypes>,
