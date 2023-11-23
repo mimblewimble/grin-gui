@@ -325,7 +325,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     instruction_col = instruction_col.push(instruction_row);
 
-    if state.can_continue {
+    /*if state.can_continue {
         let decrypted_tx_label = Text::new(localized_string("pasted-slatepack-details"))
             .size(DEFAULT_SUB_HEADER_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
@@ -335,7 +335,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         instruction_col = instruction_col
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
             .push(decrypted_tx_label_container)
-    }
+    }*/
 
     let mut slatepack_area = Column::new();
     if state.can_continue {

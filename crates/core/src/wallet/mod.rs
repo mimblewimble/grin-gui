@@ -23,11 +23,11 @@ pub use global::ChainTypes;
 pub use grin_wallet_impls::HTTPNodeClient;
 pub use grin_wallet_libwallet::{
     InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlateState, Slatepack,
-    SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
+    SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo, 
 };
 
 pub use grin_wallet_libwallet::contract::types::{
-    ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI,
+    ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI, ProofArgs
 };
 
 use crate::error::GrinWalletInterfaceError;
@@ -90,7 +90,7 @@ pub type WalletInterfaceHttpNodeClient = WalletInterface<
 
 pub struct WalletInterface<L, C>
 where
-    L: WalletLCProvider<'static, C, keychain::ExtKeychain> + 'static,
+    L: WalletLCProvider<'static, C, grin_keychain::keychain::ExtKeychain> + 'static,
     C: NodeClient + 'static + Clone,
 {
     pub chain_type: Option<grin_core::global::ChainTypes>,
@@ -585,7 +585,7 @@ where
         if let Some(o) = &w.owner_api {
             let slate = o.contract_sign(None, &slate, &args)?;
             if send_to_chain_if_ready {
-                if slate.state == SlateState::Standard3 || slate.state == SlateState::Standard3 {
+                if slate.state == SlateState::Standard3 || slate.state == SlateState::Invoice3 {
                     o.post_tx(None, &slate, false)?;
                     return Ok((slate.clone(), None));
                 }

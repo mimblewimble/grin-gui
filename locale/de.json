@@ -289,6 +289,7 @@
     "tx-reception-instruction": "If you agree to this transaction, press 'Sign' below, then return the resulting transaction to the sender for completion.",
     "tx-reception-instruction-2": "This transaction will not be completed until the sender has finalized it and posted it to the chain",
     "tx-s1-finalization-1": "You are finalizing an agreement to pay [AMOUNT] Grin",
+    "tx-i1-finalization-1": "You are finalizing an agreement to receive [AMOUNT] Grin",
     "tx-s1-finalization-2": "Along with a mining fee of [AMOUNT]",
     "tx-s1-finalization-3": "This will complete the transaction and post it to the chain, at which point it becomes irreversible.",
     "tx-s1-finalization-self-send": "You are self-sending [AMOUNT] Grin",

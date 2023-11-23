@@ -29,7 +29,7 @@ async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }
 image = "0.23.8"
 opener = "0.4.1"
-chrono = { version = "0.4", features = ['serde'] }
+chrono = { version = "0.4.11", features = ["serde"] }
 log = "0.4"
 timeago = "0.2.1"
 isolang = "1.0.0"
