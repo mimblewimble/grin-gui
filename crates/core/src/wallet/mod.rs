@@ -585,7 +585,7 @@ where
         if let Some(o) = &w.owner_api {
             let slate = o.contract_sign(None, &slate, &args)?;
             if send_to_chain_if_ready {
-                if slate.state == SlateState::Standard3 || slate.state == SlateState::Standard3 {
+                if slate.state == SlateState::Standard3 || slate.state == SlateState::Invoice3 {
                     o.post_tx(None, &slate, false)?;
                     return Ok((slate.clone(), None));
                 }
