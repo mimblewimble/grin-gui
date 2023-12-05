@@ -30,10 +30,13 @@ pub use grin_wallet_libwallet::contract::types::{
     ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI,
 };
 
+pub use grin_wallet_libwallet::contract::proofs::InvoiceProof;
+
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
 
 use std::convert::TryFrom;
+
 
 /// Wallet configuration file name
 pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
@@ -526,7 +529,7 @@ where
             o.post_tx(None, &ret_slate, false)?;
             return Ok((ret_slate, None));
         } else {
-            return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
     }
 
@@ -553,7 +556,7 @@ where
             o.post_tx(None, &ret_slate, false)?;
             return Ok((ret_slate, None));
         } else {
-            return Err(GrinWalletInterfaceError::ForeignAPINotInstantiated);
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
         }
     }
 
@@ -646,6 +649,33 @@ where
             return Ok(index);
         } else {
             return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn retrieve_payment_proof_invoice(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        tx_id: Option<u32>,
+    ) -> Result<InvoiceProof, GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(o) = &w.owner_api {
+            let res = o.retrieve_payment_proof_invoice(None, true, tx_id, None)?;
+            return Ok(res);
+        } else {
+            return Err(GrinWalletInterfaceError::OwnerAPINotInstantiated);
+        }
+    }
+
+    pub async fn verify_payment_proof_invoice(
+        wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+        recipient_address: &str,
+        proof: &InvoiceProof
+    ) -> Result<(), GrinWalletInterfaceError> {
+        let w = wallet_interface.write().unwrap();
+        if let Some(f) = &w.foreign_api {
+            let addr = SlatepackAddress::try_from(recipient_address)?;
+            f.verify_payment_proof_invoice(&addr.pub_key, proof).map_err(|_| GrinWalletInterfaceError::InvalidInvoiceProof)
+        } else {
+            Err(GrinWalletInterfaceError::ForeignAPINotInstantiated)
         }
     }
 
