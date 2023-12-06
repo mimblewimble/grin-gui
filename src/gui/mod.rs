@@ -422,6 +422,7 @@ pub enum Interaction {
     WalletOperationApplyTxConfirmViewInteraction(element::wallet::operation::apply_tx_confirm::LocalViewInteraction),
     WalletOperationShowSlatepackViewInteraction(element::wallet::operation::show_slatepack::LocalViewInteraction),
     WalletOperationTxDetailViewInteraction(element::wallet::operation::tx_detail::LocalViewInteraction),
+    WalletOperationTxProofViewInteraction(element::wallet::operation::tx_proof::LocalViewInteraction),
     WalletOperationTxDoneViewInteraction(element::wallet::operation::tx_done::LocalViewInteraction),
     WalletOperationCreateTxContractsViewInteraction(element::wallet::operation::create_tx_contracts::LocalViewInteraction),
     ViewInteraction(String, String),
