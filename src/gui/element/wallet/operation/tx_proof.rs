@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{TxLogEntry, TxLogEntryType, InvoiceProof},
+    wallet::{InvoiceProof, SlatepackAddress, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -97,10 +97,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
     let header_row = Row::new().push(title_container);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
+        0,                      // top
+        0,                      // right
         DEFAULT_PADDING as u16, // bottom
-        0,               // left
+        0,                      // left
     ]));
 
     let unit_spacing = 15.0;
@@ -111,303 +111,114 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     let mut column = Column::new();
 
-    if let Some(ref tx) = state.current_tx {
-        // ID
-        let id_label = Text::new(format!("{}:  ", localized_string("tx-id")))
+    if let Some(ref proof) = state.current_proof {
+        // Amount
+        let pr_amount_label = Text::new(format!("{}:  ", localized_string("pr-amount")))
             .size(DEFAULT_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
 
-        let id_label_container =
-            Container::new(id_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let pr_amount_label_container = Container::new(pr_amount_label)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let id_value = Text::new(format!("{}", tx.id))
+        let pr_amount_value = Text::new(format!("{}", amount_to_hr_string(proof.amount, true)))
             .size(DEFAULT_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
 
-        let id_value_container =
-            Container::new(id_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let pr_amount_value_container = Container::new(pr_amount_value)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let id_row = Row::new().push(id_label_container).push(id_value_container);
-
+        let pr_amount_row = Row::new()
+            .push(pr_amount_label_container)
+            .push(pr_amount_value_container);
         column = column
-            .push(id_row)
+            .push(pr_amount_row)
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
-        // Tx Type
-        let tx_type_label = Text::new(format!("{}:  ", localized_string("tx-type")))
+        // Timestamp
+        let pr_timestamp_label = Text::new(format!("{}:  ", localized_string("pr-timestamp")))
             .size(DEFAULT_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
 
-        let tx_type_label_container =
-            Container::new(tx_type_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let pr_timestamp_label_container = Container::new(pr_timestamp_label)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let tx_type_value = Text::new(format!("{}", tx.tx_type))
+        // convert i64 timestamp to utc time
+        let ts_display = chrono::NaiveDateTime::from_timestamp(proof.timestamp, 0)
+            .format("%Y-%m-%d %H:%M:%S")
+            .to_string();
+
+        let pr_timestamp_value = Text::new(format!("{} UTC", ts_display))
             .size(DEFAULT_FONT_SIZE)
             .horizontal_alignment(alignment::Horizontal::Left);
 
-        let tx_type_value_container =
-            Container::new(tx_type_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let pr_timestamp_value_container = Container::new(pr_timestamp_value)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let tx_type_row = Row::new().push(tx_type_label_container).push(tx_type_value_container);
-
+        let pr_timestamp_row = Row::new()
+            .push(pr_timestamp_label_container)
+            .push(pr_timestamp_value_container);
         column = column
-            .push(tx_type_row)
+            .push(pr_timestamp_row)
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
+        // sender address
+        let pr_sender_address_label =
+            Text::new(format!("{}:  ", localized_string("pr-sender-address")))
+                .size(DEFAULT_FONT_SIZE)
+                .horizontal_alignment(alignment::Horizontal::Left);
 
-        // UUID
-        let shared_tx_id_label = Text::new(format!("{}:  ", localized_string("tx-shared-id")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
+        let pr_sender_address_label_container = Container::new(pr_sender_address_label)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let shared_tx_id_label_container =
-            Container::new(shared_tx_id_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let pr_sender_address_value =
+            Text::new(format!("{}", SlatepackAddress::new(&proof.sender_address)))
+                .size(DEFAULT_FONT_SIZE)
+                .horizontal_alignment(alignment::Horizontal::Left);
 
-        let uuid = match tx.tx_slate_id {
-            Some(u) => u.to_string(),
-            None => "None".to_owned(),
-        };
+        let pr_sender_address_value_container = Container::new(pr_sender_address_value)
+            .style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-        let shared_tx_id_value = Text::new(format!("{}", uuid))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let shared_tx_id_value_container =
-            Container::new(shared_tx_id_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let shared_tx_id_row = Row::new().push(shared_tx_id_label_container).push(shared_tx_id_value_container);
-
+        let pr_sender_address_row = Row::new()
+            .push(pr_sender_address_label_container)
+            .push(pr_sender_address_value_container);
         column = column
-            .push(shared_tx_id_row)
+            .push(pr_sender_address_row)
+            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)))
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
 
-        // Creation Time
-        let tx_creation_time_label = Text::new(format!("{}:  ", localized_string("tx-creation-time")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
+        let card_contents = format!("{}", serde_json::to_string_pretty(&proof).unwrap());
 
-        let tx_creation_time_label_container =
-            Container::new(tx_creation_time_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+        let json_proof_card = Card::new(
+            Text::new(localized_string("pr-json-proof")).size(DEFAULT_HEADER_FONT_SIZE),
+            Text::new(card_contents.clone()).size(DEFAULT_FONT_SIZE),
+        )
+        .foot(
+            Column::new()
+                .spacing(10)
+                .padding(5)
+                .width(Length::Fill)
+                .align_items(Alignment::Center)
+                .push(
+                    Button::new(
+                        Text::new(localized_string("copy-to-clipboard"))
+                            .size(SMALLER_FONT_SIZE)
+                            .horizontal_alignment(alignment::Horizontal::Center),
+                    )
+                    .style(grin_gui_core::theme::ButtonStyle::NormalText)
+                    .on_press(Message::Interaction(
+                        Interaction::WriteToClipboard(card_contents.clone()),
+                    )),
+                ),
+        )
+        .max_width(400.0)
+        .style(grin_gui_core::theme::CardStyle::Normal);
 
-        let tx_creation_time_value = Text::new(format!("{}", tx.creation_ts))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_creation_time_value_container =
-            Container::new(tx_creation_time_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_creation_time_row = Row::new().push(tx_creation_time_label_container).push(tx_creation_time_value_container);
+        let json_proof_row = Row::new()
+            .push(json_proof_card);
 
         column = column
-            .push(tx_creation_time_row)
+            .push(json_proof_row)
             .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // TTL Cutoff Height
-        let ttl_cutoff_label = Text::new(format!("{}:  ", localized_string("tx-ttl-cutoff")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let ttl_cutoff_label_container =
-            Container::new(ttl_cutoff_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let ttl = match tx.ttl_cutoff_height {
-            Some(u) => u.to_string(),
-            None => "None".to_owned(),
-        };
-
-        let ttl_cutoff_value = Text::new(format!("{}", ttl))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let ttl_cutoff_value_container =
-            Container::new(ttl_cutoff_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let ttl_cutoff_row = Row::new().push(ttl_cutoff_label_container).push(ttl_cutoff_value_container);
-
-        column = column
-            .push(ttl_cutoff_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Confirmed
-        let confirmed_label = Text::new(format!("{}:  ", localized_string("tx-is-confirmed")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let confirmed_label_container =
-            Container::new(confirmed_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let confirmed_value = Text::new(format!("{}", tx.confirmed))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let confirmed_value_container =
-            Container::new(confirmed_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let confirmed_row = Row::new().push(confirmed_label_container).push(confirmed_value_container);
-
-        column = column
-            .push(confirmed_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Confirmation Time
-        let tx_confirmation_time_label = Text::new(format!("{}:  ", localized_string("tx-confirmation-time")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_confirmation_time_label_container =
-            Container::new(tx_confirmation_time_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let time = match tx.confirmation_ts {
-            Some(u) => u.to_string(),
-            None => "None".to_owned(),
-        };
-
-        let tx_confirmation_time_value = Text::new(format!("{}", time))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_confirmation_time_value_container =
-            Container::new(tx_confirmation_time_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_confirmation_time_row = Row::new().push(tx_confirmation_time_label_container).push(tx_confirmation_time_value_container);
-        column = column
-            .push(tx_confirmation_time_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Number of Inputs
-        let tx_num_inputs_label = Text::new(format!("{}:  ", localized_string("tx-num-inputs")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_num_inputs_label_container =
-            Container::new(tx_num_inputs_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_num_inputs_value = Text::new(format!("{}", tx.num_inputs))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_num_inputs_value_container =
-            Container::new(tx_num_inputs_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_num_inputs_row = Row::new().push(tx_num_inputs_label_container).push(tx_num_inputs_value_container);
-        column = column
-            .push(tx_num_inputs_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Number of Outputs
-        let tx_num_outputs_label = Text::new(format!("{}:  ", localized_string("tx-num-outputs")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_num_outputs_label_container =
-            Container::new(tx_num_outputs_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_num_outputs_value = Text::new(format!("{}", tx.num_outputs))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_num_outputs_value_container =
-            Container::new(tx_num_outputs_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_num_outputs_row = Row::new().push(tx_num_outputs_label_container).push(tx_num_outputs_value_container);
-        column = column
-            .push(tx_num_outputs_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Amount Credited
-        let tx_amount_credited_label = Text::new(format!("{}:  ", localized_string("tx-amount-credited")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_amount_credited_label_container =
-            Container::new(tx_amount_credited_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_amount_credited_value = Text::new(format!("{}", amount_to_hr_string(tx.amount_credited, true)))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_amount_credited_value_container =
-            Container::new(tx_amount_credited_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_amount_credited_row = Row::new().push(tx_amount_credited_label_container).push(tx_amount_credited_value_container);
-        column = column
-            .push(tx_amount_credited_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Amount Debited
-        let tx_amount_debited_label = Text::new(format!("{}:  ", localized_string("tx-amount-debited")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_amount_debited_label_container =
-            Container::new(tx_amount_debited_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_amount_debited_value = Text::new(format!("{}", amount_to_hr_string(tx.amount_debited, true)))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_amount_debited_value_container =
-            Container::new(tx_amount_debited_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_amount_debited_row = Row::new().push(tx_amount_debited_label_container).push(tx_amount_debited_value_container);
-        column = column
-            .push(tx_amount_debited_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Fee
-        let tx_fee_label = Text::new(format!("{}:  ", localized_string("tx-fee")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_fee_label_container =
-            Container::new(tx_fee_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let fee = match tx.fee {
-            Some(u) => format!("{}", amount_to_hr_string(u.fee(), true)),
-            None => "None".to_owned(),
-        };
-
-        let tx_fee_value = Text::new(format!("{}", fee))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_fee_value_container =
-            Container::new(tx_fee_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_fee_row = Row::new().push(tx_fee_label_container).push(tx_fee_value_container);
-        column = column
-            .push(tx_fee_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(row_spacing)));
-
-        // Net Difference
-        let tx_net_difference_label = Text::new(format!("{}:  ", localized_string("tx-net-difference")))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_net_difference_label_container =
-            Container::new(tx_net_difference_label).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-		let net_diff = if tx.amount_credited >= tx.amount_debited {
-			amount_to_hr_string(tx.amount_credited - tx.amount_debited, true)
-		} else {
-			format!(
-				"-{}",
-				amount_to_hr_string(tx.amount_debited - tx.amount_credited, true)
-			)
-		};
-	
-        let tx_net_difference_value = Text::new(format!("{}", net_diff))
-            .size(DEFAULT_FONT_SIZE)
-            .horizontal_alignment(alignment::Horizontal::Left);
-
-        let tx_net_difference_value_container =
-            Container::new(tx_net_difference_value).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-        let tx_net_difference_row = Row::new().push(tx_net_difference_label_container).push(tx_net_difference_value_container);
-        column = column
-            .push(tx_net_difference_row)
-            .push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)));
-
     }
 
     let cancel_button_label_container =

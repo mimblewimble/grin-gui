@@ -299,5 +299,9 @@
     "mw-mixnet-addresses": "MWMixnet Server Keys",
     "mw-mixnet-address-1": "Server 1 Key",
     "mw-mixnet-address-2": "Server 2 Key",
-    "mw-mixnet-address-3": "Server 3 Key"
+    "mw-mixnet-address-3": "Server 3 Key",
+    "pr-timestamp": "Timestamp",
+    "pr-amount": "Amount",
+    "pr-sender-address": "Sender Address",
+    "pr-json-proof": "JSON Proof"
 }
