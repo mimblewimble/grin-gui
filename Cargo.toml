@@ -1,6 +1,12 @@
 [package]
 name = "grin-gui"
 version = "0.1.0"
+authors = ["Grin Developers <mimblewimble@lists.launchpad.net>"]
+description = "GUI wrapping grin and grin-wallet. Simple, private and scalable cryptocurrency implementation based on the MimbleWimble chain format."
+license = "Apache-2.0"
+repository = "https://github.com/mimblewimble/grin-gui"
+keywords = [ "crypto", "grin", "mimblewimble" ]
+readme = "README.md"
 edition = "2021"
 
 [features]
