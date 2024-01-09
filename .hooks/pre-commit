@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash;#!C:/Program\ Files/Git/usr/bin/bash.exe
 
 # Copyright 2024 The Grin Developers
 #
@@ -47,4 +47,5 @@ else
   done
 fi
 
+echo "ran pre-commit"
 exit 0
