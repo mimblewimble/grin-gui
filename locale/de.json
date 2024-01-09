@@ -256,6 +256,8 @@
     "tx-recent": "Most Recent",
     "tx-details": "Details",
     "tx-details-title": "Transaction Details",
+    "tx-proof": "Proof",
+    "tx-proof-title": "Transaction Proof",
     "tx-slatepack-paste-transaction-here": "Paste Transaction from Clipboard",
     "tx-slatepack-read-result-default": "Ensure the clipboard contains a valid encrypted slatepack and press 'Paste'",
     "tx-slatepack-read-failure": "Clipboard does not contain a slatepack that can be decrypted by this wallet",
@@ -298,5 +300,9 @@
     "mw-mixnet-addresses": "MWMixnet Server Keys",
     "mw-mixnet-address-1": "Server 1 Key",
     "mw-mixnet-address-2": "Server 2 Key",
-    "mw-mixnet-address-3": "Server 3 Key"
+    "mw-mixnet-address-3": "Server 3 Key",
+    "pr-timestamp": "Timestamp",
+    "pr-amount": "Amount",
+    "pr-sender-address": "Sender Address",
+    "pr-json-proof": "JSON Proof"
 }

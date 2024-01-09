@@ -263,6 +263,8 @@
     "tx-recent": "Most Recent",
     "tx-details": "Details",
     "tx-details-title": "Transaction Details",
+    "tx-proof-title": "Transaction Proof",
+    "tx-proof": "Proof",
     "tx-create-success-title": "Transaction Created",
     "tx-create-success-desc": "To continue this transaction, copy/paste the encrypted transaction data below to the recipient",
     "tx-continue-success-desc": "To continue this transaction, copy/paste the encrypted transaction data below back to the original sender",
@@ -308,5 +310,9 @@
     "mw-mixnet-addresses": "MWMixnet Server Keys",
     "mw-mixnet-address-1": "Server 1 Key",
     "mw-mixnet-address-2": "Server 2 Key",
-    "mw-mixnet-address-3": "Server 3 Key"
+    "mw-mixnet-address-3": "Server 3 Key",
+    "pr-timestamp": "Timestamp",
+    "pr-amount": "Amount",
+    "pr-sender-address": "Sender Address",
+    "pr-json-proof": "JSON Proof"
 }

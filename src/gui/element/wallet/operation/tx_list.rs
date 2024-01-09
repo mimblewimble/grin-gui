@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 
+use grin_gui_core::config::TxMethod;
 use iced_core::Widget;
 
 use {
@@ -1581,7 +1582,7 @@ pub fn data_row_container<'a, 'b>(
                     .width(Length::Fixed(BUTTON_WIDTH))
                     .style(grin_gui_core::theme::ButtonStyle::Primary)
                     .on_press(Interaction::WalletOperationHomeViewInteraction(
-                        super::home::LocalViewInteraction::TxDetails(tx_cloned),
+                        super::home::LocalViewInteraction::TxDetails(tx_cloned.clone()),
                     ))
                     .into();
 
@@ -1598,6 +1599,34 @@ pub fn data_row_container<'a, 'b>(
                     ))
                     .push(tx_details_wrap)
                     .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)));
+
+                // Invoice proof view/copy paste
+                if config.tx_method == TxMethod::Contracts {
+                    let tx_proof_container = Container::new(
+                        Text::new(localized_string("tx-proof")).size(DEFAULT_FONT_SIZE),
+                    )
+                    .width(button_width)
+                    .align_y(alignment::Vertical::Center)
+                    .align_x(alignment::Horizontal::Center);
+
+                    let tx_proof_button: Element<Interaction> = Button::new(tx_proof_container)
+                        .width(Length::Fixed(BUTTON_WIDTH))
+                        .style(grin_gui_core::theme::ButtonStyle::Primary)
+                        .on_press(Interaction::WalletOperationHomeViewInteraction(
+                            super::home::LocalViewInteraction::TxProof(tx_cloned),
+                        ))
+                        .into();
+
+                    let tx_proof_wrap =
+                        Container::new(tx_proof_button.map(Message::Interaction)).padding(1.0);
+                    let tx_proof_wrap = Container::new(tx_proof_wrap)
+                        .style(grin_gui_core::theme::ContainerStyle::Segmented)
+                        .padding(1);
+
+                    action_button_row = action_button_row
+                        .push(tx_proof_wrap)
+                        .push(Space::with_width(Length::Fixed(DEFAULT_PADDING)));
+                }
 
                 if !confirmed {
                     // Re-fetch the slate representing the last saved state

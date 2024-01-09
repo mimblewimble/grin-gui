@@ -18,6 +18,8 @@ pub enum GrinWalletInterfaceError {
     InvalidSlatepackFile{file: String},
     #[error("Invalid Tx Log State")]
     InvalidTxLogState,
+    #[error("Invalid Invoice Proof")]
+    InvalidInvoiceProof,
 }
 
 #[derive(thiserror::Error, Debug)]

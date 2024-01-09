@@ -11,7 +11,7 @@ use grin_gui_core::node::SyncStatus;
 use grin_gui_core::wallet::SlatepackAddress;
 use grin_gui_core::{
     config::{Config, Currency},
-    wallet::{RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
+    wallet::{InvoiceProof, RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
 use grin_gui_widgets::widget::header;
 use iced::Point;
@@ -77,7 +77,7 @@ impl StateContainer {
         match &self.node_status {
             Some(s) => match s.sync_status {
                 SyncStatus::NoSync => localized_string("node-synched"),
-                _ => localized_string("node-unsynched")
+                _ => localized_string("node-unsynched"),
             },
             None => localized_string("unknown"),
         }
@@ -103,8 +103,11 @@ pub enum LocalViewInteraction {
     WalletCloseSuccess,
     CancelTx(u32, String),
     TxDetails(TxLogEntryWrap),
+    TxProof(TxLogEntryWrap),
     TxCancelledOk(u32, String),
     TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
+    ProofRetrievedOk(InvoiceProof, TxLogEntryWrap),
+    ProofRetrievedError(Arc<RwLock<Option<anyhow::Error>>>),
     ReloadTxSlate(String),
 
     // chart stuff
@@ -369,6 +372,32 @@ pub fn handle_message<'a>(
             grin_gui.wallet_state.operation_state.mode =
                 crate::gui::element::wallet::operation::Mode::TxDetail;
         }
+        LocalViewInteraction::TxProof(tx_log_entry_wrap) => {
+            log::debug!("Interaction::WalletOperationHomeViewInteraction::TxProof");
+            grin_gui.error.take();
+
+            let w = grin_gui.wallet_interface.clone();
+            let fut = move || {
+                WalletInterface::retrieve_payment_proof_invoice(w, Some(tx_log_entry_wrap.tx.id))
+            };
+
+            return Ok(Command::perform(fut(), |r| {
+                match r.context("Failed to Retrieve Invoice Proof") {
+                    Ok(ret) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::ProofRetrievedOk(ret, tx_log_entry_wrap),
+                        ))
+                    }
+                    Err(e) => {
+                        Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
+                            LocalViewInteraction::ProofRetrievedError(Arc::new(RwLock::new(Some(
+                                e,
+                            )))),
+                        ))
+                    }
+                }
+            }));
+        }
         LocalViewInteraction::CancelTx(id, uuid) => {
             debug!("Cancel Tx: {}", id);
             grin_gui.error.take();
@@ -417,6 +446,26 @@ pub fn handle_message<'a>(
             }));
         }
         LocalViewInteraction::TxCancelError(err) => {
+            grin_gui.error = err.write().unwrap().take();
+            if let Some(e) = grin_gui.error.as_ref() {
+                log_error(e);
+            }
+        }
+        LocalViewInteraction::ProofRetrievedOk(proof, tx_log_entry_wrap)=> {
+            grin_gui
+                .wallet_state
+                .operation_state
+                .tx_proof_state
+                .current_tx = Some(tx_log_entry_wrap.tx);
+            grin_gui
+                .wallet_state
+                .operation_state
+                .tx_proof_state
+                .current_proof = Some(proof);
+             grin_gui.wallet_state.operation_state.mode =
+                crate::gui::element::wallet::operation::Mode::TxProof;
+        }
+        LocalViewInteraction::ProofRetrievedError(err) => {
             grin_gui.error = err.write().unwrap().take();
             if let Some(e) = grin_gui.error.as_ref() {
                 log_error(e);
@@ -619,10 +668,10 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .push(operations_menu);
 
     let header_container = Container::new(header_row).padding(iced::Padding::from([
-        0,               // top
-        0,               // right
+        0,                      // top
+        0,                      // right
         DEFAULT_PADDING as u16, // bottom
-        0,               // left
+        0,                      // left
     ]));
 
     let total_value_label =
@@ -728,7 +777,7 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
             DEFAULT_PADDING, // top
             DEFAULT_PADDING, // right
             DEFAULT_PADDING, // bottom
-            5.0,               // left
+            5.0,             // left
         ]));
 
     let mut first_row_container = Row::new()
@@ -801,14 +850,20 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
         .vertical_alignment(alignment::Vertical::Center);
 
     let status_container_contents = Row::new()
-        .push(Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0)))
+        .push(Space::new(
+            Length::Fixed(DEFAULT_PADDING),
+            Length::Fixed(0.0),
+        ))
         .push(status_container_node_state_label_text)
         .push(status_container_node_state_text)
         .push(Space::new(Length::Fill, Length::Fill))
         .push(status_container_label_text)
         .push(status_container_separator_text)
         .push(status_container_status_text)
-        .push(Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0)));
+        .push(Space::new(
+            Length::Fixed(DEFAULT_PADDING),
+            Length::Fixed(0.0),
+        ));
 
     let status_container = Container::new(status_container_contents)
         .style(grin_gui_core::theme::ContainerStyle::BrightForeground)
@@ -822,7 +877,8 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
     // Buttons to perform operations go here, but empty container for now
     let tx_list_display =
-        tx_list_display::data_container(config, &state, &state.tx_list_display_state).height(Length::Fill);
+        tx_list_display::data_container(config, &state, &state.tx_list_display_state)
+            .height(Length::Fill);
 
     // Overall Home screen layout column
     let column = Column::new()
