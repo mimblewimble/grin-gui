@@ -47,5 +47,9 @@ else
   done
 fi
 
-echo "ran pre-commit"
+# flush stdout on windows so all output is visible
+if [ "$OS" == "Windows_NT" ]; then
+  exec < /dev/tty
+fi
+
 exit 0
