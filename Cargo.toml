@@ -1,6 +1,6 @@
 [package]
 name = "grin-gui"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 authors = ["Grin Developers <mimblewimble@lists.launchpad.net>"]
 description = "GUI wrapping grin and grin-wallet. Simple, private and scalable cryptocurrency implementation based on the MimbleWimble chain format."
 license = "Apache-2.0"
