@@ -8,9 +8,9 @@ use {
     grin_gui_core::node::ChainTypes,
     grin_gui_core::node::ServerStats,
     grin_gui_core::theme::ColorPalette,
-    grin_gui_core::theme::{Container, Column},
+    grin_gui_core::theme::{Column, Container},
+    iced::widget::container,
     iced::{Command, Length},
-    iced::widget::{container},
 };
 
 pub struct StateContainer {
@@ -22,6 +22,7 @@ pub struct StateContainer {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Mode {
     Summary,
+
     Peers,
     // etc as in TUI
 }
@@ -51,16 +52,14 @@ pub fn data_container<'a>(
     chain_type: ChainTypes,
 ) -> Container<'a, Message> {
     let content = match state.mode {
-        Mode::Summary => summary::data_container(
-            &state.summary_state,
-            &state.server_stats,
-            chain_type,
-        ),
+        Mode::Summary => {
+            summary::data_container(&state.summary_state, &state.server_stats, chain_type)
+        }
         _ => Container::new(Column::new()),
     };
 
     let column = Column::new().push(content);
-    
+
     Container::new(column)
         .center_y()
         .center_x()
