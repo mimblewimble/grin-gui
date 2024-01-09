@@ -30,7 +30,6 @@ pub enum LocalViewInteraction {
 pub enum Mode {
 	Wallet,
 	Node,
-
 	Settings,
 	About,
 }
