@@ -68,7 +68,7 @@ jobs:
           - name: Install cargo-wix
             run: cargo install cargo-wix
           - name: Run cargo-wix
-            run: cargo wix -p grin-gui
+            run: cargo wix -p grin-gui -o ./wix/grin-gui-${{  github.ref_name }}-win-x86_64.msi 
           - name: Create Checksum for MSI
             working-directory: target/wix
             shell: pwsh
