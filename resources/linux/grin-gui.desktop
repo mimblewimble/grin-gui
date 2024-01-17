@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Exec=grin-gui
+Name=grin-gui
+Icon=grin
+Categories=Game;
