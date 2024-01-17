@@ -263,6 +263,8 @@
     "tx-recent": "Most Recent",
     "tx-details": "Details",
     "tx-details-title": "Transaction Details",
+    "tx-proof-title": "Transaction Proof",
+    "tx-proof": "Proof",
     "tx-create-success-title": "Transaction Created",
     "tx-create-success-desc": "To continue this transaction, copy/paste the encrypted transaction data below to the recipient",
     "tx-continue-success-desc": "To continue this transaction, copy/paste the encrypted transaction data below back to the original sender",
@@ -299,6 +301,7 @@
     "tx-reception-instruction": "If you agree to this transaction, press 'Sign' below, then return the resulting transaction to the sender for completion.",
     "tx-reception-instruction-2": "This transaction will not be completed until the sender has finalized it and posted it to the chain",
     "tx-s1-finalization-1": "You are finalizing an agreement to pay [AMOUNT] Grin",
+    "tx-i1-finalization-1": "You are finalizing an agreement to receive [AMOUNT] Grin",
     "tx-s1-finalization-2": "Along with a mining fee of [AMOUNT] Grin",
     "tx-s1-finalization-3": "This will complete the transaction and post it to the chain, at which point it becomes irreversible.",
     "tx-s1-finalization-self-send": "You are self-sending [AMOUNT] Grin",
@@ -307,5 +310,9 @@
     "mw-mixnet-addresses": "MWMixnet Server Keys",
     "mw-mixnet-address-1": "Server 1 Key",
     "mw-mixnet-address-2": "Server 2 Key",
-    "mw-mixnet-address-3": "Server 3 Key"
+    "mw-mixnet-address-3": "Server 3 Key",
+    "pr-timestamp": "Timestamp",
+    "pr-amount": "Amount",
+    "pr-sender-address": "Sender Address",
+    "pr-json-proof": "JSON Proof"
 }

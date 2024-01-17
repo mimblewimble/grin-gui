@@ -1,6 +1,12 @@
 [package]
 name = "grin-gui"
-version = "0.1.0"
+version = "0.1.0-alpha.2"
+authors = ["Grin Developers <mimblewimble@lists.launchpad.net>"]
+description = "GUI wrapping grin and grin-wallet. Simple, private and scalable cryptocurrency implementation based on the MimbleWimble chain format."
+license = "Apache-2.0"
+repository = "https://github.com/mimblewimble/grin-gui"
+keywords = [ "crypto", "grin", "mimblewimble" ]
+readme = "README.md"
 edition = "2021"
 
 [features]
@@ -10,8 +16,8 @@ no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
 [dependencies]
-grin-gui-core = { version = "0.1.0", path = "crates/core", features = ["wgpu"]}
-grin-gui-widgets = { version = "0.1.0", path = "crates/widgets" }
+grin-gui-core = { version = "0.1.0-alpha.1", path = "crates/core", features = ["wgpu"]}
+grin-gui-widgets = { version = "0.1.0-alpha.1", path = "crates/widgets" }
 
 iced = { version = "0.10", features = ["canvas", "tokio"]  }
 iced_futures = { version = "0.7", features = ["async-std"] }
@@ -29,7 +35,7 @@ async-std = "1.6.2"
 isahc = { version = "0.9.6", features = ["json"] }
 image = "0.23.8"
 opener = "0.4.1"
-chrono = { version = "0.4", features = ['serde'] }
+chrono = { version = "0.4.11", features = ["serde"] }
 log = "0.4"
 timeago = "0.2.1"
 isolang = "1.0.0"

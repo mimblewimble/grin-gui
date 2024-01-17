@@ -4,7 +4,7 @@ use async_std::prelude::FutureExt;
 use grin_gui_core::{
     config::Config,
     error::GrinWalletInterfaceError,
-    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, Slatepack, TxLogEntry, TxLogEntryType},
+    wallet::{ContractNewArgsAPI, ContractSetupArgsAPI, Slatepack, TxLogEntry, TxLogEntryType, SlatepackAddress},
 };
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
@@ -189,7 +189,16 @@ pub fn handle_message<'a>(
                 ..Default::default()
             };
 
-            if state.contribution_choice == ContributionChoice::Credit || state.is_self_send {
+            if state.contribution_choice == ContributionChoice::Credit {
+                debug!("CREDITOR ADDRESS: {}", state.recipient_address_value);
+                let res:Result<SlatepackAddress, _> = state.recipient_address_value.as_str().try_into();
+                if let Ok(creditor_address) = res {
+                    args.setup_args.proof_args.sender_address = Some(creditor_address.pub_key);
+                    debug!("CREDITOR ADDRESS: {:?}", args.setup_args.proof_args.sender_address);
+                }
+            }
+                
+            if state.is_self_send || state.contribution_choice == ContributionChoice::Debit {
                 if let Some(a) = &grin_gui.wallet_state.operation_state.home_state.address {
                     args.setup_args.proof_args.sender_address = Some(a.pub_key);
                 }
@@ -226,6 +235,7 @@ pub fn handle_message<'a>(
 
                 return Ok(Command::perform(fut(), |r| match r {
                     Ok((enc_slate, unenc_slate)) => Message::Interaction(
+
                         Interaction::WalletOperationCreateTxContractsViewInteraction(
                             LocalViewInteraction::TxCreatedOk(enc_slate, unenc_slate),
                         ),
@@ -248,7 +258,7 @@ pub fn handle_message<'a>(
             }
         }
         LocalViewInteraction::TxCreatedOk(unencrypted_slate, encrypted_slate) => {
-            log::debug!("{:?}", encrypted_slate);
+            log::debug!("{}", unencrypted_slate);
             grin_gui
                 .wallet_state
                 .operation_state
