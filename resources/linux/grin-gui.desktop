@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Terminal=false
-Exec=ajour
-Name=ajour
-Icon=ajour
+Exec=grin-gui
+Name=grin-gui
+Icon=grin
 Categories=Game;
