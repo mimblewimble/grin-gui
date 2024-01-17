@@ -36,7 +36,7 @@ use std::sync::{Arc, RwLock};
 
 use element::DEFAULT_HEADER_FONT_SIZE;
 
-static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/ajour.ico");
+static WINDOW_ICON: &[u8] = include_bytes!("../../resources/windows/grin.ico");
 
 pub struct GrinGui {
 	/// Wallet Interface
