@@ -54,17 +54,30 @@ jobs:
         steps:
           - name: Checkout
             uses: actions/checkout@v3
+          - name: Rust version
+            run: rustup --version
           - name: Build
             run: cargo build --release
-          - name: Archive
+          - name: Build
+            run: cargo build
+          - name: Archive release
             uses: vimtor/action-zip@v1
             with:
                 files: target/release/grin-gui.exe
                 dest: target/release/grin-gui-${{  github.ref_name }}-win-x86_64.zip
-          - name: Create Checksum
+          - name: Archive debug
+            uses: vimtor/action-zip@v1
+            with:
+                files: target/debug/grin-gui.exe
+                dest: target/debug/grin-gui-${{  github.ref_name }}-win-x86_64-debug.zip
+          - name: Create Checksum release
             working-directory: target/release
             shell: pwsh
             run: get-filehash -algorithm sha256 grin-gui-${{  github.ref_name }}-win-x86_64.zip | Format-List |  Out-String | ForEach-Object { $_.Trim() } > grin-gui-${{  github.ref_name }}-win-x86_64-sha256sum.txt
+          - name: Create Checksum debug
+            working-directory: target/debug
+            shell: pwsh
+            run: get-filehash -algorithm sha256 grin-gui-${{  github.ref_name }}-win-x86_64-debug.zip | Format-List |  Out-String | ForEach-Object { $_.Trim() } > grin-gui-${{  github.ref_name }}-win-x86_64-debug-sha256sum.txt
           - name: Install cargo-wix
             run: cargo install cargo-wix
           - name: Run cargo-wix
@@ -77,6 +90,8 @@ jobs:
             uses: softprops/action-gh-release@v1
             with:
               files: |
+                target/debug/grin-gui-${{  github.ref_name }}-win-x86_64-debug.zip
+                target/debug/grin-gui-${{  github.ref_name }}-win-x86_64-debug-sha256sum.txt
                 target/release/grin-gui-${{  github.ref_name }}-win-x86_64.zip
                 target/release/grin-gui-${{  github.ref_name }}-win-x86_64-sha256sum.txt
                 target/wix/grin-gui-${{  github.ref_name }}-win-x86_64.msi
