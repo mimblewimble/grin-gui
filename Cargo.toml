@@ -1,6 +1,6 @@
 [package]
 name = "grin-gui"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 authors = ["Grin Developers <mimblewimble@lists.launchpad.net>"]
 description = "GUI wrapping grin and grin-wallet. Simple, private and scalable cryptocurrency implementation based on the MimbleWimble chain format."
 license = "Apache-2.0"
@@ -16,8 +16,8 @@ no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
 [dependencies]
-grin-gui-core = { version = "0.1.0-alpha.1", path = "crates/core", features = ["wgpu"]}
-grin-gui-widgets = { version = "0.1.0-alpha.1", path = "crates/widgets" }
+grin-gui-core = { version = "0.1.0-alpha.3", path = "crates/core", features = ["wgpu"]}
+grin-gui-widgets = { version = "0.1.0-alpha.3", path = "crates/widgets" }
 
 iced = { version = "0.10", features = ["canvas", "tokio"]  }
 iced_futures = { version = "0.7", features = ["async-std"] }
