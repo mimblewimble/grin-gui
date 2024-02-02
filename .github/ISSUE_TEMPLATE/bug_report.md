@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
- - Version of Grin-gui [e.g. v0.1.0-alpha.3 or a commit hash of the build]
+ - Version of Grin-gui [e.g. v0.1.0-alpha.4 or a commit hash of the build]
 
 
 **Additional context**
