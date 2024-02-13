@@ -16,7 +16,7 @@ use {
 		config::Config,
 		node::amount_to_hr_string,
 		theme::{ButtonStyle, ColorPalette, ContainerStyle},
-		wallet::TxLogEntry,
+		wallet::{TxLogEntry, TxLogEntryType},
 	},
 	grin_gui_widgets::widget::header,
 	iced::widget::{button, pick_list, scrollable, text_input, Space},
@@ -1622,10 +1622,11 @@ pub fn data_row_container<'a, 'b>(
 					let tx_proof_wrap = Container::new(tx_proof_wrap)
 						.style(grin_gui_core::theme::ContainerStyle::Segmented)
 						.padding(1);
-
-					action_button_row = action_button_row
-						.push(tx_proof_wrap)
-						.push(Space::with_width(Length::Fixed(DEFAULT_PADDING)));
+					if tx_cloned_for_row.tx.tx_type != TxLogEntryType::TxSelfSpend {
+						action_button_row = action_button_row
+							.push(tx_proof_wrap)
+							.push(Space::with_width(Length::Fixed(DEFAULT_PADDING)));
+					}
 				}
 
 				if !confirmed {
@@ -1684,10 +1685,13 @@ pub fn data_row_container<'a, 'b>(
 						.style(grin_gui_core::theme::ContainerStyle::Segmented)
 						.padding(1);
 
-					action_button_row = action_button_row
-						.push(tx_reload_slate_wrap)
-						.push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
-						.push(tx_cancel_wrap)
+					if tx_cloned_for_row.tx.tx_type != TxLogEntryType::TxSelfSpend {
+						action_button_row = action_button_row
+							.push(tx_reload_slate_wrap)
+							.push(Space::with_width(Length::Fixed(DEFAULT_PADDING)))
+					}
+
+					action_button_row = action_button_row.push(tx_cancel_wrap)
 				}
 
 				/*
