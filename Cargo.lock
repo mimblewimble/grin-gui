@@ -968,18 +968,18 @@ dependencies = [
 
 [[package]]
 name = "clipboard_wayland"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8134163bd07c47ae3cc29babc42c255fdb315facc790950ae2d0e561ea6f2ec0"
+checksum = "003f886bc4e2987729d10c1db3424e7f80809f3fc22dbc16c685738887cb37b8"
 dependencies = [
  "smithay-clipboard",
 ]
 
 [[package]]
 name = "clipboard_x11"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cf45b436634fee64c6d3981639b46a87eeea3c64e422643273fcefd1baef56c"
+checksum = "4274ea815e013e0f9f04a2633423e14194e408a0576c943ce3d14ca56c50031c"
 dependencies = [
  "thiserror",
  "x11rb 0.13.0",
@@ -1172,9 +1172,9 @@ dependencies = [
 
 [[package]]
 name = "crc32fast"
-version = "1.3.2"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b540bd8bc810d3885c6ea91e2018302f68baba2129ab3e88f32389ee9370880d"
+checksum = "b3855a8a784b474f333699ef2bbca9db2c4a1f6d9088a90a2d25b1eb53111eaa"
 dependencies = [
  "cfg-if 1.0.0",
 ]
@@ -1287,9 +1287,9 @@ checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "curl"
-version = "0.4.45"
+version = "0.4.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8e5123ab8c31200ce725939049ecd4a090b242608f24048131dedf9dd195aed"
+checksum = "1e2161dd6eba090ff1594084e95fd67aeccf04382ffea77999ea94ed42ec67b6"
 dependencies = [
  "curl-sys",
  "libc",
@@ -2792,7 +2792,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "built",
  "clap",
@@ -2819,7 +2819,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_api"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "base64 0.12.3",
  "chrono",
@@ -2844,7 +2844,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_config"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "dirs 2.0.2",
  "grin_core",
@@ -2859,7 +2859,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_controller"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "chrono",
  "easy-jsonrpc-mw",
@@ -2893,7 +2893,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_impls"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "base64 0.12.3",
  "blake2-rfc",
@@ -2932,7 +2932,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_libwallet"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "age",
  "base64 0.9.3",
@@ -2973,7 +2973,7 @@ dependencies = [
 [[package]]
 name = "grin_wallet_util"
 version = "5.2.0-beta.1"
-source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#02af39143e22bd7530b0ea22b36a464440b0e523"
+source = "git+https://github.com/mimblewimble/grin-wallet?branch=contracts#074fa243b5a91a341a67e71c12f747914aeda4de"
 dependencies = [
  "data-encoding",
  "ed25519-dalek",
@@ -3119,9 +3119,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0c62115964e08cb8039170eb33c1d0e2388a256930279edca206fff675f82c3"
+checksum = "bd5256b483761cd23699d0da46cc6fd2ee3be420bbe6d020ae4a091e70b7e9fd"
 
 [[package]]
 name = "hexf-parse"
@@ -3722,7 +3722,7 @@ version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eae7b9aee968036d54dce06cebaefd919e4472e753296daccd6d344e3e2df0c2"
 dependencies = [
- "hermit-abi 0.3.5",
+ "hermit-abi 0.3.6",
  "libc",
  "windows-sys 0.48.0",
 ]
@@ -3748,7 +3748,7 @@ version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f23ff5ef2b80d608d61efee834934d862cd92461afc0560dedf493e4c033738b"
 dependencies = [
- "hermit-abi 0.3.5",
+ "hermit-abi 0.3.6",
  "libc",
  "windows-sys 0.52.0",
 ]
@@ -4768,7 +4768,7 @@ version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
 dependencies = [
- "hermit-abi 0.3.5",
+ "hermit-abi 0.3.6",
  "libc",
 ]
 
@@ -5350,9 +5350,9 @@ dependencies = [
 
 [[package]]
 name = "pkg-config"
-version = "0.3.29"
+version = "0.3.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2900ede94e305130c13ddd391e0ab7cbaeb783945ae07a279c268cb05109c6cb"
+checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 
 [[package]]
 name = "plotters"
@@ -5863,9 +5863,9 @@ dependencies = [
 
 [[package]]
 name = "read-fonts"
-version = "0.15.4"
+version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d70252c718fb23d41771a4f927e924700edefc2a91ecd52a2ee6f2461d4e6b64"
+checksum = "c044ab88c43e2eae05b34a17fc13598736679fdb03d71b49fcfe114443ec8a86"
 dependencies = [
  "font-types",
 ]
@@ -7486,7 +7486,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.22.4",
+ "toml_edit 0.22.5",
 ]
 
 [[package]]
@@ -7506,20 +7506,20 @@ checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
 dependencies = [
  "indexmap 2.2.3",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.40",
 ]
 
 [[package]]
 name = "toml_edit"
-version = "0.22.4"
+version = "0.22.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c9ffdf896f8daaabf9b66ba8e77ea1ed5ed0f72821b398aba62352e95062951"
+checksum = "99e68c159e8f5ba8a28c4eb7b0c0c190d77bb479047ca713270048145a9ad28a"
 dependencies = [
  "indexmap 2.2.3",
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.6.1",
 ]
 
 [[package]]
@@ -8667,9 +8667,18 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.5.39"
+version = "0.5.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5389a154b01683d28c77f8f68f49dea75f0a4da32557a58f68ee51ebba472d29"
+checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d90f4e0f530c4c69f62b80d839e9ef3855edc9cba471a160c4d692deed62b401"
 dependencies = [
  "memchr",
 ]
