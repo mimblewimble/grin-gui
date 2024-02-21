@@ -98,6 +98,7 @@ log4rs = { version = "0.12", features = [
 ] }
 backtrace = "0.3"
 lazy_static = "1"
+uuid = "0.8.2"
 
 iced = { version = "0.10", features = ["advanced", "tokio"] }
 iced_futures = { version = "0.7", features = ["async-std"] }

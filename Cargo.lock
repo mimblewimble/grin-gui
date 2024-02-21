@@ -2473,6 +2473,7 @@ dependencies = [
  "strfmt",
  "structopt",
  "timeago",
+ "uuid",
  "version-compare",
  "winapi 0.3.9",
 ]
@@ -2529,6 +2530,7 @@ dependencies = [
  "tar",
  "tempfile",
  "thiserror",
+ "uuid",
  "walkdir",
  "zip",
  "zstd",

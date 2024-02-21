@@ -95,7 +95,7 @@ pub fn handle_message<'a>(
 				let tx_id = match state.confirm_state.slatepack_parsed.as_ref() {
 					Some(p) => {
 						if let Some(t) = p.2.as_ref() {
-							Some(t.id)
+							t.tx_slate_id.clone()
 						} else {
 							None
 						}
@@ -198,7 +198,7 @@ pub fn handle_message<'a>(
 				let tx_id = match state.confirm_state.slatepack_parsed.as_ref() {
 					Some(p) => {
 						if let Some(t) = p.2.as_ref() {
-							Some(t.id)
+							t.tx_slate_id.clone()
 						} else {
 							None
 						}

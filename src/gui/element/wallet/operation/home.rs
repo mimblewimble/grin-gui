@@ -104,7 +104,7 @@ pub enum LocalViewInteraction {
 	CancelTx(u32, String),
 	TxDetails(TxLogEntryWrap),
 	TxProof(TxLogEntryWrap),
-	TxCancelledOk(u32, String),
+	TxCancelledOk(String),
 	TxCancelError(Arc<RwLock<Option<anyhow::Error>>>),
 	ProofRetrievedOk(InvoiceProof, TxLogEntryWrap),
 	ProofRetrievedError(Arc<RwLock<Option<anyhow::Error>>>),
@@ -404,14 +404,15 @@ pub fn handle_message<'a>(
 			log::debug!("Interaction::WalletOperationHomeViewInteraction::CancelTx");
 
 			let w = grin_gui.wallet_interface.clone();
+			let in_uuid = uuid.clone();
 
-			let fut = move || WalletInterface::cancel_tx(w, id);
+			let fut = move || WalletInterface::cancel_tx(w, uuid::Uuid::parse_str(&uuid).unwrap());
 
 			return Ok(Command::perform(fut(), |r| {
 				match r.context("Failed to Cancel Transaction") {
 					Ok(ret) => {
 						Message::Interaction(Interaction::WalletOperationHomeViewInteraction(
-							LocalViewInteraction::TxCancelledOk(ret, uuid),
+							LocalViewInteraction::TxCancelledOk(in_uuid),
 						))
 					}
 					Err(e) => {
@@ -422,7 +423,7 @@ pub fn handle_message<'a>(
 				}
 			}));
 		}
-		LocalViewInteraction::TxCancelledOk(id, uuid) => {
+		LocalViewInteraction::TxCancelledOk(uuid) => {
 			// Delete file
 			if let Some(dir) = grin_gui.config.get_wallet_slatepack_dir() {
 				let out_file_name = format!("{}/{}.slatepack", dir, uuid);
