@@ -8,6 +8,7 @@ use grin_gui_core::{
 use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_core::Widget;
+use serde::de;
 use std::path::PathBuf;
 
 use super::tx_list::{HeaderState, TxList};
@@ -77,6 +78,7 @@ pub enum LocalViewInteraction {
 	ReadFromClipboardSuccess(String),
 	ReadFromClipboardFailure,
 	ShowSlate,
+	CancelSelfSpend,
 }
 
 pub fn handle_message<'a>(
@@ -93,7 +95,7 @@ pub fn handle_message<'a>(
 				let tx_id = match state.confirm_state.slatepack_parsed.as_ref() {
 					Some(p) => {
 						if let Some(t) = p.2.as_ref() {
-							Some(t.id)
+							t.tx_slate_id.clone()
 						} else {
 							None
 						}
@@ -188,6 +190,33 @@ pub fn handle_message<'a>(
 
 			grin_gui.wallet_state.operation_state.mode =
 				crate::gui::element::wallet::operation::Mode::ShowSlatepack;
+		}
+		LocalViewInteraction::CancelSelfSpend => {
+			// If this was a self-send, cancel the transaction and remove from log
+			if state.confirm_state.is_self_send {
+				// Unwrap tx id
+				let tx_id = match state.confirm_state.slatepack_parsed.as_ref() {
+					Some(p) => {
+						if let Some(t) = p.2.as_ref() {
+							t.tx_slate_id.clone()
+						} else {
+							None
+						}
+					}
+					None => None,
+				};
+				let w = grin_gui.wallet_interface.clone();
+				let fut = move || WalletInterface::cancel_tx(w, tx_id.unwrap());
+				debug!("Cancelling self-spend tx: {:?}", tx_id);
+
+				return Ok(Command::perform(fut(), |_| {
+					return Message::Interaction(
+							Interaction::WalletOperationApplyTxViewInteraction(
+								crate::gui::element::wallet::operation::apply_tx::LocalViewInteraction::BackCleanup,
+							),
+						);
+				}));
+			}
 		}
 		LocalViewInteraction::Address(_) => {}
 		LocalViewInteraction::ApplyTransaction(_) => {}
@@ -386,12 +415,18 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 			.center_y()
 			.align_x(alignment::Horizontal::Center);
 
-	let cancel_button: Element<Interaction> = Button::new(cancel_button_label_container)
-		.style(grin_gui_core::theme::ButtonStyle::Primary)
-		.on_press(Interaction::WalletOperationApplyTxViewInteraction(
+	let cancel_button = Button::new(cancel_button_label_container)
+		.style(grin_gui_core::theme::ButtonStyle::Primary);
+	let cancel_button: Element<Interaction> = if state.confirm_state.is_self_send {
+		cancel_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
+			LocalViewInteraction::CancelSelfSpend,
+		))
+	} else {
+		cancel_button.on_press(Interaction::WalletOperationApplyTxViewInteraction(
 			LocalViewInteraction::Back,
 		))
-		.into();
+	}
+	.into();
 
 	let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
 	let submit_container = Container::new(submit_container)
