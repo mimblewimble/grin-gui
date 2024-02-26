@@ -2432,7 +2432,7 @@ dependencies = [
 
 [[package]]
 name = "grin-gui"
-version = "0.1.0-alpha.4"
+version = "0.1.0-alpha.5"
 dependencies = [
  "anyhow",
  "async-std",
@@ -2479,7 +2479,7 @@ dependencies = [
 
 [[package]]
 name = "grin-gui-core"
-version = "0.1.0-alpha.4"
+version = "0.1.0-alpha.5"
 dependencies = [
  "async-std",
  "backtrace",
@@ -2537,7 +2537,7 @@ dependencies = [
 
 [[package]]
 name = "grin-gui-widgets"
-version = "0.1.0-alpha.4"
+version = "0.1.0-alpha.5"
 dependencies = [
  "iced",
  "iced_core",
