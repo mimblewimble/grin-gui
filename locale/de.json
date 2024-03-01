@@ -88,6 +88,7 @@
     "setup-grin-wallet-description": "To get started, you can either:",
     "setup-grin-first-time": "First-Time Setup",
     "setup-grin-wallet-title": "Create New Wallet",
+    "import-grin-wallet-title": "Import Wallet",
     "setup-grin-wallet-enter-password": "Please create a password for your new Grin wallet",
     "setup-grin-create-wallet": "Create Wallet",
     "setup-grin-passwords-dont-match": "Passwords do not match",

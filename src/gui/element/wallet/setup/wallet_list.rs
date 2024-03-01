@@ -5,6 +5,7 @@ use {
 	crate::gui::{GrinGui, Interaction, Message},
 	crate::localization::localized_string,
 	crate::Result,
+	anyhow::Context,
 	grin_gui_core::config::Config,
 	grin_gui_core::theme::{
 		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
@@ -18,6 +19,7 @@ use {
 	iced::{alignment, Alignment, Command, Length},
 	native_dialog::FileDialog,
 	std::path::PathBuf,
+	std::sync::{Arc, RwLock},
 };
 
 use grin_gui_widgets::widget::table_row;
@@ -44,6 +46,7 @@ pub enum LocalViewInteraction {
 	LoadWallet(usize),
 	LocateWallet,
 	CreateWallet,
+	WalletImportError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
 pub fn handle_message<'a>(
@@ -88,20 +91,26 @@ pub fn handle_message<'a>(
 			}
 		}
 		LocalViewInteraction::LocateWallet => {
-			match FileDialog::new().show_open_single_file() {
-				Ok(path) => {
-					match path {
-						Some(d) => {
-							match validate_directory(d) {
-								Ok(wallet_was_imported) => {}
-								Err(err) => {
-									// tell the user why this directory failed
-								}
+			let file_dialogue = FileDialog::new().add_filter("grin-wallet.toml", &["toml"]);
+			match file_dialogue.show_open_single_file() {
+				Ok(path) => match path {
+					Some(d) => match validate_directory(d.clone()) {
+						true => {
+							let state = &mut grin_gui.wallet_state.setup_state.import_wallet_state;
+							state.toml_file = d;
+
+							grin_gui.wallet_state.mode =
+								crate::gui::element::wallet::Mode::ImportWallet;
+						}
+						false => {
+							grin_gui.error = Some(anyhow::Error::msg("Invalid directory"));
+							if let Some(e) = grin_gui.error.as_ref() {
+								crate::log_error(e);
 							}
 						}
-						None => {}
-					}
-				}
+					},
+					None => {}
+				},
 				Err(e) => {
 					log::debug!("wallet_list.rs::LocalViewInteraction::LocateWallet {}", e);
 				}
@@ -135,15 +144,20 @@ pub fn handle_message<'a>(
 			grin_gui.wallet_state.mode =
 				crate::gui::element::wallet::Mode::CreateWallet(wallet_display_name);
 		}
+		LocalViewInteraction::WalletImportError(err) => {
+			grin_gui.error = err.write().unwrap().take();
+			if let Some(e) = grin_gui.error.as_ref() {
+				crate::log_error(e);
+			}
+		}
 	}
 
 	Ok(Command::none())
 }
 
-struct DirectoryValidationError;
-
-fn validate_directory(_d: PathBuf) -> Result<bool, DirectoryValidationError> {
-	Ok(true)
+fn validate_directory(d: PathBuf) -> bool {
+	debug!("Validating directory: {:?}", d);
+	d.exists()
 }
 
 pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Container<'a, Message> {

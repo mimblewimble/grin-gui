@@ -13,6 +13,7 @@ use {
 pub enum Mode {
 	Init,
 	CreateWallet(String),
+	ImportWallet,
 	Operation,
 }
 
@@ -59,6 +60,9 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
 			&state.setup_state.setup_wallet_state,
 			default_display_name,
 		),
+		Mode::ImportWallet => {
+			setup::wallet_import::data_container(&state.setup_state.import_wallet_state)
+		}
 	};
 
 	let column = Column::new()
