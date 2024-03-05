@@ -98,6 +98,7 @@ pub fn handle_message<'a>(
 						true => {
 							let state = &mut grin_gui.wallet_state.setup_state.import_wallet_state;
 							state.toml_file = d;
+							state.init_wallet_name(&grin_gui.config);
 
 							grin_gui.wallet_state.mode =
 								crate::gui::element::wallet::Mode::ImportWallet;

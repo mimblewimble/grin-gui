@@ -2,7 +2,7 @@
 /// Should eventually feature async calls that work via local wallet or remote owner API
 use grin_wallet::cmd::wallet_args::inst_wallet;
 use grin_wallet_api::{Foreign, Owner};
-use grin_wallet_config::{self, GlobalWalletConfig};
+use grin_wallet_config;
 use grin_wallet_controller::command::InitArgs;
 use grin_wallet_impls::DefaultLCProvider;
 use grin_wallet_libwallet::{NodeClient, WalletInst, WalletLCProvider};
@@ -25,6 +25,8 @@ pub use grin_wallet_libwallet::{
 	InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, SlateState, Slatepack,
 	SlatepackAddress, StatusMessage, TxLogEntry, TxLogEntryType, WalletInfo,
 };
+
+pub use grin_wallet_config::GlobalWalletConfig;
 
 pub use grin_wallet_libwallet::contract::types::{
 	ContractNewArgsAPI, ContractRevokeArgsAPI, ContractSetupArgsAPI, ProofArgs,
@@ -132,6 +134,14 @@ pub fn parse_abs_tx_amount_fee(tx: &TxLogEntry, subtract_fee_from_amt: bool) -> 
 		amount_to_hr_string(amt, true),
 		amount_to_hr_string(fee, true),
 	)
+}
+
+pub fn get_wallet_config(path: &str) -> Result<GlobalWalletConfig, GrinWalletInterfaceError> {
+	let res = GlobalWalletConfig::new(path);
+	match res {
+		Ok(c) => Ok(c),
+		Err(e) => Err(GrinWalletInterfaceError::ConfigReadError { file: path.into() }),
+	}
 }
 
 impl<L, C> WalletInterface<L, C>

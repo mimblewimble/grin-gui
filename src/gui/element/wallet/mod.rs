@@ -61,7 +61,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &'a Config) -> Cont
 			default_display_name,
 		),
 		Mode::ImportWallet => {
-			setup::wallet_import::data_container(&state.setup_state.import_wallet_state)
+			setup::wallet_import::data_container(config, &state.setup_state.import_wallet_state)
 		}
 	};
 

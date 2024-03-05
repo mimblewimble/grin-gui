@@ -1,4 +1,5 @@
 use crate::{gui::element, log_error};
+use grin_gui_core::wallet;
 use iced_core::Widget;
 use native_dialog::FileDialog;
 use std::path::PathBuf;
@@ -16,11 +17,11 @@ use {
 		Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
 	},
 	grin_gui_core::{
-		config::Wallet,
+		config::{Config, Wallet},
 		fs::PersistentData,
 		node::ChainTypes::{self, Mainnet, Testnet},
 		wallet::create_grin_wallet_path,
-		wallet::WalletInterface,
+		wallet::{GlobalWalletConfig, WalletInterface},
 	},
 	iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
 	iced::{alignment, Alignment, Command, Length},
@@ -40,6 +41,18 @@ impl Default for StateContainer {
 			password_state: Default::default(),
 			display_name_value: Default::default(),
 		}
+	}
+}
+
+impl StateContainer {
+	pub fn init_wallet_name(&mut self, config: &Config) {
+		let mut wallet_name = "wallet".to_string();
+		let mut i = 1;
+		while config.wallets.iter().any(|w| w.display_name == wallet_name) {
+			i += 1;
+			wallet_name = format!("wallet{}", i);
+		}
+		self.display_name_value = wallet_name;
 	}
 }
 
@@ -64,7 +77,7 @@ pub enum LocalViewInteraction {
 	PasswordInputEnterPressed,
 	DisplayName(String),
 	ImportWallet(String, PathBuf),
-	WalletImportedOk((String, String, String, ChainTypes)),
+	WalletImportedOk(GlobalWalletConfig),
 	WalletImportError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -72,7 +85,7 @@ pub fn handle_message<'a>(
 	grin_gui: &mut GrinGui,
 	message: LocalViewInteraction,
 ) -> Result<Command<Message>> {
-	let state = &mut grin_gui.wallet_state.setup_state.setup_wallet_state;
+	let state = &mut grin_gui.wallet_state.setup_state.import_wallet_state;
 	match message {
 		LocalViewInteraction::Back => {
 			// reset user input values
@@ -99,7 +112,7 @@ pub fn handle_message<'a>(
 			// state.password_state.repeat_input_state.focus();
 		}
 		LocalViewInteraction::DisplayName(display_name_value) => {
-			state.advanced_options_state.display_name_value = display_name_value;
+			state.display_name_value = display_name_value;
 		}
 		LocalViewInteraction::ImportWallet(display_name, toml_file) => {
 			grin_gui.error.take();
@@ -109,30 +122,44 @@ pub fn handle_message<'a>(
 				display_name,
 			);
 
-			/*let fut = move || {
-				WalletInterface::init(
-					w,
-					password.clone(),
-					top_level_directory,
-					display_name,
-					chain_type,
-					recovery_phrase,
-				)
-			};*/
+			let fut_config = grin_gui.config.clone();
+			let fut_display_name = display_name.clone();
+			let fut_path = toml_file.clone();
 
-			/*return Ok(Command::perform(fut(), |r| {
-				match r.context("Failed to Create Wallet") {
-					Ok(ret) => Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(
-						LocalViewInteraction::WalletImportedOk(ret),
-					)),
-					Err(e) => Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(
-						LocalViewInteraction::WalletImportError(Arc::new(RwLock::new(Some(e)))),
-					)),
+			let fut = || async move {
+				// check wallet name doesn't exist
+				if let Some(w) = fut_config
+					.wallets
+					.iter()
+					.find(|w| w.display_name == fut_display_name)
+				{
+					return Err(anyhow::Error::msg(format!(
+						"Wallet with name \"{}\" already exists",
+						fut_display_name
+					)));
 				}
-			}));*/
+				let global_config = wallet::get_wallet_config(fut_path.to_str().unwrap())?;
+				Ok(global_config)
+			};
+
+			return Ok(Command::perform(fut(), |r| {
+				match r.context("Failed to Import Wallet") {
+					Ok(ret) => {
+						Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(
+							LocalViewInteraction::WalletImportedOk(ret),
+						))
+					}
+					Err(e) => {
+						Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(
+							LocalViewInteraction::WalletImportError(Arc::new(RwLock::new(Some(e)))),
+						))
+					}
+				}
+			}));
 		}
-		LocalViewInteraction::WalletImportedOk((tld, mnemonic, display_name, chain_type)) => {
-			let tld = Some(PathBuf::from(&tld));
+		LocalViewInteraction::WalletImportedOk(wallet_config) => {
+			debug!("Global config: {:?}", wallet_config);
+			/*let tld = Some(PathBuf::from(&tld));
 			let saved_wallet = Wallet::new(tld, display_name, chain_type);
 
 			let index = grin_gui.config.add_wallet(saved_wallet);
@@ -155,7 +182,7 @@ pub fn handle_message<'a>(
 			if grin_gui.wallet_state.mode != element::wallet::Mode::Init {
 				// set init state
 				grin_gui.wallet_state.mode = element::wallet::Mode::Init;
-			}
+			}*/
 		}
 		LocalViewInteraction::WalletImportError(err) => {
 			grin_gui.error = err.write().unwrap().take();
@@ -168,7 +195,7 @@ pub fn handle_message<'a>(
 	Ok(Command::none())
 }
 
-pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
+pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Container<'a, Message> {
 	let title = Text::new(localized_string("import-grin-wallet-title"))
 		.size(DEFAULT_HEADER_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Center);
@@ -195,7 +222,7 @@ pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
 		0,                      // left
 	]));
 
-	let password_column = {
+	/*let password_column = {
 		let password_input = TextInput::new(
 			&localized_string("password")[..],
 			&state.password_state.input_value,
@@ -222,9 +249,9 @@ pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
 			.align_items(Alignment::Start);
 
 		Column::new().push(password_input_col)
-	};
+	};*/
 
-	let description = Text::new(localized_string("setup-grin-wallet-enter-password"))
+	let description = Text::new(localized_string("setup-grin-wallet-enter-display-name"))
 		.size(DEFAULT_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Center);
 	let description_container =
@@ -237,25 +264,31 @@ pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
 	let display_name_container =
 		Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
-	let display_name_input =
-		TextInput::new(state.toml_file.to_str().unwrap(), &state.display_name_value)
-			.on_input(|s| {
-				Interaction::WalletSetupImportWalletViewInteraction(
-					LocalViewInteraction::DisplayName(s),
-				)
-			})
-			.size(DEFAULT_FONT_SIZE)
-			.padding(6)
-			.width(Length::Fixed(200.0))
-			.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
+	let display_name_input = TextInput::new(&state.display_name_value, &state.display_name_value)
+		.on_input(|s| {
+			Interaction::WalletSetupImportWalletViewInteraction(LocalViewInteraction::DisplayName(
+				s,
+			))
+		})
+		.size(DEFAULT_FONT_SIZE)
+		.padding(6)
+		.width(Length::Fixed(200.0))
+		.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
 	let display_name_input: Element<Interaction> = display_name_input.into();
+
+	let mut display_name_col = Column::new()
+		.push(display_name_container)
+		.spacing(DEFAULT_PADDING)
+		.push(display_name_input.map(Message::Interaction))
+		.spacing(DEFAULT_PADDING)
+		.align_items(Alignment::Start);
 
 	let button_height = Length::Fixed(BUTTON_HEIGHT);
 	let button_width = Length::Fixed(BUTTON_WIDTH);
 
 	let submit_button_label_container = Container::new(
-		Text::new(localized_string("setup-grin-create-wallet")).size(DEFAULT_FONT_SIZE),
+		Text::new(localized_string("setup-grin-import-wallet")).size(DEFAULT_FONT_SIZE),
 	)
 	.width(button_width)
 	.height(button_height)
@@ -265,6 +298,17 @@ pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
 
 	let mut submit_button = Button::new(submit_button_label_container)
 		.style(grin_gui_core::theme::ButtonStyle::Primary);
+
+	if !state.display_name_value.is_empty() {
+		submit_button =
+			submit_button.on_press(Interaction::WalletSetupImportWalletViewInteraction(
+				LocalViewInteraction::ImportWallet(
+					state.display_name_value.clone(),
+					state.toml_file.clone(),
+				),
+			));
+	}
+
 	let submit_button: Element<Interaction> = submit_button.into();
 
 	let cancel_button_label_container =
@@ -302,9 +346,7 @@ pub fn data_container<'a>(state: &'a StateContainer) -> Container<'a, Message> {
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
 		.push(description_container)
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-		.push(display_name_container)
-		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
-		.push(password_column)
+		.push(display_name_col)
 		.push(Space::new(
 			Length::Fixed(0.0),
 			Length::Fixed(unit_spacing + 10.0),
