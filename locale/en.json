@@ -96,6 +96,7 @@
     "setup-grin-passwords-dont-match": "Passwords do not match",
     "setup-grin-passwords-okay": "Password okay",
     "setup-grin-wallet-success": "Wallet Created",
+    "import-grin-wallet-success": "Wallet Imported!",
     "setup-grin-wallet-done": "Done",
     "setup-grin-wallet-recovery-phrase-title": "Recovery phrase",
     "setup-grin-wallet-recovery-phrase": "Your wallet recovery phrase is shown below.\nStore these words in a non-digital format and be sure to keep them safe.",

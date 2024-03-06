@@ -77,7 +77,7 @@ pub enum LocalViewInteraction {
 	PasswordInputEnterPressed,
 	DisplayName(String),
 	ImportWallet(String, PathBuf),
-	WalletImportedOk(GlobalWalletConfig),
+	WalletImportedOk(String, GlobalWalletConfig),
 	WalletImportError(Arc<RwLock<Option<anyhow::Error>>>),
 }
 
@@ -139,14 +139,14 @@ pub fn handle_message<'a>(
 					)));
 				}
 				let global_config = wallet::get_wallet_config(fut_path.to_str().unwrap())?;
-				Ok(global_config)
+				Ok((fut_display_name, global_config))
 			};
 
 			return Ok(Command::perform(fut(), |r| {
 				match r.context("Failed to Import Wallet") {
-					Ok(ret) => {
+					Ok((display_name, config)) => {
 						Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(
-							LocalViewInteraction::WalletImportedOk(ret),
+							LocalViewInteraction::WalletImportedOk(display_name, config),
 						))
 					}
 					Err(e) => {
@@ -157,32 +157,44 @@ pub fn handle_message<'a>(
 				}
 			}));
 		}
-		LocalViewInteraction::WalletImportedOk(wallet_config) => {
-			debug!("Global config: {:?}", wallet_config);
-			/*let tld = Some(PathBuf::from(&tld));
-			let saved_wallet = Wallet::new(tld, display_name, chain_type);
+		LocalViewInteraction::WalletImportedOk(display_name, global_wallet_config) => {
+			//debug!("Global config: {:?}", wallet_config);
+			let wallet_config = global_wallet_config
+				.members
+				.as_ref()
+				.unwrap()
+				.wallet
+				.clone();
+			let chain_type = wallet_config.chain_type.unwrap_or_default();
+			let mut tld = PathBuf::from(wallet_config.data_file_dir);
+			tld.pop();
+			let tld = Some(tld);
+			let saved_wallet = Wallet::new(tld, display_name.clone(), chain_type);
 
 			let index = grin_gui.config.add_wallet(saved_wallet);
 			grin_gui.config.current_wallet_index = Some(index);
 			grin_gui.wallet_state.clear_config_missing();
-			grin_gui
-				.wallet_state
-				.setup_state
-				.setup_wallet_success_state
-				.recovery_phrase = mnemonic;
+
+			/*grin_gui
+			.wallet_state
+			.setup_state
+			.setup_wallet_success_state
+			.recovery_phrase = mnemonic;*/
 
 			// reset user input values
-			grin_gui.wallet_state.setup_state.setup_wallet_state = Default::default();
+			grin_gui.wallet_state.setup_state.import_wallet_state = Default::default();
 
 			let _ = grin_gui.config.save();
 
+			debug!("Wallet config imported successfully: {}", display_name);
+
 			grin_gui.wallet_state.setup_state.mode =
-				crate::gui::element::wallet::setup::Mode::WalletCreateSuccess;
+				crate::gui::element::wallet::setup::Mode::WalletImportSuccess;
 
 			if grin_gui.wallet_state.mode != element::wallet::Mode::Init {
 				// set init state
 				grin_gui.wallet_state.mode = element::wallet::Mode::Init;
-			}*/
+			}
 		}
 		LocalViewInteraction::WalletImportError(err) => {
 			grin_gui.error = err.write().unwrap().take();
