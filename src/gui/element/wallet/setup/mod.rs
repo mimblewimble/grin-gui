@@ -1,4 +1,6 @@
 pub mod init;
+pub mod wallet_import;
+pub mod wallet_import_success;
 pub mod wallet_list;
 pub mod wallet_setup;
 pub mod wallet_success;
@@ -19,7 +21,9 @@ pub struct StateContainer {
 	pub mode: Mode,
 	pub setup_init_state: init::StateContainer,
 	pub setup_wallet_state: wallet_setup::StateContainer,
+	pub import_wallet_state: wallet_import::StateContainer,
 	pub setup_wallet_success_state: wallet_success::StateContainer,
+	pub import_wallet_success_state: wallet_import_success::StateContainer,
 	pub setup_wallet_list_state: wallet_list::StateContainer,
 }
 
@@ -29,6 +33,7 @@ pub enum Mode {
 	CreateWallet(String),
 	ListWallets,
 	WalletCreateSuccess,
+	WalletImportSuccess,
 }
 
 impl Default for StateContainer {
@@ -37,7 +42,9 @@ impl Default for StateContainer {
 			mode: Mode::Init,
 			setup_init_state: Default::default(),
 			setup_wallet_state: Default::default(),
+			import_wallet_state: Default::default(),
 			setup_wallet_success_state: Default::default(),
+			import_wallet_success_state: Default::default(),
 			setup_wallet_list_state: Default::default(),
 		}
 	}
@@ -61,6 +68,9 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		}
 		Mode::WalletCreateSuccess => {
 			wallet_success::data_container(&state.setup_wallet_success_state)
+		}
+		Mode::WalletImportSuccess => {
+			wallet_import_success::data_container(&state.import_wallet_success_state)
 		}
 		Mode::ListWallets => wallet_list::data_container(&state.setup_wallet_list_state, config),
 	};
