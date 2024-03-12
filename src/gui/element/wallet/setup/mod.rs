@@ -2,6 +2,7 @@ pub mod init;
 pub mod wallet_import;
 pub mod wallet_import_success;
 pub mod wallet_list;
+pub mod wallet_restore;
 pub mod wallet_setup;
 pub mod wallet_success;
 
@@ -23,6 +24,7 @@ pub struct StateContainer {
 	pub setup_wallet_state: wallet_setup::StateContainer,
 	pub import_wallet_state: wallet_import::StateContainer,
 	pub setup_wallet_success_state: wallet_success::StateContainer,
+	pub setup_wallet_restore_state: wallet_restore::StateContainer,
 	pub import_wallet_success_state: wallet_import_success::StateContainer,
 	pub setup_wallet_list_state: wallet_list::StateContainer,
 }
@@ -43,6 +45,7 @@ impl Default for StateContainer {
 			setup_init_state: Default::default(),
 			setup_wallet_state: Default::default(),
 			import_wallet_state: Default::default(),
+			setup_wallet_restore_state: Default::default(),
 			setup_wallet_success_state: Default::default(),
 			import_wallet_success_state: Default::default(),
 			setup_wallet_list_state: Default::default(),
