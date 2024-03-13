@@ -35,8 +35,6 @@ grin_servers = { git = "https://github.com/mimblewimble/grin", branch = "master"
 grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master"}
 grin_chain = { git = "https://github.com/mimblewimble/grin", branch = "master"}
 
-
-
 ### Wallet
 grin_wallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin_wallet_config = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
@@ -45,7 +43,6 @@ grin_wallet_controller = { git = "https://github.com/mimblewimble/grin-wallet", 
 grin_wallet_api = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin_wallet_impls = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
-
 
 ############ Local testing ################
 ### Node
@@ -65,7 +62,6 @@ grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", b
 #grin_wallet_impls = { path = "../../../grin-wallet/impls"}
 #grin_wallet_libwallet = { path = "../../../grin-wallet/libwallet"}
 
-grin-gui-widgets = { path = "../widgets" }
 regex = "1.4.3"
 fancy-regex = "0.5.0" # Regex with backtracking
 async-std = { version = "1.9.0", features = ["unstable"] }

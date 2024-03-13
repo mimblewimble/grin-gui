@@ -17,7 +17,6 @@ debug = ["iced/debug"]
 
 [dependencies]
 grin-gui-core = { version = "0.1.0-alpha.6", path = "crates/core", features = ["wgpu"]}
-grin-gui-widgets = { version = "0.1.0-alpha.6", path = "crates/widgets" }
 
 iced = { version = "0.10", features = ["canvas", "tokio"]  }
 iced_futures = { version = "0.7", features = ["async-std"] }

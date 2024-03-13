@@ -2798,7 +2798,6 @@ dependencies = [
  "futures 0.3.30",
  "fuzzy-matcher",
  "grin-gui-core",
- "grin-gui-widgets",
  "iced 0.10.0",
  "iced_aw 0.6.0",
  "iced_core 0.10.0",
@@ -2848,7 +2847,6 @@ dependencies = [
  "flate2",
  "futures 0.3.30",
  "glob",
- "grin-gui-widgets",
  "grin_chain",
  "grin_config",
  "grin_core",
@@ -2890,17 +2888,6 @@ dependencies = [
  "walkdir",
  "zip",
  "zstd",
-]
-
-[[package]]
-name = "grin-gui-widgets"
-version = "0.1.0-alpha.6"
-dependencies = [
- "iced 0.12.1",
- "iced_core 0.12.3",
- "iced_graphics 0.12.1",
- "iced_style 0.12.1",
- "iced_wgpu 0.12.1",
 ]
 
 [[package]]

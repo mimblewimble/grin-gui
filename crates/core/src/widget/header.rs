@@ -41,12 +41,14 @@ where
 {
 	pub fn new(
 		state: State,
-		headers: Vec<(String, Container<'a, Message, Renderer>)>,
+		headers: Vec<(String, Container<'a, Message, Theme, Renderer>)>,
 		left_margin: Option<Length>,
 		right_margin: Option<Length>,
 	) -> Self
 	where
-		Theme: StyleSheet,
+		Theme: iced_style::container::StyleSheet,
+		Renderer: 'a + iced_core::Renderer,
+		Message: 'a,
 	{
 		let mut names = vec![];
 		let mut left = false;
@@ -158,8 +160,14 @@ where
 		}
 	}
 
-	fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
+	fn layout(
+		&self,
+		tree: &mut Tree,
+		renderer: &Renderer,
+		limits: &layout::Limits,
+	) -> layout::Node {
 		let limits = limits.width(self.width).height(self.height);
+		let mut trees = self.children();
 
 		layout::flex::resolve(
 			layout::flex::Axis::Horizontal,
@@ -171,7 +179,7 @@ where
 			self.spacing as f32,
 			Alignment::Start,
 			&self.children,
-			self.children.iter.map(Tree::new),
+			&mut trees,
 		)
 	}
 
@@ -371,7 +379,7 @@ where
 	Theme: StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
 	Message: 'a,
 {
-	fn from(header: Header<'a, Message, Renderer>) -> Element<'a, Message, Theme, Renderer> {
+	fn from(header: Header<'a, Message, Theme, Renderer>) -> Element<'a, Message, Theme, Renderer> {
 		Element::new(header)
 	}
 }
