@@ -14,8 +14,8 @@ wgpu = ["iced_wgpu"]
 #opengl = ["iced_glow"]
 
 [dependencies]
-iced = { version = "0.10", features = ["advanced", "lazy", "tokio"] }
-iced_graphics = { version = "0.9" }
-iced_core = { version = "0.10" }
-iced_wgpu = { version = "0.11", optional = true }
-iced_style = "0.9"
+iced = { version = "0.12", features = ["advanced", "lazy", "tokio"] }
+iced_graphics = { version = "0.12" }
+iced_core = { version = "0.12" }
+iced_wgpu = { version = "0.12", optional = true }
+iced_style = "0.12"

@@ -45,7 +45,6 @@ grin_wallet_controller = { git = "https://github.com/mimblewimble/grin-wallet", 
 grin_wallet_api = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin_wallet_impls = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
 grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "contracts" }
-grin-gui-widgets = { path = "../widgets" }
 
 
 ############ Local testing ################
@@ -66,6 +65,7 @@ grin-gui-widgets = { path = "../widgets" }
 #grin_wallet_impls = { path = "../../../grin-wallet/impls"}
 #grin_wallet_libwallet = { path = "../../../grin-wallet/libwallet"}
 
+grin-gui-widgets = { path = "../widgets" }
 regex = "1.4.3"
 fancy-regex = "0.5.0" # Regex with backtracking
 async-std = { version = "1.9.0", features = ["unstable"] }
@@ -100,13 +100,13 @@ backtrace = "0.3"
 lazy_static = "1"
 uuid = "0.8.2"
 
-iced = { version = "0.10", features = ["advanced", "tokio"] }
-iced_futures = { version = "0.7", features = ["async-std"] }
-iced_core = { version = "0.10" }
-iced_style = "0.9"
-iced_graphics = { version = "0.9" }
-iced_renderer = { version = "0.1", features = ["wgpu"] }
-iced_aw = { version = "0.6", default-features = false, features = ["card", "modal"]}
+iced = { version = "0.12", features = ["advanced", "tokio"] }
+iced_futures = { version = "0.12", features = ["async-std"] }
+iced_core = { version = "0.12" }
+iced_style = "0.12"
+iced_graphics = { version = "0.12" }
+iced_renderer = { version = "0.12", features = ["wgpu"] }
+iced_aw = { version = "0.8", default-features = false, features = ["card", "modal"]}
 
 [dev-dependencies]
 tempfile = "3.2.0"
