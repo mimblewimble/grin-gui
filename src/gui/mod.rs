@@ -145,9 +145,9 @@ impl Application for GrinGui {
 	type Executor = iced::executor::Default;
 	type Message = Message;
 	type Flags = Config;
-	type Theme = Theme;
+	type Theme = iced::Theme;
 
-	fn theme(&self) -> Theme {
+	fn theme(&self) -> iced::Theme {
 		self.theme.clone()
 	}
 

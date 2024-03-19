@@ -11,7 +11,7 @@ use {
 	crate::Result,
 	grin_gui_core::node::{ChainTypes, ServerStats, SyncStatus},
 	grin_gui_core::theme::ColorPalette,
-	grin_gui_core::theme::{Column, Container, Row, Scrollable, Text},
+	grin_gui_core::theme::{Column, Container, Element, Row, Scrollable, Text},
 	iced::widget::{scrollable, Space},
 	iced::{alignment, Alignment, Command, Length},
 };

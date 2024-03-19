@@ -1,12 +1,12 @@
 use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
+use grin_gui_core::widget::header;
 use grin_gui_core::{
 	config::Config,
 	error::GrinWalletInterfaceError,
 	wallet::{TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_core::Widget;
 use std::fs::File;

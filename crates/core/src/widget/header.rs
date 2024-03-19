@@ -6,10 +6,7 @@ use iced_core::{
 	Alignment, Clipboard, Element, Event, Layout, Length, Padding, Rectangle, Shell, Widget,
 };
 
-use iced::{
-	widget::{space::Space, Container},
-	Size,
-};
+use iced::{widget::space::Space, Size};
 
 mod state;
 pub use state::State;
@@ -41,7 +38,7 @@ where
 {
 	pub fn new(
 		state: State,
-		headers: Vec<(String, Container<'a, Message, Theme, Renderer>)>,
+		headers: Vec<(String, Element<'a, Message, Theme, Renderer>)>,
 		left_margin: Option<Length>,
 		right_margin: Option<Length>,
 	) -> Self
