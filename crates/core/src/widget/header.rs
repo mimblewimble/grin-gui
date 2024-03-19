@@ -36,7 +36,7 @@ where
 impl<'a, Message, Theme, Renderer> Header<'a, Message, Theme, Renderer>
 where
 	Renderer: 'a + iced_core::Renderer,
-	Theme: StyleSheet,
+	Theme: StyleSheet + 'a,
 	Message: 'a,
 {
 	pub fn new(
@@ -372,7 +372,7 @@ where
 	}*/
 }
 
-impl<'a, Message, Theme, Renderer> From<Header<'a, Message, Theme, Renderer>>
+impl<'a, Message, Theme: 'a, Renderer> From<Header<'a, Message, Theme, Renderer>>
 	for Element<'a, Message, Theme, Renderer>
 where
 	Renderer: 'a + iced_core::Renderer,

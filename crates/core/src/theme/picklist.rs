@@ -1,6 +1,6 @@
 use super::Theme;
 use iced::{Background, Color};
-use iced_core::{Border, Shadow};
+use iced_core::Border;
 use iced_style::{menu, pick_list};
 
 #[derive(Debug, Clone, Copy, Default)]

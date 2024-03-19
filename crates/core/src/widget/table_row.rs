@@ -5,7 +5,7 @@ use iced_core::{
 	Event, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
 
-use iced::Size;
+use iced::{Border, Size};
 
 #[allow(missing_debug_implementations)]
 pub struct TableRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
@@ -54,14 +54,11 @@ where
 	}
 
 	/// Sets the style of the [`TableRow`].
-	pub fn style(mut self, style: impl Into<<iced::Theme as StyleSheet>::Style>) -> Self {
+	pub fn style<S>(mut self, style: S) -> Self
+	where
+		S: Into<<Theme as StyleSheet>::Style>,
+	{
 		self.style = style.into();
-		self
-	}
-
-	/// Sets the width of the [`TableRow`].
-	pub fn width(mut self, width: Length) -> Self {
-		self.width = width;
 		self
 	}
 
@@ -142,24 +139,30 @@ where
 		}
 	}
 
-	fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
-		let limits = limits
-			.loose()
-			.width(self.width)
-			.height(self.height)
-			.pad(self.padding);
+	fn layout(
+		&self,
+		tree: &mut Tree,
+		renderer: &Renderer,
+		limits: &layout::Limits,
+	) -> layout::Node {
+		let limits = limits.loose().width(self.height).height(self.height);
+		//.padding();
+		// TODO: Above?
 
-		let mut content = self.content.as_widget().layout(renderer, &limits.loose());
-		let size = limits.resolve(content.size());
+		let mut content = self
+			.content
+			.as_widget()
+			.layout(tree, renderer, &limits.loose());
+		let size = limits.resolve(self.width, self.height, content.size());
 
 		// TODO: MODIFIED COORDINATES, CHECK
-		content.move_to(Point::new(
+		content = content.move_to(Point::new(
 			self.padding.top as f32,
 			self.padding.left as f32,
 		));
-		content.align(self.horizontal_alignment, self.vertical_alignment, size);
+		content = content.align(self.horizontal_alignment, self.vertical_alignment, size);
 
-		layout::Node::with_children(size.pad(self.padding), vec![content])
+		layout::Node::with_children(size.expand(self.padding), vec![content])
 	}
 
 	fn draw(
@@ -198,9 +201,12 @@ where
 				width: bounds.width - appearance.offset_right as f32,
 				height: custom_bounds.height,
 			},
-			border_radius: appearance.border_radius.into(),
-			border_width: appearance.border_width,
-			border_color: appearance.border_color,
+			border: Border {
+				width: appearance.border_width,
+				color: appearance.border_color,
+				radius: appearance.border_radius.into(),
+			},
+			shadow: Default::default(),
 		};
 
 		renderer.fill_quad(
@@ -320,14 +326,18 @@ where
 		tree: &'b mut Tree,
 		layout: Layout<'_>,
 		renderer: &Renderer,
+		cursor: iced_core::Vector, // Change the type of the `cursor` parameter
 	) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
-		self.content
-			.as_widget_mut()
-			.overlay(tree, layout.children().next().unwrap(), renderer)
+		self.content.as_widget_mut().overlay(
+			tree,
+			layout.children().next().unwrap(),
+			renderer,
+			cursor,
+		)
 	}
 }
 
-impl<'a, Message, Theme, Renderer> From<TableRow<'a, Message, Theme, Renderer>>
+impl<'a, Message, Theme: 'a, Renderer> From<TableRow<'a, Message, Theme, Renderer>>
 	for Element<'a, Message, Theme, Renderer>
 where
 	Renderer: 'a + iced_core::Renderer,
