@@ -53,10 +53,11 @@ pub type Text<'a> = iced::widget::Text<'a, Theme, Renderer>;
 pub type TextInput<'a, Message> = iced::widget::TextInput<'a, Message, Theme, Renderer>;
 pub type Button<'a, Message> = iced::widget::Button<'a, Message, Theme, Renderer>;
 pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Theme, Renderer>;
-pub type PickList<'a, T, Message> = iced::widget::PickList<'a, T, Message, Theme, Renderer>;
+pub type PickList<'a, T, L, V, Message> =
+	iced::widget::PickList<'a, T, L, V, Message, Theme, Renderer>;
 pub type Radio<Message> = iced::widget::Radio<Message, Theme, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Theme, Renderer>;
-pub type Modal<'a, Content, Message> = iced_aw::modal::Modal<'a, Content, Message>;
+pub type Modal<'a, Message, Theme, Renderer> = iced_aw::modal::Modal<'a, Message, Theme, Renderer>;
 pub type Header<'a, Message> = crate::widget::header::Header<'a, Message, Theme, Renderer>;
 pub type TableRow<'a, Message> = crate::widget::table_row::TableRow<'a, Message, Theme, Renderer>;
 

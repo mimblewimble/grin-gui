@@ -199,7 +199,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		.size(DEFAULT_FONT_SIZE)
 		.padding(6)
 		.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-		.password();
+		.secure(true);
 
 		let password_input: Element<Interaction> = password_input.into();
 

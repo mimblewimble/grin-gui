@@ -15,16 +15,16 @@ use grin_gui_core::{
 		subscriber::{self, UIMessage},
 		ChainTypes, NodeInterface,
 	},
-	theme::{Button, ColorPalette, Column, Container, PickList, Row, Scrollable, Text, Theme},
+	theme::{
+		Button, ColorPalette, Column, Container, Modal, PickList, Row, Scrollable, Text, Theme,
+	},
 	wallet::{get_grin_wallet_default_path, global, HTTPNodeClient, WalletInterfaceHttpNodeClient},
 };
 
 use iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space, TextInput};
 use iced::{
-	alignment, font, window, Alignment, Application, Command, Length, Settings, Subscription,
+	alignment, font, window, Alignment, Application, Command, Length, Settings, Size, Subscription,
 };
-
-use iced_aw::{modal, Card, Modal};
 
 use iced_futures::futures::channel::mpsc;
 
@@ -145,9 +145,9 @@ impl Application for GrinGui {
 	type Executor = iced::executor::Default;
 	type Message = Message;
 	type Flags = Config;
-	type Theme = iced::Theme;
+	type Theme = Theme;
 
-	fn theme(&self) -> iced::Theme {
+	fn theme(&self) -> Theme {
 		self.theme.clone()
 	}
 
@@ -293,7 +293,8 @@ impl Application for GrinGui {
 			}
 		};
 
-		Modal::new(self.show_modal, underlay, content)
+		// self.show_modal?
+		Modal::new(underlay, Some(content))
 			.on_esc(Message::Interaction(Interaction::CloseErrorModal))
 			.style(grin_gui_core::theme::ModalStyle::Normal)
 			.into()
@@ -310,17 +311,21 @@ pub fn run(opts: Opts, config: Config) {
 	log::debug!("config loaded:\n{:#?}", &config);
 
 	let mut settings = Settings::default();
-	settings.window.size = config.window_size.unwrap_or((900, 620));
+	let size = Size {
+		width: config.window_size.unwrap_or((900, 620)).0 as f32,
+		height: config.window_size.unwrap_or((900, 620)).1 as f32,
+	};
+	settings.window.size = size;
 
 	#[cfg(target_os = "macos")]
 	{
 		// false needed for Application shutdown
-		settings.exit_on_close_request = false;
+		settings.windows.exit_on_close_request = false;
 	}
 
 	#[cfg(target_os = "windows")]
 	{
-		settings.exit_on_close_request = false;
+		settings.window.exit_on_close_request = false;
 	}
 
 	#[cfg(not(target_os = "linux"))]
@@ -328,7 +333,10 @@ pub fn run(opts: Opts, config: Config) {
 	// on Linux.
 	// @see: https://github.com/ajour/ajour/issues/427
 	{
-		settings.window.min_size = Some((600, 300));
+		settings.window.min_size = Some(Size {
+			width: 600.0,
+			height: 300.0,
+		});
 	}
 
 	#[cfg(feature = "wgpu")]

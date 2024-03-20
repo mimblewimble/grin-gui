@@ -10,7 +10,7 @@ use {
 	crate::Result,
 	grin_gui_core::theme::{
 		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		TextInput, Theme,
 	},
 	grin_gui_core::widget::header,
 	grin_gui_core::{
@@ -895,7 +895,7 @@ pub fn titles_row_header<'a>(
 	column_state: &'a [ColumnState],
 	previous_column_key: Option<ColumnKey>,
 	previous_sort_direction: Option<SortDirection>,
-) -> Container<'a, Message> {
+) -> Header<'a, Message> {
 	// A row containing titles above the addon rows.
 	let mut row_titles = vec![];
 
@@ -954,6 +954,7 @@ pub fn titles_row_header<'a>(
 	)
 	.spacing(1)
 	.height(Length::Fixed(25.0))
+	.into()
 	/* .on_resize(3, |event| {
 		//TODO
 		//Message::Interaction(Interaction::ResizeColumn(Mode::Catalog, event))

@@ -374,18 +374,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);*/
 
 	let checkbox_column = {
-		let checkbox = Checkbox::new(
-			localized_string("wallet-self-send"),
-			state.is_self_send,
-			|v| {
+		let checkbox = Checkbox::new(localized_string("wallet-self-send"), state.is_self_send)
+			.on_toggle(|v| {
 				Interaction::WalletOperationCreateTxContractsViewInteraction(
 					LocalViewInteraction::SelfSendSelected(v),
 				)
-			},
-		)
-		.style(grin_gui_core::theme::CheckboxStyle::Normal)
-		.text_size(DEFAULT_FONT_SIZE)
-		.spacing(5);
+			})
+			.style(grin_gui_core::theme::CheckboxStyle::Normal)
+			.text_size(DEFAULT_FONT_SIZE)
+			.spacing(5);
 
 		let checkbox: Element<Interaction> = checkbox.into();
 
