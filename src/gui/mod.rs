@@ -199,20 +199,21 @@ impl Application for GrinGui {
 	}
 
 	/*#[cfg(target_os = "windows")]
-	fn mode(&self) -> iced::window::Mode {
-		use crate::tray::GUI_VISIBLE;
-		use iced::window::Mode;
-		use std::sync::atomic::Ordering;
+		fn mode(&self) -> iced::window::Mode {
+			use crate::tray::GUI_VISIBLE;
+			use iced::window::Mode;
+			use std::sync::atomic::Ordering;
+	use iced_futures::subscription::events; // Add missing import
 
-		if GUI_VISIBLE.load(Ordering::Relaxed) {
-			Mode::Windowed
-		} else {
-			Mode::Hidden
-		}
-	}*/
+			if GUI_VISIBLE.load(Ordering::Relaxed) {
+				Mode::Windowed
+			} else {
+				Mode::Hidden
+			}
+		}*/
 
 	fn subscription(&self) -> Subscription<Message> {
-		let runtime_subscription = iced_futures::subscription::events().map(Message::RuntimeEvent);
+		let runtime_subscription = iced_futures::event::listen().map(Message::RuntimeEvent); // Fix function call
 		let tick_subscription =
 			time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
 		let node_subscription = subscriber::subscriber(0).map(|e| Message::SendNodeMessage(e));

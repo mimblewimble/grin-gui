@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 use crate::style::header::StyleSheet;
+use iced::advanced::renderer;
 use iced_core::{
 	event, layout, mouse,
 	widget::{self, Tree},
@@ -13,9 +14,9 @@ pub use state::State;
 
 pub struct Header<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
-	Renderer: 'a + iced_core::Renderer,
+	Renderer: renderer::Renderer,
 	Theme: StyleSheet,
-	Message: 'a,
+	Message: Clone,
 {
 	spacing: u16,
 	width: Length,
@@ -32,9 +33,9 @@ where
 
 impl<'a, Message, Theme, Renderer> Header<'a, Message, Theme, Renderer>
 where
-	Renderer: 'a + iced_core::Renderer,
-	Theme: StyleSheet + 'a,
-	Message: 'a,
+	Renderer: renderer::Renderer,
+	Theme: StyleSheet,
+	Message: Clone,
 {
 	pub fn new(
 		state: State,
@@ -138,9 +139,9 @@ where
 impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
 	for Header<'a, Message, Theme, Renderer>
 where
-	Renderer: 'a + iced_core::Renderer,
+	Renderer: renderer::Renderer,
 	Theme: StyleSheet,
-	Message: 'a,
+	Message: Clone,
 {
 	fn children(&self) -> Vec<Tree> {
 		self.children.iter().map(Tree::new).collect()
@@ -372,9 +373,9 @@ where
 impl<'a, Message, Theme: 'a, Renderer> From<Header<'a, Message, Theme, Renderer>>
 	for Element<'a, Message, Theme, Renderer>
 where
-	Renderer: 'a + iced_core::Renderer,
-	Theme: StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
-	Message: 'a,
+	Renderer: 'a + renderer::Renderer,
+	Theme: 'a + StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
+	Message: 'a + Clone,
 {
 	fn from(header: Header<'a, Message, Theme, Renderer>) -> Element<'a, Message, Theme, Renderer> {
 		Element::new(header)

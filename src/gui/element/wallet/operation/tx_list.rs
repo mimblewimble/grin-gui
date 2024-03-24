@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 
 use grin_gui_core::config::TxMethod;
+use grin_gui_core::theme::Theme;
 use iced_core::Widget;
 
 use {
@@ -10,12 +11,12 @@ use {
 	crate::Result,
 	grin_gui_core::theme::{
 		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput, Theme,
 	},
 	grin_gui_core::widget::header,
 	grin_gui_core::{
 		config::Config,
 		node::amount_to_hr_string,
+		style::header::HeaderStyle,
 		theme::{ButtonStyle, ColorPalette, ContainerStyle},
 		wallet::{TxLogEntry, TxLogEntryType},
 	},
@@ -954,7 +955,6 @@ pub fn titles_row_header<'a>(
 	)
 	.spacing(1)
 	.height(Length::Fixed(25.0))
-	.into()
 	/* .on_resize(3, |event| {
 		//TODO
 		//Message::Interaction(Interaction::ResizeColumn(Mode::Catalog, event))
