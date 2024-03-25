@@ -1,4 +1,5 @@
 use crate::fs;
+use iced::application::StyleSheet;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -58,8 +59,9 @@ pub type PickList<'a, T, L, V, Message> =
 pub type Radio<Message> = iced::widget::Radio<Message, Theme, Renderer>;
 pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Theme, Renderer>;
 pub type Modal<'a, Message, Theme, Renderer> = iced_aw::modal::Modal<'a, Message, Theme, Renderer>;
-pub type Header<'a, Message> = crate::widget::header::Header<'a, Message, Theme, Renderer>;
-pub type TableRow<'a, Message> = crate::widget::table_row::TableRow<'a, Message, Theme, Renderer>;
+pub type Header<'a, Message, Theme> = crate::widget::header::Header<'a, Message, Theme, Renderer>;
+pub type TableRow<'a, Message, Theme> =
+	crate::widget::table_row::TableRow<'a, Message, Theme, Renderer>;
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {

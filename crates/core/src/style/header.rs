@@ -1,4 +1,4 @@
-use iced::Theme;
+use crate::theme::Theme;
 use iced_core::{Background, Color};
 
 /// The appearance of a header.
@@ -38,7 +38,7 @@ impl StyleSheet for Theme {
 			HeaderStyle::Default => Appearance {
 				//text_color: Some(self.palette.bright.surface),
 				text_color: None,
-				background: Some(Background::Color(self.palette().primary)),
+				background: Some(Background::Color(self.palette.normal.primary)),
 				border_radius: 0.0,
 				border_width: 0.0,
 				border_color: Color::TRANSPARENT,

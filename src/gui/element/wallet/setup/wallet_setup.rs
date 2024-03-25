@@ -313,7 +313,7 @@ pub fn data_container<'a>(
 		.padding(6)
 		.width(Length::Fixed(200.0))
 		.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-		.password();
+		.secure(true);
 
 		let password_input: Element<Interaction> = password_input.into();
 
@@ -333,7 +333,7 @@ pub fn data_container<'a>(
 		.padding(6)
 		.width(Length::Fixed(200.0))
 		.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-		.password();
+		.secure(true);
 
 		let repeat_password_input: Element<Interaction> = repeat_password_input.into();
 
@@ -374,12 +374,12 @@ pub fn data_container<'a>(
 		let checkbox = Checkbox::new(
 			localized_string("restore-from-seed"),
 			state.restore_from_seed,
-			|b| {
-				Interaction::WalletSetupWalletViewInteraction(
-					LocalViewInteraction::ToggleRestoreFromSeed(b),
-				)
-			},
 		)
+		.on_toggle(|b| {
+			Interaction::WalletSetupWalletViewInteraction(
+				LocalViewInteraction::ToggleRestoreFromSeed(b),
+			)
+		})
 		.style(grin_gui_core::theme::CheckboxStyle::Normal)
 		.text_size(DEFAULT_FONT_SIZE)
 		.spacing(10);
@@ -395,12 +395,12 @@ pub fn data_container<'a>(
 		let checkbox = Checkbox::new(
 			localized_string("show-advanced-options"),
 			state.show_advanced_options,
-			|b| {
-				Interaction::WalletSetupWalletViewInteraction(
-					LocalViewInteraction::ToggleAdvancedOptions(b),
-				)
-			},
 		)
+		.on_toggle(|b| {
+			Interaction::WalletSetupWalletViewInteraction(
+				LocalViewInteraction::ToggleAdvancedOptions(b),
+			)
+		})
 		.style(grin_gui_core::theme::CheckboxStyle::Normal)
 		.text_size(DEFAULT_FONT_SIZE)
 		.spacing(10);
@@ -496,8 +496,8 @@ pub fn data_container<'a>(
 
 	let display_name_input: Element<Interaction> = display_name_input.into();
 
-	let is_testnet_checkbox =
-		Checkbox::new(localized_string("use-testnet"), state.is_testnet, |b| {
+	let is_testnet_checkbox = Checkbox::new(localized_string("use-testnet"), state.is_testnet)
+		.on_toggle(|b| {
 			Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::ToggleIsTestnet(b))
 		})
 		.style(grin_gui_core::theme::CheckboxStyle::Normal)

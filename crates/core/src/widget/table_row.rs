@@ -8,7 +8,7 @@ use iced_core::{
 use iced::{Border, Size};
 
 #[allow(missing_debug_implementations)]
-pub struct TableRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
+pub struct TableRow<'a, Message, Theme, Renderer = iced::Renderer>
 where
 	Renderer: 'a + iced_core::Renderer,
 	Theme: StyleSheet,
@@ -51,6 +51,11 @@ where
 			content: content.into(),
 			on_press: None,
 		}
+	}
+
+	pub fn width(mut self, width: Length) -> Self {
+		self.width = width;
+		self
 	}
 
 	/// Sets the style of the [`TableRow`].
@@ -337,7 +342,7 @@ where
 	}
 }
 
-impl<'a, Message, Theme: 'a, Renderer> From<TableRow<'a, Message, Theme, Renderer>>
+/*impl<'a, Message, Theme: 'a, Renderer> From<TableRow<'a, Message, Theme, Renderer>>
 	for Element<'a, Message, Theme, Renderer>
 where
 	Renderer: 'a + iced_core::Renderer,
@@ -346,7 +351,19 @@ where
 {
 	fn from(
 		table_row: TableRow<'a, Message, Theme, Renderer>,
-	) -> Element<'a, Message, Theme, Renderer> {
+	) -> Self {
 		Element::new(table_row)
+	}
+}*/
+
+impl<'a, Message, Theme, Renderer> From<TableRow<'a, Message, Theme, Renderer>>
+	for Element<'a, Message, Theme, Renderer>
+where
+	Message: 'a,
+	Theme: 'a + StyleSheet,
+	Renderer: iced_core::Renderer + 'a,
+{
+	fn from(column: TableRow<'a, Message, Theme, Renderer>) -> Self {
+		Self::new(column)
 	}
 }

@@ -282,20 +282,27 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-		let content: Element<Message> = match self.modal_type {
-			ModalType::Exit => element::modal::exit_card().into(),
-			ModalType::Error => {
-				let error_cause = self
-					.error
-					.as_ref()
-					.map_or_else(|| "unknown error".to_owned(), |e| error_cause_string(e));
+		let overlay = if self.show_modal {
+			Some({
+				let content: Element<Message> = match self.modal_type {
+					ModalType::Exit => element::modal::exit_card().into(),
+					ModalType::Error => {
+						let error_cause = self
+							.error
+							.as_ref()
+							.map_or_else(|| "unknown error".to_owned(), |e| error_cause_string(e));
 
-				element::modal::error_card(error_cause.clone()).into()
-			}
+						element::modal::error_card(error_cause.clone()).into()
+					}
+				};
+				content
+			})
+		} else {
+			None
 		};
 
 		// self.show_modal?
-		Modal::new(underlay, Some(content))
+		Modal::new(underlay, overlay)
 			.on_esc(Message::Interaction(Interaction::CloseErrorModal))
 			.style(grin_gui_core::theme::ModalStyle::Normal)
 			.into()

@@ -1,8 +1,6 @@
-use std::borrow::Borrow;
-
 use grin_gui_core::config::TxMethod;
-use grin_gui_core::theme::Theme;
 use iced_core::Widget;
+use std::borrow::Borrow;
 
 use {
 	super::super::super::{BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
@@ -11,6 +9,7 @@ use {
 	crate::Result,
 	grin_gui_core::theme::{
 		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+		Theme,
 	},
 	grin_gui_core::widget::header,
 	grin_gui_core::{
@@ -896,7 +895,7 @@ pub fn titles_row_header<'a>(
 	column_state: &'a [ColumnState],
 	previous_column_key: Option<ColumnKey>,
 	previous_sort_direction: Option<SortDirection>,
-) -> Header<'a, Message> {
+) -> Header<'a, Message, Theme> {
 	// A row containing titles above the addon rows.
 	let mut row_titles = vec![];
 
@@ -947,7 +946,10 @@ pub fn titles_row_header<'a>(
 
 	Header::new(
 		header_state.clone(),
-		row_titles,
+		row_titles
+			.into_iter()
+			.map(|row| (row.0, row.1.into()))
+			.collect(),
 		// Some(Length::Fixed(DEFAULT_PADDING)),
 		// Some(Length::Fixed(DEFAULT_PADDING + 5)),
 		None,

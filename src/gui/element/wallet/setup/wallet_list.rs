@@ -287,7 +287,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		}
 
 		let wallet_row = Row::new()
-			//.push(checkbox)
+			// .push(checkbox)
 			.push(
 				Column::new()
 					.push(wallet_name_container)
@@ -309,9 +309,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 			.width(Length::Fill)
 			.on_press(move |_| {
 				log::debug!("data_container::table_row::on_press {}", pos);
-
-				Message::Interaction(Interaction::WalletListWalletViewInteraction(
-					LocalViewInteraction::WalletRowSelect(true, pos),
+				Interaction::WalletListWalletViewInteraction(LocalViewInteraction::WalletRowSelect(
+					true, pos,
 				))
 			});
 
@@ -330,10 +329,12 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 			}
 		}
 
-		wallet_rows.push(table_row.into());
+		wallet_rows.push(table_row);
 	}
 
-	let wallet_column = Column::new().push(Column::with_children(wallet_rows));
+	let wallet_column = Column::new().push(Column::with_children(
+		wallet_rows.into_iter().map(|row| row.into()),
+	));
 
 	let load_wallet_button_container =
 		Container::new(Text::new(localized_string("load-wallet")).size(DEFAULT_FONT_SIZE))
@@ -389,15 +390,16 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 	let scrollable =
 		Scrollable::new(wallet_column).style(grin_gui_core::theme::ScrollableStyle::Primary);
 
-	let table_colummn = Column::new().push(table_header_container).push(scrollable);
-	let table_container = Container::new(table_colummn)
+	let table_column = Column::new().push(table_header_container).push(scrollable);
+	let table_container = Container::new(table_column)
 		.style(grin_gui_core::theme::ContainerStyle::PanelBordered)
 		.height(Length::Fill)
 		.padding(1);
 
 	let row = Row::new().push(
 		Column::new()
-			.push(table_container)
+			// TODO: Find out why this isn't working
+			//.push(table_container)
 			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
 			.push(button_row),
 	);

@@ -12,7 +12,7 @@ use iced::{widget::space::Space, Size};
 mod state;
 pub use state::State;
 
-pub struct Header<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer>
+pub struct Header<'a, Message, Theme, Renderer = iced::Renderer>
 where
 	Renderer: renderer::Renderer,
 	Theme: StyleSheet,
@@ -370,14 +370,14 @@ where
 	}*/
 }
 
-impl<'a, Message, Theme: 'a, Renderer> From<Header<'a, Message, Theme, Renderer>>
-	for Element<'a, Message, Theme, Renderer>
+impl<'a, Message, Theme> From<Header<'a, Message, Theme>>
+	for Element<'a, Message, Theme, iced::Renderer>
 where
-	Renderer: 'a + renderer::Renderer,
+	//Renderer: 'a + renderer::Renderer,
 	Theme: 'a + StyleSheet + iced::widget::container::StyleSheet + widget::text::StyleSheet,
 	Message: 'a + Clone,
 {
-	fn from(header: Header<'a, Message, Theme, Renderer>) -> Element<'a, Message, Theme, Renderer> {
+	fn from(header: Header<'a, Message, Theme>) -> Self {
 		Element::new(header)
 	}
 }

@@ -339,9 +339,11 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 				iced::keyboard::Key::Character(I) => {
 					grin_gui.mode = Mode::Install;
 				}
-				iced::keyboard::Key::Named(Escape) => match grin_gui.mode {
-					_ => (),
-				},
+				iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape) => {
+					match grin_gui.mode {
+						_ => (),
+					}
+				}
 				_ => (),
 			}
 		}

@@ -1,4 +1,4 @@
-use iced::Theme;
+use crate::theme::Theme;
 use iced::{Background, Color};
 
 /// The appearance of a table row.
@@ -40,8 +40,8 @@ impl StyleSheet for Theme {
 	fn appearance(&self, style: &Self::Style) -> Appearance {
 		match style {
 			TableRowStyle::Default => Appearance {
-				text_color: Some(self.palette().primary),
-				background: Some(Background::Color(self.palette().primary)),
+				text_color: Some(self.palette.normal.primary),
+				background: Some(Background::Color(self.palette.normal.primary)),
 				border_radius: 0.0,
 				border_width: 0.0,
 				border_color: Color::TRANSPARENT,
@@ -53,15 +53,15 @@ impl StyleSheet for Theme {
 			TableRowStyle::TableRowAlternate => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.50,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..Appearance::default()
 			},
 			TableRowStyle::TableRowHighlife => Appearance {
-				text_color: Some(self.palette().primary),
+				text_color: Some(self.palette.normal.primary),
 				background: Some(Background::Color(Color {
 					a: 0.30,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				border_radius: 0.0,
 				border_width: 0.0,
@@ -70,7 +70,7 @@ impl StyleSheet for Theme {
 				offset_right: 0.0,
 			},
 			TableRowStyle::TableRowLowlife => Appearance {
-				text_color: Some(self.palette().primary),
+				text_color: Some(self.palette.normal.primary),
 				background: Some(Background::Color(Color::TRANSPARENT)),
 				border_radius: 0.0,
 				border_width: 0.0,
@@ -79,8 +79,8 @@ impl StyleSheet for Theme {
 				offset_right: 0.0,
 			},
 			TableRowStyle::TableRowSelected => Appearance {
-				text_color: Some(self.palette().primary),
-				background: Some(Background::Color(self.palette().primary)),
+				text_color: Some(self.palette.normal.primary),
+				background: Some(Background::Color(self.palette.normal.primary)),
 				border_radius: 0.0,
 				border_width: 0.0,
 				border_color: Color::TRANSPARENT,
@@ -97,35 +97,35 @@ impl StyleSheet for Theme {
 			TableRowStyle::Default => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.60,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..appearance
 			},
 			TableRowStyle::TableRowAlternate => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.25,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..appearance
 			},
 			TableRowStyle::TableRowHighlife => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.60,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..appearance
 			},
 			TableRowStyle::TableRowLowlife => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.60,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..appearance
 			},
 			TableRowStyle::TableRowSelected => Appearance {
 				background: Some(Background::Color(Color {
 					a: 0.60,
-					..self.palette().primary
+					..self.palette.normal.primary
 				})),
 				..appearance
 			},
