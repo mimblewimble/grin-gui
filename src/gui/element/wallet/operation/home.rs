@@ -9,11 +9,11 @@ use chrono::{DateTime, DurationRound, TimeZone, Utc};
 use grin_gui_core::error::GrinWalletInterfaceError;
 use grin_gui_core::node::SyncStatus;
 use grin_gui_core::wallet::SlatepackAddress;
+use grin_gui_core::widget::header;
 use grin_gui_core::{
 	config::{Config, Currency},
 	wallet::{InvoiceProof, RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::widget::header;
 use iced::Point;
 use iced_aw::Card;
 use iced_core::Widget;

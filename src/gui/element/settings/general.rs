@@ -458,14 +458,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
 	#[cfg(target_os = "windows")]
 	let close_to_tray_column = {
-		let checkbox = Checkbox::new(
-			localized_string("close-to-tray"),
-			config.close_to_tray,
-			Interaction::ToggleCloseToTray,
-		)
-		.style(grin_gui_core::theme::CheckboxStyle::Normal)
-		.text_size(DEFAULT_FONT_SIZE)
-		.spacing(5);
+		let checkbox = Checkbox::new(localized_string("close-to-tray"), config.close_to_tray)
+			.style(grin_gui_core::theme::CheckboxStyle::Normal)
+			.text_size(DEFAULT_FONT_SIZE)
+			.on_toggle(Interaction::ToggleCloseToTray)
+			.spacing(5);
 
 		let checkbox: Element<Interaction> = checkbox.into();
 
@@ -476,14 +473,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
 	#[cfg(target_os = "windows")]
 	let toggle_autostart_column = {
-		let checkbox = Checkbox::new(
-			localized_string("toggle-autostart"),
-			config.autostart,
-			Interaction::ToggleAutoStart,
-		)
-		.style(grin_gui_core::theme::CheckboxStyle::Normal)
-		.text_size(DEFAULT_FONT_SIZE)
-		.spacing(5);
+		let checkbox = Checkbox::new(localized_string("toggle-autostart"), config.autostart)
+			.style(grin_gui_core::theme::CheckboxStyle::Normal)
+			.text_size(DEFAULT_FONT_SIZE)
+			.on_toggle(Interaction::ToggleAutoStart)
+			.spacing(5);
 
 		let checkbox: Element<Interaction> = checkbox.into();
 
@@ -497,10 +491,10 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		let checkbox = Checkbox::new(
 			localized_string("start-closed-to-tray"),
 			config.start_closed_to_tray,
-			Interaction::ToggleStartClosedToTray,
 		)
 		.style(grin_gui_core::theme::CheckboxStyle::Normal)
 		.text_size(DEFAULT_FONT_SIZE)
+		.on_toggle(Interaction::ToggleStartClosedToTray)
 		.spacing(5);
 
 		let checkbox: Element<Interaction> = checkbox.into();

@@ -1,7 +1,6 @@
-use std::borrow::Borrow;
-
 use grin_gui_core::config::TxMethod;
 use iced_core::Widget;
+use std::borrow::Borrow;
 
 use {
 	super::super::super::{BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
@@ -10,15 +9,16 @@ use {
 	crate::Result,
 	grin_gui_core::theme::{
 		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Theme,
 	},
+	grin_gui_core::widget::header,
 	grin_gui_core::{
 		config::Config,
 		node::amount_to_hr_string,
+		style::header::HeaderStyle,
 		theme::{ButtonStyle, ColorPalette, ContainerStyle},
 		wallet::{TxLogEntry, TxLogEntryType},
 	},
-	grin_gui_widgets::widget::header,
 	iced::widget::{button, pick_list, scrollable, text_input, Space},
 	iced::{alignment, Alignment, Command, Length},
 	serde::{Deserialize, Serialize},
@@ -895,7 +895,7 @@ pub fn titles_row_header<'a>(
 	column_state: &'a [ColumnState],
 	previous_column_key: Option<ColumnKey>,
 	previous_sort_direction: Option<SortDirection>,
-) -> Header<'a, Message> {
+) -> Header<'a, Message, Theme> {
 	// A row containing titles above the addon rows.
 	let mut row_titles = vec![];
 
@@ -946,7 +946,10 @@ pub fn titles_row_header<'a>(
 
 	Header::new(
 		header_state.clone(),
-		row_titles,
+		row_titles
+			.into_iter()
+			.map(|row| (row.0, row.1.into()))
+			.collect(),
 		// Some(Length::Fixed(DEFAULT_PADDING)),
 		// Some(Length::Fixed(DEFAULT_PADDING + 5)),
 		None,
@@ -1894,9 +1897,10 @@ pub fn data_row_container<'a, 'b>(
 		});
 
 	if is_odd == Some(true) {
-		table_row = table_row.style(grin_gui_core::theme::TableRowStyle::TableRowAlternate)
+		table_row =
+			table_row.style(grin_gui_core::style::table_row::TableRowStyle::TableRowAlternate)
 	} else {
-		table_row = table_row.style(grin_gui_core::theme::TableRowStyle::Default)
+		table_row = table_row.style(grin_gui_core::style::table_row::TableRowStyle::Default)
 	}
 
 	// Due to what feels like an iced-rs bug, don't put buttons within the actual row as they appear

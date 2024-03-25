@@ -64,6 +64,9 @@ pub fn handle_message(
 
 			state.mode = super::Mode::CreateWallet(wallet_display_name);
 		}
+		/*LocalViewInteraction::WalletSetupRestore => {
+			//state.mode = super::Mode::RestoreWallet;
+		},*/
 		LocalViewInteraction::WalletList => state.mode = super::Mode::ListWallets,
 	}
 	Ok(Command::none())

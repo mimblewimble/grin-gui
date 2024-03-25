@@ -5,7 +5,7 @@ use {
 	crate::gui::Message,
 	grin_gui_core::config::Config,
 	grin_gui_core::theme::ColorPalette,
-	grin_gui_core::theme::{Column, Container},
+	grin_gui_core::theme::{Column, Container, Element, Theme},
 	iced::Length,
 };
 
