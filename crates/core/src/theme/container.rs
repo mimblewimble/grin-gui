@@ -46,6 +46,7 @@ impl container::StyleSheet for Theme {
 				..container::Appearance::default()
 			},
 			ContainerStyle::Segmented => container::Appearance {
+				text_color: Some(self.palette.bright.primary),
 				border: Border {
 					color: self.palette.normal.primary,
 					width: 1.0,

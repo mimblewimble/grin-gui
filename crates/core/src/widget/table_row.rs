@@ -150,9 +150,11 @@ where
 		renderer: &Renderer,
 		limits: &layout::Limits,
 	) -> layout::Node {
-		let limits = limits.loose().width(self.height).height(self.height);
-		//.padding();
-		// TODO: Above?
+		let limits = limits
+			.loose()
+			.width(self.width)
+			.height(self.height)
+			.shrink(self.padding);
 
 		let mut content = self
 			.content

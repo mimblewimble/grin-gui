@@ -51,7 +51,7 @@ impl button::StyleSheet for Theme {
 				..button::Appearance::default()
 			},
 			ButtonStyle::NormalText => button::Appearance {
-				text_color: self.palette.normal.surface,
+				text_color: self.palette.bright.primary,
 				border: Border {
 					color: self.palette.normal.primary,
 					width: 1.0,
@@ -144,14 +144,14 @@ impl button::StyleSheet for Theme {
 				})),
 				text_color: Color {
 					a: 0.50,
-					..self.palette.normal.primary
+					..self.palette.bright.primary
 				},
 				..self.active(style)
 			},
 			ButtonStyle::Primary => button::Appearance {
 				text_color: Color {
 					a: 0.25,
-					..self.palette.normal.surface
+					..self.palette.bright.primary
 				},
 				..self.active(style)
 			},

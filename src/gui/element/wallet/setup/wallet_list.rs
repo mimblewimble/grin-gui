@@ -262,7 +262,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_FONT_SIZE);
 		let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
-		let mut wallet_name_container = Container::new(wallet_name)
+		/*let mut wallet_name_container = Container::new(wallet_name)
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		let mut wallet_chain_container = Container::new(chain_name)
@@ -284,11 +284,11 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 				.style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 			wallet_directory_container = wallet_directory_container
 				.style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
-		}
+		}*/
 
 		let wallet_row = Row::new()
 			// .push(checkbox)
-			.push(
+			/* .push(
 				Column::new()
 					.push(wallet_name_container)
 					.width(Length::FillPortion(1)),
@@ -302,7 +302,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 				Column::new()
 					.push(wallet_directory_container)
 					.width(Length::FillPortion(3)),
-			);
+			)*/
+			.push(Text::new("arse").size(DEFAULT_FONT_SIZE));
 
 		let mut table_row = TableRow::new(wallet_row)
 			.padding(iced::Padding::from(9))
@@ -329,11 +330,14 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 			}
 		}
 
+		let table_row: Element<Interaction> = table_row.into();
 		wallet_rows.push(table_row);
 	}
 
 	let wallet_column = Column::new().push(Column::with_children(
-		wallet_rows.into_iter().map(|row| row.into()),
+		wallet_rows
+			.into_iter()
+			.map(|row| row.map(Message::Interaction)),
 	));
 
 	let load_wallet_button_container =
@@ -398,8 +402,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
 	let row = Row::new().push(
 		Column::new()
-			// TODO: Find out why this isn't working
-			//.push(table_container)
+			.push(table_container)
 			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
 			.push(button_row),
 	);

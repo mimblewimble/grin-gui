@@ -40,7 +40,7 @@ impl StyleSheet for Theme {
 	fn appearance(&self, style: &Self::Style) -> Appearance {
 		match style {
 			TableRowStyle::Default => Appearance {
-				text_color: Some(self.palette.normal.primary),
+				text_color: Some(self.palette.bright.primary),
 				background: Some(Background::Color(self.palette.normal.primary)),
 				border_radius: 0.0,
 				border_width: 0.0,
@@ -51,6 +51,7 @@ impl StyleSheet for Theme {
 				offset_right: 0.0,
 			},
 			TableRowStyle::TableRowAlternate => Appearance {
+				text_color: Some(self.palette.bright.primary),
 				background: Some(Background::Color(Color {
 					a: 0.50,
 					..self.palette.normal.primary
@@ -58,7 +59,7 @@ impl StyleSheet for Theme {
 				..Appearance::default()
 			},
 			TableRowStyle::TableRowHighlife => Appearance {
-				text_color: Some(self.palette.normal.primary),
+				text_color: Some(self.palette.bright.primary),
 				background: Some(Background::Color(Color {
 					a: 0.30,
 					..self.palette.normal.primary
@@ -70,7 +71,7 @@ impl StyleSheet for Theme {
 				offset_right: 0.0,
 			},
 			TableRowStyle::TableRowLowlife => Appearance {
-				text_color: Some(self.palette.normal.primary),
+				text_color: Some(self.palette.bright.primary),
 				background: Some(Background::Color(Color::TRANSPARENT)),
 				border_radius: 0.0,
 				border_width: 0.0,
@@ -79,7 +80,7 @@ impl StyleSheet for Theme {
 				offset_right: 0.0,
 			},
 			TableRowStyle::TableRowSelected => Appearance {
-				text_color: Some(self.palette.normal.primary),
+				text_color: Some(self.palette.bright.primary),
 				background: Some(Background::Color(self.palette.normal.primary)),
 				border_radius: 0.0,
 				border_width: 0.0,
