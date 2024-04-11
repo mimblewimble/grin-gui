@@ -1,7 +1,6 @@
 use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
-use grin_gui_core::widget::header;
 use grin_gui_core::{
 	config::{Config, TxMethod},
 	wallet::{
@@ -27,8 +26,7 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput,
 	},
 	grin_gui_core::wallet::{parse_abs_tx_amount_fee, StatusMessage, WalletInfo, WalletInterface},
 	grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},

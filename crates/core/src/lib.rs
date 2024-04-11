@@ -9,12 +9,10 @@ pub mod fs;
 pub mod logger;
 pub mod network;
 pub mod node;
-pub mod style;
 pub mod theme;
 #[cfg(feature = "wgpu")]
 pub mod utility;
 pub mod wallet;
-pub mod widget;
 
 #[macro_use]
 extern crate lazy_static;

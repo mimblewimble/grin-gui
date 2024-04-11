@@ -23,7 +23,8 @@ iced_futures = { version = "0.12", features = ["async-std"] }
 iced_style = {version = "0.12"}
 iced_renderer = { version = "0.12" }
 iced_core = { version = "0.12" }
-iced_aw = { version = "0.8", default-features = false, features = ["card", "modal"]}
+#iced_aw = { path = "../iced_aw", default-features = false, features = ["card", "modal", "table"]}
+iced_aw = { git = "https://github.com/yeastplume/iced_aw.git", branch = "table_widget", default-features = false, features = ["card", "modal", "table"]}
 
 plotters-iced = "0.10.0"
 plotters="0.3"

@@ -32,10 +32,10 @@ impl table::TableRowStyleSheet for Theme {
 				},
 				cell: RowOrCellAppearance {
 					text_color: palette.normal.primary,
-					background: Some(Background::Color(palette.base.foreground)),
+					background: None,
 					border_radius: 0.0.into(),
-					border_width: 1.0,
-					border_color: Color::BLACK,
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
 					offset_left: 0.0,
 					offset_right: 0.0,
 				},
@@ -51,10 +51,7 @@ impl table::TableRowStyleSheet for Theme {
 				},
 				cell: RowOrCellAppearance {
 					text_color: palette.normal.primary,
-					background: Some(Background::Color(Color {
-						a: 0.50,
-						..palette.normal.primary
-					})),
+					background: None,
 					..RowOrCellAppearance::default()
 				},
 			},
@@ -73,10 +70,7 @@ impl table::TableRowStyleSheet for Theme {
 				},
 				cell: RowOrCellAppearance {
 					text_color: palette.normal.primary,
-					background: Some(Background::Color(Color {
-						a: 0.30,
-						..palette.base.foreground
-					})),
+					background: None,
 					border_radius: 0.0.into(),
 					border_width: 0.0,
 					border_color: Color::TRANSPARENT,
@@ -96,7 +90,7 @@ impl table::TableRowStyleSheet for Theme {
 				},
 				cell: RowOrCellAppearance {
 					text_color: palette.normal.primary,
-					background: Some(Background::Color(Color::TRANSPARENT)),
+					background: None,
 					border_radius: 0.0.into(),
 					border_width: 0.0,
 					border_color: Color::TRANSPARENT,
@@ -116,7 +110,7 @@ impl table::TableRowStyleSheet for Theme {
 				},
 				cell: RowOrCellAppearance {
 					text_color: palette.normal.primary,
-					background: Some(Background::Color(palette.normal.primary)),
+					background: None,
 					border_radius: 0.0.into(),
 					border_width: 0.0,
 					border_color: Color::TRANSPARENT,
@@ -139,10 +133,7 @@ impl table::TableRowStyleSheet for Theme {
 					..self.appearance(style, row_id).row
 				},
 				cell: RowOrCellAppearance {
-					background: Some(Background::Color(Color {
-						a: 0.60,
-						..palette.normal.primary
-					})),
+					background: None,
 					..self.appearance(style, row_id).cell
 				},
 			},
@@ -155,10 +146,7 @@ impl table::TableRowStyleSheet for Theme {
 					..self.appearance(style, row_id).row
 				},
 				cell: RowOrCellAppearance {
-					background: Some(Background::Color(Color {
-						a: 0.25,
-						..palette.normal.primary
-					})),
+					background: None,
 					..self.appearance(style, row_id).cell
 				},
 			},
@@ -171,10 +159,7 @@ impl table::TableRowStyleSheet for Theme {
 					..self.appearance(style, row_id).row
 				},
 				cell: RowOrCellAppearance {
-					background: Some(Background::Color(Color {
-						a: 0.60,
-						..palette.normal.primary
-					})),
+					background: None,
 					..self.appearance(style, row_id).cell
 				},
 			},
@@ -187,10 +172,7 @@ impl table::TableRowStyleSheet for Theme {
 					..self.appearance(style, row_id).row
 				},
 				cell: RowOrCellAppearance {
-					background: Some(Background::Color(Color {
-						a: 0.60,
-						..palette.normal.primary
-					})),
+					background: None,
 					..self.appearance(style, row_id).cell
 				},
 			},
@@ -203,10 +185,7 @@ impl table::TableRowStyleSheet for Theme {
 					..self.appearance(style, row_id).row
 				},
 				cell: RowOrCellAppearance {
-					background: Some(Background::Color(Color {
-						a: 0.60,
-						..palette.normal.primary
-					})),
+					background: None,
 					..self.appearance(style, row_id).cell
 				},
 			},

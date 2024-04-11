@@ -8,8 +8,8 @@ use {
 	anyhow::Context,
 	grin_gui_core::config::Config,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableHeader, TableRow,
+		TableRowStyle, Text, TextInput,
 	},
 	grin_gui_core::{
 		theme::ColorPalette,
@@ -22,7 +22,6 @@ use {
 	std::sync::{Arc, RwLock},
 };
 
-use grin_gui_core::widget::table_row;
 use isahc::head;
 
 use crate::gui::element::DEFAULT_SUB_HEADER_FONT_SIZE;
@@ -262,11 +261,13 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		let wallet_name = Text::new(w.display_name.clone()).size(DEFAULT_FONT_SIZE);
 		let chain_name = Text::new(w.chain_type.shortname()).size(DEFAULT_FONT_SIZE);
 
-		/*let mut wallet_name_container = Container::new(wallet_name)
-			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
+		let mut wallet_name_container = Container::new(wallet_name)
+			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground)
+			.width(Length::FillPortion(1));
 
 		let mut wallet_chain_container = Container::new(chain_name)
-			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
+			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground)
+			.width(Length::FillPortion(1));
 
 		let tld_string = match &w.tld {
 			Some(path_buf) => path_buf.display().to_string(),
@@ -275,7 +276,8 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		let wallet_directory = Text::new(tld_string).size(DEFAULT_FONT_SIZE);
 
 		let mut wallet_directory_container = Container::new(wallet_directory)
-			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
+			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground)
+			.width(Length::FillPortion(3));
 
 		if selected_wallet {
 			wallet_name_container = wallet_name_container
@@ -284,28 +286,15 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 				.style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
 			wallet_directory_container = wallet_directory_container
 				.style(grin_gui_core::theme::ContainerStyle::HoverableBrightForeground);
-		}*/
+		}
 
-		let wallet_row = Row::new()
-			// .push(checkbox)
-			/* .push(
-				Column::new()
-					.push(wallet_name_container)
-					.width(Length::FillPortion(1)),
-			)
-			.push(
-				Column::new()
-					.push(wallet_chain_container)
-					.width(Length::FillPortion(1)),
-			)
-			.push(
-				Column::new()
-					.push(wallet_directory_container)
-					.width(Length::FillPortion(3)),
-			)*/
-			.push(Text::new("arse").size(DEFAULT_FONT_SIZE));
+		let wallet_row = vec![
+			wallet_name_container,
+			wallet_chain_container,
+			wallet_directory_container,
+		];
 
-		let mut table_row = TableRow::new(wallet_row)
+		let mut table_row = TableRow::new(wallet_row, 0)
 			.padding(iced::Padding::from(9))
 			.width(Length::Fill)
 			.on_press(move |_| {
@@ -317,16 +306,13 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 
 		if selected_wallet {
 			// selected wallet should be highlighted
-			table_row =
-				table_row.style(grin_gui_core::style::table_row::TableRowStyle::TableRowSelected);
+			table_row = table_row.style(TableRowStyle::TableRowSelected);
 		} else {
 			// contrast row styles to spice things up
 			if pos % 2 == 0 {
-				table_row = table_row
-					.style(grin_gui_core::style::table_row::TableRowStyle::TableRowLowlife);
+				table_row = table_row.style(TableRowStyle::TableRowLowlight);
 			} else {
-				table_row = table_row
-					.style(grin_gui_core::style::table_row::TableRowStyle::TableRowHighlife);
+				table_row = table_row.style(TableRowStyle::TableRowHighlight);
 			}
 		}
 

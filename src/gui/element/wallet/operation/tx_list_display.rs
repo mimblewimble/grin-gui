@@ -2,7 +2,6 @@ use super::tx_list::{self, ExpandType};
 use crate::log_error;
 use async_std::prelude::FutureExt;
 use chrono::DurationRound;
-use grin_gui_core::widget::header;
 use grin_gui_core::{
 	config::Config,
 	wallet::{TxLogEntry, TxLogEntryType},
@@ -23,8 +22,7 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput,
 	},
 	grin_gui_core::wallet::{
 		InitTxArgs, RetrieveTxQueryArgs, RetrieveTxQuerySortOrder, Slate, StatusMessage,
@@ -241,7 +239,7 @@ pub fn data_container<'a>(
 	state: &'a StateContainer,
 ) -> Container<'a, Message> {
 	let button_height = Length::Fixed(BUTTON_HEIGHT);
-	let button_width = Length::Fixed(BUTTON_WIDTH);
+	let button_width = Length::Shrink;
 
 	let title = Text::new(localized_string("tx-list")).size(DEFAULT_HEADER_FONT_SIZE);
 	let title_container = Container::new(title)

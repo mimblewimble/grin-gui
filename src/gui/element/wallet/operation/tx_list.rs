@@ -1,5 +1,6 @@
 use grin_gui_core::config::TxMethod;
 use iced_core::Widget;
+use iced_renderer::graphics::text::cosmic_text::rustybuzz::ttf_parser::ankr::Table;
 use std::borrow::Borrow;
 
 use {
@@ -8,19 +9,18 @@ use {
 	crate::localization::localized_string,
 	crate::Result,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableHeaderStyle, Text,
 		Theme,
 	},
-	grin_gui_core::widget::header,
 	grin_gui_core::{
 		config::Config,
 		node::amount_to_hr_string,
-		style::header::HeaderStyle,
-		theme::{ButtonStyle, ColorPalette, ContainerStyle},
+		theme::{ButtonStyle, ColorPalette, ContainerStyle, TableHeader, TableRow, TableRowStyle},
 		wallet::{TxLogEntry, TxLogEntryType},
 	},
 	iced::widget::{button, pick_list, scrollable, text_input, Space},
 	iced::{alignment, Alignment, Command, Length},
+	iced_aw::TableHeaderState,
 	serde::{Deserialize, Serialize},
 	std::collections::HashMap,
 	strfmt::strfmt,
@@ -243,7 +243,7 @@ impl std::fmt::Display for TxListResultSize {
 }
 
 pub struct HeaderState {
-	pub state: header::State,
+	pub state: TableHeaderState,
 	pub previous_column_key: Option<ColumnKey>,
 	pub previous_sort_direction: Option<SortDirection>,
 	pub columns: Vec<ColumnState>,
@@ -275,28 +275,28 @@ impl Default for HeaderState {
 				ColumnState {
 					key: ColumnKey::NetDifference,
 					// btn_state: Default::default(),
-					width: Length::Fixed(110.0),
+					width: Length::FillPortion(1),
 					hidden: false,
 					order: 1,
 				},
 				ColumnState {
 					key: ColumnKey::CreationTime,
 					// btn_state: Default::default(),
-					width: Length::Fixed(110.0),
+					width: Length::FillPortion(2),
 					hidden: false,
 					order: 2,
 				},
 				ColumnState {
 					key: ColumnKey::Status,
 					// btn_state: Default::default(),
-					width: Length::Fixed(300.0),
+					width: Length::FillPortion(1),
 					hidden: false,
 					order: 3,
 				},
 				ColumnState {
 					key: ColumnKey::ConfirmationTime,
 					// btn_state: Default::default(),
-					width: Length::Fixed(110.0),
+					width: Length::FillPortion(2),
 					hidden: true,
 					order: 4,
 				},
@@ -603,7 +603,7 @@ pub struct TxListColumnState {
 }
 
 pub struct TxListHeaderState {
-	state: header::State,
+	state: TableHeaderState,
 	previous_column_key: Option<TxListColumnKey>,
 	previous_sort_direction: Option<SortDirection>,
 	columns: Vec<TxListColumnState>,
@@ -891,11 +891,11 @@ fn row_title<T: PartialEq>(
 
 pub fn titles_row_header<'a>(
 	tx_list: &TxList,
-	header_state: &'a header::State,
+	header_state: &'a TableHeaderState,
 	column_state: &'a [ColumnState],
 	previous_column_key: Option<ColumnKey>,
 	previous_sort_direction: Option<SortDirection>,
-) -> Header<'a, Message, Theme> {
+) -> TableHeader<'a, Message, Theme> {
 	// A row containing titles above the addon rows.
 	let mut row_titles = vec![];
 
@@ -944,7 +944,7 @@ pub fn titles_row_header<'a>(
 		}
 	}
 
-	Header::new(
+	TableHeader::new(
 		header_state.clone(),
 		row_titles
 			.into_iter()
@@ -955,8 +955,7 @@ pub fn titles_row_header<'a>(
 		None,
 		None,
 	)
-	.spacing(1)
-	.height(Length::Fixed(25.0))
+	.width(Length::Fill)
 	/* .on_resize(3, |event| {
 		//TODO
 		//Message::Interaction(Interaction::ResizeColumn(Mode::Catalog, event))
@@ -983,7 +982,7 @@ pub fn data_row_container<'a, 'b>(
 	pending_confirmation: &Option<Confirm>,
 	node_synched: bool,
 ) -> Container<'a, Message> {
-	let default_height = Length::Fixed(26.0);
+	let default_height = Length::Fixed(40.0);
 	let mut default_row_height = 26;
 
 	let mut row_containers = vec![];
@@ -1020,57 +1019,8 @@ pub fn data_row_container<'a, 'b>(
 			)
 		)
 	};
-	//TODO this will show the latest status
-	// Unconfirmed - Created time
-	// Confirmed
+
 	let status = create_tx_display_status(&tx_log_entry_wrap.tx);
-
-	/*let version = tx
-		.version()
-		.map(str::to_string)
-		.unwrap_or_else(|| "-".to_string());
-	let release_package = addon_cloned.relevant_release_package(global_release_channel);*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Title && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let title = Text::new(addon.title()).size(DEFAULT_FONT_SIZE);
-
-		let mut title_row = Row::new().push(title).spacing(5).align_items(Align::Center);
-
-		if addon.release_channel != ReleaseChannel::Default {
-			let release_channel =
-				Container::new(Text::new(addon.release_channel.to_string()).size(10))
-					.style(style::ChannelBadge)
-					.padding(3);
-
-			title_row = title_row.push(release_channel);
-		}
-
-		let mut title_container = Container::new(title_row)
-			.padding(5)
-			.height(default_height)
-			.width(*width)
-			.center_y();
-		if is_addon_expanded && matches!(expand_type, ExpandType::Details(_)) {
-			title_container =
-				title_container.style(style::SelectedBrightForegroundContainer);
-		} else {
-			title_container =
-				title_container.style(grin_gui_core::theme::container::Container::HoverableBrightForeground);
-		}
-
-		row_containers.push((idx, title_container));
-	}*/
 
 	if let Some((idx, width)) = column_config
 		.iter()
@@ -1087,10 +1037,7 @@ pub fn data_row_container<'a, 'b>(
 		let display_id = Text::new(id.clone()).size(DEFAULT_FONT_SIZE);
 
 		let id_container = Container::new(display_id)
-			.padding(5)
-			.height(default_height)
 			.width(*width)
-			.center_y()
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, id_container));
@@ -1111,10 +1058,7 @@ pub fn data_row_container<'a, 'b>(
 		let display_creation_time = Text::new(creation_time).size(DEFAULT_FONT_SIZE);
 
 		let display_creation_time_container = Container::new(display_creation_time)
-			.padding(5)
-			.height(default_height)
 			.width(*width)
-			.center_y()
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, display_creation_time_container));
@@ -1135,10 +1079,7 @@ pub fn data_row_container<'a, 'b>(
 		let display_confirmation_time = Text::new(confirmation_time).size(DEFAULT_FONT_SIZE);
 
 		let display_confirmation_time_container = Container::new(display_confirmation_time)
-			.padding(5)
-			.height(default_height)
 			.width(*width)
-			.center_y()
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, display_confirmation_time_container));
@@ -1156,13 +1097,12 @@ pub fn data_row_container<'a, 'b>(
 		})
 		.next()
 	{
-		let display_net_difference = Text::new(net_diff).size(DEFAULT_FONT_SIZE);
+		let display_net_difference = Text::new(net_diff)
+			.size(DEFAULT_FONT_SIZE)
+			.size(DEFAULT_FONT_SIZE);
 
 		let display_net_difference_container = Container::new(display_net_difference)
-			.padding(5)
-			.height(default_height)
 			.width(*width)
-			.center_y()
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, display_net_difference_container));
@@ -1180,60 +1120,16 @@ pub fn data_row_container<'a, 'b>(
 		})
 		.next()
 	{
-		let display_status = Text::new(status).size(DEFAULT_FONT_SIZE);
+		let display_status = Text::new(status)
+			.size(DEFAULT_FONT_SIZE)
+			.vertical_alignment(alignment::Vertical::Center);
 
 		let display_status_container = Container::new(display_status)
-			.padding(5)
-			.height(default_height)
 			.width(*width)
-			.center_y()
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, display_status_container));
 	}
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Type && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let display_type = if let Some(package) = &release_package {
-			package.version.clone()
-		} else {
-			String::from("-")
-		};
-		let remote_version = Text::new(remote_version).size(DEFAULT_FONT_SIZE);
-
-		let mut remote_version_button =
-			Button::new(&mut addon.remote_version_btn_state, remote_version)
-				.style(grin_gui_core::theme::button::Button::NormalText);
-
-		if changelog_url.is_some() {
-			remote_version_button =
-				remote_version_button.on_press(Interaction::Expand(ExpandType::Changelog {
-					addon: addon_cloned.clone(),
-					changelog: None,
-				}));
-		}
-
-		let remote_version_button: Element<Interaction> = remote_version_button.into();
-
-		let remote_version_container =
-			Container::new(remote_version_button.map(Message::Interaction))
-				.height(default_height)
-				.width(*width)
-				.center_y()
-				.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, remote_version_container));
-	}*/
 
 	if let Some((idx, width)) = column_config
 		.iter()
@@ -1249,271 +1145,42 @@ pub fn data_row_container<'a, 'b>(
 	{
 		let display_tx_type = Text::new(tx_type.clone()).size(SMALLER_FONT_SIZE);
 		let display_tx_type_container = Container::new(display_tx_type)
-			.height(default_height)
 			.width(*width)
-			.center_y()
-			.padding(5)
 			.style(grin_gui_core::theme::ContainerStyle::HoverableForeground);
 
 		row_containers.push((idx, display_tx_type_container));
 	}
 
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Author && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let author = Text::new(author.as_deref().unwrap_or("-")).size(DEFAULT_FONT_SIZE);
-		let author_container = Container::new(author)
-			.height(default_height)
-			.width(*width)
-			.center_y()
-			.padding(5)
-			.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, author_container));
-	}*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::GameVersion && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let game_version =
-			Text::new(game_version.as_deref().unwrap_or("-")).size(DEFAULT_FONT_SIZE);
-		let game_version_container = Container::new(game_version)
-			.height(default_height)
-			.width(*width)
-			.center_y()
-			.padding(5)
-			.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, game_version_container));
-	}*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::DateReleased && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let release_date_text: String = if let Some(package) = &release_package {
-			let f = localized_timeago_formatter();
-			let now = Local::now();
-
-			if let Some(time) = package.date_time.as_ref() {
-				f.convert_chrono(*time, now)
-			} else {
-				"".to_string()
-			}
-		} else {
-			"-".to_string()
-		};
-		let release_date_text = Text::new(release_date_text).size(DEFAULT_FONT_SIZE);
-		let game_version_container = Container::new(release_date_text)
-			.height(default_height)
-			.width(*width)
-			.center_y()
-			.padding(5)
-			.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, game_version_container));
-	}*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Source && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let source_text =
-			repository_kind.map_or_else(|| localized_string("unknown"), |a| a.to_string());
-		let source = Text::new(source_text).size(DEFAULT_FONT_SIZE);
-		let source_container = Container::new(source)
-			.height(default_height)
-			.width(*width)
-			.center_y()
-			.padding(5)
-			.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, source_container));
-	}*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Summary && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let text = addon_cloned.notes().unwrap_or("-");
-		let summary = Text::new(text).size(DEFAULT_FONT_SIZE);
-		let container = Container::new(summary)
-			.height(default_height)
-			.width(*width)
-			.center_y()
-			.padding(5)
-			.style(grin_gui_core::theme::container::Container::HoverableForeground);
-
-		row_containers.push((idx, container));
-	}*/
-
-	/*if let Some((idx, width)) = column_config
-		.iter()
-		.enumerate()
-		.filter_map(|(idx, (key, width, hidden))| {
-			if *key == ColumnKey::Status && !hidden {
-				Some((idx, width))
-			} else {
-				None
-			}
-		})
-		.next()
-	{
-		let update_button_container = match &addon.state {
-			AddonState::Idle => Container::new(Text::new("".to_string()).size(DEFAULT_FONT_SIZE))
-				.height(default_height)
-				.width(*width)
-				.center_y()
-				.center_x()
-				.style(grin_gui_core::theme::container::Container::HoverableForeground),
-			AddonState::Completed => {
-				Container::new(Text::new(localized_string("completed")).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Error(message) => {
-				Container::new(Text::new(message).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Updatable | AddonState::Retry => {
-				let id = addon.primary_folder_id.clone();
-
-				let text = match addon.state {
-					AddonState::Updatable => localized_string("update"),
-					AddonState::Retry => localized_string("retry"),
-					_ => "".to_owned(),
-				};
-
-				let update_wrapper = Container::new(Text::new(text).size(DEFAULT_FONT_SIZE))
-					.width(*width)
-					.center_x()
-					.align_x(Align::Center);
-				let update_button: Element<Interaction> =
-					Button::new(&mut addon.update_btn_state, update_wrapper)
-						.width(Length::FillPortion(1))
-						.style(style::SecondaryButton)
-						.on_press(Interaction::Update(id))
-						.into();
-
-				Container::new(update_button.map(Message::Interaction))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.style(grin_gui_core::theme::container::Container::HoverableBrightForeground)
-			}
-			AddonState::Downloading => {
-				Container::new(Text::new(localized_string("downloading")).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.padding(5)
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Unpacking => {
-				Container::new(Text::new(localized_string("unpacking")).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.padding(5)
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Fingerprint => {
-				Container::new(Text::new(localized_string("hashing")).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.padding(5)
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Ignored => {
-				Container::new(Text::new(localized_string("ignored")).size(DEFAULT_FONT_SIZE))
-					.height(default_height)
-					.width(*width)
-					.center_y()
-					.center_x()
-					.padding(5)
-					.style(grin_gui_core::theme::container::Container::HoverableForeground)
-			}
-			AddonState::Unknown => Container::new(Text::new("").size(DEFAULT_FONT_SIZE))
-				.height(default_height)
-				.width(*width)
-				.center_y()
-				.center_x()
-				.padding(5)
-				.style(grin_gui_core::theme::container::Container::HoverableForeground),
-		};
-
-		row_containers.push((idx, update_button_container));
-	}*/
-
 	let left_spacer = Space::new(Length::Fixed(DEFAULT_PADDING), Length::Fixed(0.0));
 	let right_spacer = Space::new(Length::Fixed(DEFAULT_PADDING + 5.0), Length::Fixed(0.0));
 
 	//let mut row = Row::new().push(left_spacer).spacing(1);
-	let mut row = Row::new().spacing(1);
+	let mut table_row_content = vec![];
 
 	// Sort columns and push them into row
 	row_containers.sort_by(|a, b| a.0.cmp(&b.0));
-	for (_, elem) in row_containers.into_iter() {
-		row = row.push(elem);
+
+	for (_, mut elem) in row_containers.into_iter() {
+		table_row_content.push(elem);
 	}
 
-	row = row.push(right_spacer);
+	let tx_cloned_for_closure = tx_cloned_for_row.clone();
+	let mut table_row = TableRow::new(table_row_content, 0)
+		.width(Length::Fill)
+		.padding(3.0.into())
+		.on_press(move |_| {
+			Message::Interaction(Interaction::WalletOperationTxListInteraction(
+				LocalViewInteraction::Expand(ExpandType::Details(tx_cloned_for_closure.clone())),
+			))
+		});
 
-	let mut tx_column = Column::new().push(row);
+	if is_odd == Some(true) {
+		table_row = table_row.style(TableRowStyle::TableRowLowlight)
+	} else {
+		table_row = table_row.style(TableRowStyle::TableRowHighlight)
+	}
+
+	let mut tx_column = Column::new().push(table_row);
 	let mut action_button_row = Row::new();
 
 	if is_tx_expanded {
@@ -1647,7 +1314,12 @@ pub fn data_row_container<'a, 'b>(
 							.style(grin_gui_core::theme::ButtonStyle::Primary)
 							.on_press(Interaction::WalletOperationHomeViewInteraction(
 								super::home::LocalViewInteraction::ReloadTxSlate(
-									tx_cloned_for_row.tx.tx_slate_id.unwrap().to_string(),
+									tx_cloned_for_row
+										.clone()
+										.tx
+										.tx_slate_id
+										.unwrap()
+										.to_string(),
 								),
 							))
 							.into();
@@ -1887,26 +1559,10 @@ pub fn data_row_container<'a, 'b>(
 		}
 	}
 
-	let mut table_row = TableRow::new(tx_column)
-		.width(Length::Fill)
-		.inner_row_height(default_row_height)
-		.on_press(move |_| {
-			Message::Interaction(Interaction::WalletOperationTxListInteraction(
-				LocalViewInteraction::Expand(ExpandType::Details(tx_cloned_for_row.clone())),
-			))
-		});
-
-	if is_odd == Some(true) {
-		table_row =
-			table_row.style(grin_gui_core::style::table_row::TableRowStyle::TableRowAlternate)
-	} else {
-		table_row = table_row.style(grin_gui_core::style::table_row::TableRowStyle::Default)
-	}
-
 	// Due to what feels like an iced-rs bug, don't put buttons within the actual row as they appear
 	// to clear their state between the press down and up event if included within the row itself
 	// Some kind of fix to the table row widget might rectify this
-	let mut return_column = Column::new().push(table_row).push(action_button_row);
+	let mut return_column = Column::new().push(tx_column).push(action_button_row);
 
 	if is_tx_expanded {
 		return_column = return_column.push(Space::new(

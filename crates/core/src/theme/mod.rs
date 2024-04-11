@@ -20,6 +20,8 @@ pub mod modal;
 pub mod picklist;
 pub mod radio;
 pub mod scrollable;
+pub mod table_header;
+pub mod table_row;
 pub mod text;
 pub mod text_input;
 
@@ -31,6 +33,8 @@ pub use modal::ModalStyle;
 pub use picklist::PickListStyle;
 pub use radio::RadioStyle;
 pub use scrollable::ScrollableStyle;
+pub use table_header::TableHeaderStyle;
+pub use table_row::TableRowStyle;
 pub use text_input::TextInputStyle;
 
 pub async fn load_user_themes() -> Vec<Theme> {
@@ -57,11 +61,10 @@ pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Theme, 
 pub type PickList<'a, T, L, V, Message> =
 	iced::widget::PickList<'a, T, L, V, Message, Theme, Renderer>;
 pub type Radio<Message> = iced::widget::Radio<Message, Theme, Renderer>;
-pub type Card<'a, Message> = iced_aw::native::Card<'a, Message, Theme, Renderer>;
+pub type Card<'a, Message> = iced_aw::Card<'a, Message, Theme, Renderer>;
 pub type Modal<'a, Message, Theme, Renderer> = iced_aw::modal::Modal<'a, Message, Theme, Renderer>;
-pub type Header<'a, Message, Theme> = crate::widget::header::Header<'a, Message, Theme, Renderer>;
-pub type TableRow<'a, Message, Theme> =
-	crate::widget::table_row::TableRow<'a, Message, Theme, Renderer>;
+pub type TableHeader<'a, Message, Theme> = iced_aw::TableHeader<'a, Message, Theme, Renderer>;
+pub type TableRow<'a, Message, Theme> = iced_aw::TableRow<'a, Message, Theme, Renderer>;
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
 pub struct BaseColors {

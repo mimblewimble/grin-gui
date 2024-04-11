@@ -21,8 +21,7 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput,
 	},
 	grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
 	grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},
