@@ -289,6 +289,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 		#[cfg(target_os = "macos")]
 		// Application shutdown
 		Message::RuntimeEvent(iced_core::Event::Window(
+			iced_core::window::Id::MAIN,
 			iced_core::window::Event::CloseRequested,
 		)) => {
 			log::debug!("Message::RuntimeEvent(CloseRequested)");
@@ -306,7 +307,8 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 				if grin_gui.config.close_to_tray {
 					let _ = sender.try_send(TrayMessage::CloseToTray);
 				} else {
-					return Ok(window::close(iced_core::window::Id::MAIN));
+					grin_gui.show_exit(true);
+					//return Ok(window::close(iced_core::window::Id::MAIN));
 				}
 			}
 		}

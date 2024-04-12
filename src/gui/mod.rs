@@ -328,7 +328,7 @@ pub fn run(opts: Opts, config: Config) {
 	#[cfg(target_os = "macos")]
 	{
 		// false needed for Application shutdown
-		settings.windows.exit_on_close_request = false;
+		settings.window.exit_on_close_request = false;
 	}
 
 	#[cfg(target_os = "windows")]
