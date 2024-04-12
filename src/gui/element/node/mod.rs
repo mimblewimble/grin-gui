@@ -3,7 +3,10 @@ pub mod embedded;
 use {
 	crate::gui::Message,
 	grin_gui_core::theme::{Column, Container},
-	grin_gui_core::{node::ChainTypes, theme::ColorPalette},
+	grin_gui_core::{
+		node::ChainTypes,
+		theme::{ColorPalette, Element},
+	},
 	iced::Length,
 };
 

@@ -13,4 +13,4 @@ pub static DEFAULT_SUB_HEADER_FONT_SIZE: u16 = 18;
 pub static DEFAULT_PADDING: f32 = 10.0;
 
 pub static BUTTON_WIDTH: f32 = 84.0;
-pub static BUTTON_HEIGHT: f32 = 16.0;
+pub static BUTTON_HEIGHT: f32 = 20.0;

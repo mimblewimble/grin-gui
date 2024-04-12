@@ -1,4 +1,5 @@
 use crate::gui::element::DEFAULT_PADDING;
+use iced_style::container::StyleSheet;
 
 pub mod summary;
 
@@ -8,9 +9,10 @@ use {
 	grin_gui_core::node::ChainTypes,
 	grin_gui_core::node::ServerStats,
 	grin_gui_core::theme::ColorPalette,
-	grin_gui_core::theme::{Column, Container},
+	grin_gui_core::theme::{Column, Container, Element},
 	iced::widget::container,
-	iced::{Command, Length},
+	iced::Command,
+	iced_core::Length,
 };
 
 pub struct StateContainer {
@@ -55,7 +57,7 @@ pub fn data_container<'a>(
 		Mode::Summary => {
 			summary::data_container(&state.summary_state, &state.server_stats, chain_type)
 		}
-		_ => Container::new(Column::new()),
+		_ => Container::new(Column::new()).into(),
 	};
 
 	let column = Column::new().push(content);
@@ -66,10 +68,10 @@ pub fn data_container<'a>(
 		.width(Length::Fill)
 		.height(Length::Fill)
 		.style(grin_gui_core::theme::ContainerStyle::NormalBackground)
-		.padding(iced::Padding::from([
-			DEFAULT_PADDING, // top
-			DEFAULT_PADDING, // right
-			DEFAULT_PADDING, // bottom
-			DEFAULT_PADDING, // left
-		]))
+		.padding(iced::Padding {
+			top: DEFAULT_PADDING,    // top
+			right: DEFAULT_PADDING,  // right
+			bottom: DEFAULT_PADDING, // bottom
+			left: DEFAULT_PADDING,   // left
+		})
 }

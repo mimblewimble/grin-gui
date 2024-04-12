@@ -1,10 +1,13 @@
+use iced_style::container::StyleSheet;
 use {
 	super::{DEFAULT_FONT_SIZE, DEFAULT_PADDING, SMALLER_FONT_SIZE},
 	crate::gui::{GrinGui, Interaction, Message},
 	crate::localization::localized_string,
 	crate::VERSION,
 	grin_gui_core::theme::ColorPalette,
-	grin_gui_core::theme::{Button, Column, Container, Element, PickList, Row, Scrollable, Text},
+	grin_gui_core::theme::{
+		Button, Column, Container, Element, PickList, Row, Scrollable, Text, Theme,
+	},
 	iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space, TextInput},
 	iced::{alignment, Alignment, Command, Length},
 	serde::{Deserialize, Serialize},

@@ -271,10 +271,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 			}
 			grin_gui.error = err;
 		}
-		Message::RuntimeEvent(iced_core::Event::Window(iced_core::window::Event::Resized {
-			width,
-			height,
-		})) => {
+		Message::RuntimeEvent(iced_core::Event::Window(
+			iced_core::window::Id::MAIN,
+			iced_core::window::Event::Resized { width, height },
+		)) => {
 			let width = (width as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
 			let height = (height as f64 * grin_gui.general_settings_state.scale_state.scale) as u32;
 
@@ -289,6 +289,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 		#[cfg(target_os = "macos")]
 		// Application shutdown
 		Message::RuntimeEvent(iced_core::Event::Window(
+			iced_core::window::Id::MAIN,
 			iced_core::window::Event::CloseRequested,
 		)) => {
 			log::debug!("Message::RuntimeEvent(CloseRequested)");
@@ -297,6 +298,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
 		#[cfg(target_os = "windows")]
 		Message::RuntimeEvent(iced_core::Event::Window(
+			iced_core::window::Id::MAIN,
 			iced_core::window::Event::CloseRequested,
 		)) => {
 			log::debug!("Message::RuntimeEvent(CloseRequested)");
@@ -305,13 +307,15 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 				if grin_gui.config.close_to_tray {
 					let _ = sender.try_send(TrayMessage::CloseToTray);
 				} else {
-					return Ok(window::close());
+					grin_gui.show_exit(true);
+					//return Ok(window::close(iced_core::window::Id::MAIN));
 				}
 			}
 		}
 		Message::RuntimeEvent(iced_core::Event::Keyboard(
 			iced_core::keyboard::Event::KeyReleased {
-				key_code,
+				key,
+				location,
 				modifiers,
 			},
 		)) => {
@@ -323,23 +327,25 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 				return Ok(Command::none());
 			}
 
-			match key_code {
-				iced::keyboard::KeyCode::A => {}
-				iced::keyboard::KeyCode::C => {
+			match key {
+				iced::keyboard::Key::Character(A) => {}
+				iced::keyboard::Key::Character(C) => {
 					grin_gui.mode = Mode::Catalog;
 				}
-				iced::keyboard::KeyCode::R => {}
-				iced::keyboard::KeyCode::S => {
+				iced::keyboard::Key::Character(R) => {}
+				iced::keyboard::Key::Character(S) => {
 					grin_gui.mode = Mode::Settings;
 				}
-				iced::keyboard::KeyCode::U => {}
-				iced::keyboard::KeyCode::W => {}
-				iced::keyboard::KeyCode::I => {
+				iced::keyboard::Key::Character(U) => {}
+				iced::keyboard::Key::Character(W) => {}
+				iced::keyboard::Key::Character(I) => {
 					grin_gui.mode = Mode::Install;
 				}
-				iced::keyboard::KeyCode::Escape => match grin_gui.mode {
-					_ => (),
-				},
+				iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape) => {
+					match grin_gui.mode {
+						_ => (),
+					}
+				}
 				_ => (),
 			}
 		}
@@ -408,7 +414,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 		// Application shutdown
 		Message::Interaction(Interaction::Exit) => {
 			grin_gui.safe_exit();
-			return Ok(window::close());
+			return Ok(window::close(iced_core::window::Id::MAIN));
 		}
 		Message::Interaction(Interaction::ExitCancel) => {
 			grin_gui.show_exit(false);
@@ -420,7 +426,7 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 
 	#[cfg(target_os = "windows")]
 	if SHOULD_EXIT.load(Ordering::Relaxed) {
-		return Ok(window::close());
+		return Ok(window::close(iced_core::window::Id::MAIN));
 	}
 
 	Ok(Command::none())

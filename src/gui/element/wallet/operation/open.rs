@@ -199,7 +199,7 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		.size(DEFAULT_FONT_SIZE)
 		.padding(6)
 		.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-		.password();
+		.secure(true);
 
 		let password_input: Element<Interaction> = password_input.into();
 
@@ -229,11 +229,10 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 			.align_x(alignment::Horizontal::Center);
 
 	let mut submit_button = Button::new(submit_button_label_container)
+		.on_press(Interaction::WalletOperationOpenViewInteraction(
+			LocalViewInteraction::OpenWallet,
+		))
 		.style(grin_gui_core::theme::ButtonStyle::Primary);
-
-	submit_button = submit_button.on_press(Interaction::WalletOperationOpenViewInteraction(
-		LocalViewInteraction::OpenWallet,
-	));
 
 	let submit_button: Element<Interaction> = submit_button.into();
 
@@ -249,20 +248,18 @@ pub fn data_container<'a>(state: &'a StateContainer, config: &Config) -> Contain
 		// &mut state.cancel_button_state,
 		cancel_button_label_container,
 	)
-	.style(grin_gui_core::theme::ButtonStyle::Primary);
-
-	cancel_button = cancel_button.on_press(Interaction::WalletOperationOpenViewInteraction(
+	.on_press(Interaction::WalletOperationOpenViewInteraction(
 		LocalViewInteraction::CancelOpenWallet,
-	));
+	))
+	.style(grin_gui_core::theme::ButtonStyle::Primary);
+	let cancel_button: Element<Interaction> = cancel_button.into();
 
 	// give our buttons a nice double bordered look to match toolbar buttons
-	let submit_button: Element<Interaction> = submit_button.into();
 	let submit_container = Container::new(submit_button.map(Message::Interaction)).padding(1);
 	let submit_container = Container::new(submit_container)
 		.style(grin_gui_core::theme::ContainerStyle::Segmented)
 		.padding(1);
 
-	let cancel_button: Element<Interaction> = cancel_button.into();
 	let cancel_container = Container::new(cancel_button.map(Message::Interaction)).padding(1);
 	let cancel_container = Container::new(cancel_container)
 		.style(grin_gui_core::theme::ContainerStyle::Segmented)

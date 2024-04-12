@@ -4,8 +4,7 @@ extern crate plotters;
 use crate::gui::{element::DEFAULT_PADDING, Message};
 use chrono::{DateTime, Utc};
 use grin_gui_core::theme::{
-	Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-	TextInput, Theme,
+	Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput, Theme,
 };
 use iced::{
 	alignment::{Horizontal, Vertical},

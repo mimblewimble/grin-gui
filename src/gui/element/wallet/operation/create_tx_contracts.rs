@@ -9,7 +9,6 @@ use grin_gui_core::{
 		TxLogEntryType,
 	},
 };
-use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_core::Widget;
 use std::fs::File;
@@ -28,8 +27,8 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Radio, Row, Scrollable, TableRow,
-		Text, TextInput,
+		Button, Column, Container, Element, PickList, Radio, Row, Scrollable, TableRow, Text,
+		TextInput,
 	},
 	grin_gui_core::wallet::{InitTxArgs, Slate, StatusMessage, WalletInfo, WalletInterface},
 	grin_gui_core::{
@@ -374,18 +373,15 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);*/
 
 	let checkbox_column = {
-		let checkbox = Checkbox::new(
-			localized_string("wallet-self-send"),
-			state.is_self_send,
-			|v| {
+		let checkbox = Checkbox::new(localized_string("wallet-self-send"), state.is_self_send)
+			.on_toggle(|v| {
 				Interaction::WalletOperationCreateTxContractsViewInteraction(
 					LocalViewInteraction::SelfSendSelected(v),
 				)
-			},
-		)
-		.style(grin_gui_core::theme::CheckboxStyle::Normal)
-		.text_size(DEFAULT_FONT_SIZE)
-		.spacing(5);
+			})
+			.style(grin_gui_core::theme::CheckboxStyle::Normal)
+			.text_size(DEFAULT_FONT_SIZE)
+			.spacing(5);
 
 		let checkbox: Element<Interaction> = checkbox.into();
 

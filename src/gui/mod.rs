@@ -15,16 +15,16 @@ use grin_gui_core::{
 		subscriber::{self, UIMessage},
 		ChainTypes, NodeInterface,
 	},
-	theme::{Button, ColorPalette, Column, Container, PickList, Row, Scrollable, Text, Theme},
+	theme::{
+		Button, ColorPalette, Column, Container, Modal, PickList, Row, Scrollable, Text, Theme,
+	},
 	wallet::{get_grin_wallet_default_path, global, HTTPNodeClient, WalletInterfaceHttpNodeClient},
 };
 
 use iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space, TextInput};
 use iced::{
-	alignment, font, window, Alignment, Application, Command, Length, Settings, Subscription,
+	alignment, font, window, Alignment, Application, Command, Length, Settings, Size, Subscription,
 };
-
-use iced_aw::{modal, Card, Modal};
 
 use iced_futures::futures::channel::mpsc;
 
@@ -199,20 +199,21 @@ impl Application for GrinGui {
 	}
 
 	/*#[cfg(target_os = "windows")]
-	fn mode(&self) -> iced::window::Mode {
-		use crate::tray::GUI_VISIBLE;
-		use iced::window::Mode;
-		use std::sync::atomic::Ordering;
+		fn mode(&self) -> iced::window::Mode {
+			use crate::tray::GUI_VISIBLE;
+			use iced::window::Mode;
+			use std::sync::atomic::Ordering;
+	use iced_futures::subscription::events; // Add missing import
 
-		if GUI_VISIBLE.load(Ordering::Relaxed) {
-			Mode::Windowed
-		} else {
-			Mode::Hidden
-		}
-	}*/
+			if GUI_VISIBLE.load(Ordering::Relaxed) {
+				Mode::Windowed
+			} else {
+				Mode::Hidden
+			}
+		}*/
 
 	fn subscription(&self) -> Subscription<Message> {
-		let runtime_subscription = iced_futures::subscription::events().map(Message::RuntimeEvent);
+		let runtime_subscription = iced_futures::event::listen().map(Message::RuntimeEvent); // Fix function call
 		let tick_subscription =
 			time::every(std::time::Duration::from_millis(1000)).map(Message::Tick);
 		let node_subscription = subscriber::subscriber(0).map(|e| Message::SendNodeMessage(e));
@@ -281,19 +282,27 @@ impl Application for GrinGui {
             .style(grin_gui_core::theme::ContainerStyle::NormalBackground)
             .into();
 
-		let content: Element<Message> = match self.modal_type {
-			ModalType::Exit => element::modal::exit_card().into(),
-			ModalType::Error => {
-				let error_cause = self
-					.error
-					.as_ref()
-					.map_or_else(|| "unknown error".to_owned(), |e| error_cause_string(e));
+		let overlay = if self.show_modal {
+			Some({
+				let content: Element<Message> = match self.modal_type {
+					ModalType::Exit => element::modal::exit_card().into(),
+					ModalType::Error => {
+						let error_cause = self
+							.error
+							.as_ref()
+							.map_or_else(|| "unknown error".to_owned(), |e| error_cause_string(e));
 
-				element::modal::error_card(error_cause.clone()).into()
-			}
+						element::modal::error_card(error_cause.clone()).into()
+					}
+				};
+				content
+			})
+		} else {
+			None
 		};
 
-		Modal::new(self.show_modal, underlay, content)
+		// self.show_modal?
+		Modal::new(underlay, overlay)
 			.on_esc(Message::Interaction(Interaction::CloseErrorModal))
 			.style(grin_gui_core::theme::ModalStyle::Normal)
 			.into()
@@ -310,17 +319,21 @@ pub fn run(opts: Opts, config: Config) {
 	log::debug!("config loaded:\n{:#?}", &config);
 
 	let mut settings = Settings::default();
-	settings.window.size = config.window_size.unwrap_or((900, 620));
+	let size = Size {
+		width: config.window_size.unwrap_or((900, 620)).0 as f32,
+		height: config.window_size.unwrap_or((900, 620)).1 as f32,
+	};
+	settings.window.size = size;
 
 	#[cfg(target_os = "macos")]
 	{
 		// false needed for Application shutdown
-		settings.exit_on_close_request = false;
+		settings.window.exit_on_close_request = false;
 	}
 
 	#[cfg(target_os = "windows")]
 	{
-		settings.exit_on_close_request = false;
+		settings.window.exit_on_close_request = false;
 	}
 
 	#[cfg(not(target_os = "linux"))]
@@ -328,7 +341,10 @@ pub fn run(opts: Opts, config: Config) {
 	// on Linux.
 	// @see: https://github.com/ajour/ajour/issues/427
 	{
-		settings.window.min_size = Some((600, 300));
+		settings.window.min_size = Some(Size {
+			width: 600.0,
+			height: 300.0,
+		});
 	}
 
 	#[cfg(feature = "wgpu")]

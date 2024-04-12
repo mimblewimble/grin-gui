@@ -8,7 +8,6 @@ use grin_gui_core::{
 		TxLogEntry, TxLogEntryType,
 	},
 };
-use grin_gui_widgets::widget::header;
 use iced_aw::Card;
 use iced_core::Widget;
 use std::fs::{self, File};
@@ -27,8 +26,7 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput,
 	},
 	grin_gui_core::wallet::{parse_abs_tx_amount_fee, StatusMessage, WalletInfo, WalletInterface},
 	grin_gui_core::{node::amount_to_hr_string, theme::ColorPalette},

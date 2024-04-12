@@ -1,112 +1,194 @@
-use grin_gui_widgets::style::table_row::{StyleSheet, Appearance};
 use iced::{Background, Color};
+use iced_aw::style::table_row::{Appearance, RowOrCellAppearance};
+use iced_aw::table;
+
 use super::Theme;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TableRowStyle {
-    #[default]
-    Default,
-    TableRowAlternate,
-    TableRowHighlife,
-    TableRowLowlife,
-    TableRowSelected,
+	#[default]
+	Default,
+	TableRowAlternate,
+	TableRowHighlight,
+	TableRowLowlight,
+	TableRowSelected,
 }
 
-impl StyleSheet for Theme {
-    type Style = TableRowStyle;
+impl table::TableRowStyleSheet for Theme {
+	type Style = TableRowStyle;
+	fn appearance(&self, style: &Self::Style, row_id: u16) -> Appearance {
+		let palette = self.palette;
 
-    fn appearance(&self, style: &Self::Style) -> Appearance {
-        match style {
-            TableRowStyle::Default => Appearance {
-                text_color: Some(self.palette.normal.primary),
-                background: Some(Background::Color(self.palette.base.foreground)),
-                border_radius: 0.0,
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
-                // offset_left: 10.0,
-                // offset_right: 25.0,
-                offset_left: 0.0,
-                offset_right: 0.0,
-            },
-            TableRowStyle::TableRowAlternate => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.50,
-                    ..self.palette.base.foreground
-                })),
-                ..Appearance::default()
-            },
-            TableRowStyle::TableRowHighlife => Appearance {
-                text_color: Some(self.palette.normal.primary),
-                background: Some(Background::Color(Color {
-                    a: 0.30,
-                    ..self.palette.base.foreground
-                })),
-                border_radius: 0.0,
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
-                offset_left: 0.0,
-                offset_right: 0.0,
-            },
-            TableRowStyle::TableRowLowlife => Appearance {
-                text_color: Some(self.palette.normal.primary),
-                background: Some(Background::Color(Color::TRANSPARENT)),
-                border_radius: 0.0,
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
-                offset_left: 0.0,
-                offset_right: 0.0,
-            },
-            TableRowStyle::TableRowSelected => Appearance {
-                text_color: Some(self.palette.normal.primary),
-                background: Some(Background::Color(self.palette.normal.primary)),
-                border_radius: 0.0,
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
-                offset_left: 0.0,
-                offset_right: 0.0,
-            },
-        }
-    }
+		match style {
+			TableRowStyle::Default => Appearance {
+				row: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: Some(Background::Color(palette.base.foreground)),
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+				cell: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: None,
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+			},
+			TableRowStyle::TableRowAlternate => Appearance {
+				row: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: Some(Background::Color(Color {
+						a: 0.50,
+						..palette.base.foreground
+					})),
+					..RowOrCellAppearance::default()
+				},
+				cell: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: None,
+					..RowOrCellAppearance::default()
+				},
+			},
+			TableRowStyle::TableRowHighlight => Appearance {
+				row: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: Some(Background::Color(Color {
+						a: 0.30,
+						..palette.base.foreground
+					})),
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+				cell: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: None,
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+			},
+			TableRowStyle::TableRowLowlight => Appearance {
+				row: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: Some(Background::Color(Color::TRANSPARENT)),
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+				cell: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: None,
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+			},
+			TableRowStyle::TableRowSelected => Appearance {
+				row: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: Some(Background::Color(palette.normal.primary)),
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+				cell: RowOrCellAppearance {
+					text_color: palette.normal.primary,
+					background: None,
+					border_radius: 0.0.into(),
+					border_width: 0.0,
+					border_color: Color::TRANSPARENT,
+					offset_left: 0.0,
+					offset_right: 0.0,
+				},
+			},
+		}
+	}
 
-    fn hovered(&self, style: &Self::Style) -> Appearance {
-        let appearance = self.appearance(style);
-
-        match style {
-            TableRowStyle::Default => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.60,
-                    ..self.palette.normal.primary
-                })),
-                ..appearance
-            },
-            TableRowStyle::TableRowAlternate => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.25,
-                    ..self.palette.normal.primary
-                })),
-                ..appearance
-            },
-            TableRowStyle::TableRowHighlife => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.60,
-                    ..self.palette.normal.primary
-                })),
-                ..appearance
-            },
-            TableRowStyle::TableRowLowlife => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.60,
-                    ..self.palette.normal.primary
-                })),
-                ..appearance
-            },
-            TableRowStyle::TableRowSelected => Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.60,
-                    ..self.palette.normal.primary
-                })),
-                ..appearance
-            },
-        }
-    }
+	fn hovered(&self, style: &Self::Style, row_id: u16) -> Appearance {
+		let palette = self.palette;
+		match style {
+			TableRowStyle::Default => Appearance {
+				row: RowOrCellAppearance {
+					background: Some(Background::Color(Color {
+						a: 0.60,
+						..palette.normal.primary
+					})),
+					..self.appearance(style, row_id).row
+				},
+				cell: RowOrCellAppearance {
+					background: None,
+					..self.appearance(style, row_id).cell
+				},
+			},
+			TableRowStyle::TableRowAlternate => Appearance {
+				row: RowOrCellAppearance {
+					background: Some(Background::Color(Color {
+						a: 0.25,
+						..palette.normal.primary
+					})),
+					..self.appearance(style, row_id).row
+				},
+				cell: RowOrCellAppearance {
+					background: None,
+					..self.appearance(style, row_id).cell
+				},
+			},
+			TableRowStyle::TableRowHighlight => Appearance {
+				row: RowOrCellAppearance {
+					background: Some(Background::Color(Color {
+						a: 0.60,
+						..palette.normal.primary
+					})),
+					..self.appearance(style, row_id).row
+				},
+				cell: RowOrCellAppearance {
+					background: None,
+					..self.appearance(style, row_id).cell
+				},
+			},
+			TableRowStyle::TableRowLowlight => Appearance {
+				row: RowOrCellAppearance {
+					background: Some(Background::Color(Color {
+						a: 0.60,
+						..palette.normal.primary
+					})),
+					..self.appearance(style, row_id).row
+				},
+				cell: RowOrCellAppearance {
+					background: None,
+					..self.appearance(style, row_id).cell
+				},
+			},
+			TableRowStyle::TableRowSelected => Appearance {
+				row: RowOrCellAppearance {
+					background: Some(Background::Color(Color {
+						a: 0.60,
+						..palette.normal.primary
+					})),
+					..self.appearance(style, row_id).row
+				},
+				cell: RowOrCellAppearance {
+					background: None,
+					..self.appearance(style, row_id).cell
+				},
+			},
+		}
+	}
 }

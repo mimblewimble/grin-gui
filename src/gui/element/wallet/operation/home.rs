@@ -13,7 +13,6 @@ use grin_gui_core::{
 	config::{Config, Currency},
 	wallet::{InvoiceProof, RetrieveTxQueryArgs, TxLogEntry, TxLogEntryType},
 };
-use grin_gui_widgets::widget::header;
 use iced::Point;
 use iced_aw::Card;
 use iced_core::Widget;
@@ -38,8 +37,7 @@ use {
 	crate::Result,
 	anyhow::Context,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, Header, PickList, Row, Scrollable, TableRow, Text,
-		TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, TableRow, Text, TextInput,
 	},
 	grin_gui_core::wallet::{StatusMessage, WalletInfo, WalletInterface},
 	grin_gui_core::{
@@ -574,8 +572,6 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
 	let close_wallet_label_container =
 		Container::new(Text::new(localized_string("close")).size(SMALLER_FONT_SIZE))
-			.height(Length::Fixed(14.0))
-			.width(Length::Fixed(30.0))
 			.center_y()
 			.center_x();
 
@@ -584,12 +580,12 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 		.on_press(Interaction::WalletOperationHomeViewInteraction(
 			LocalViewInteraction::Back,
 		))
-		.padding(2)
+		.width(Length::Shrink)
 		.into();
 
 	let subtitle_row = Row::new()
 		.push(subtitle_container)
-		.push(Space::with_width(Length::Fixed(2.0)))
+		.push(Space::with_width(Length::Fixed(10.0)))
 		.push(close_wallet_button.map(Message::Interaction));
 
 	let address_label = Text::new(format!(
@@ -631,22 +627,20 @@ pub fn data_container<'a>(config: &'a Config, state: &'a StateContainer) -> Cont
 
 	let copy_address_label_container =
 		Container::new(Text::new(localized_string("copy-to-clipboard")).size(SMALLER_FONT_SIZE))
-			.height(Length::Fixed(14.0))
-			.width(Length::Fixed(30.0))
 			.center_y()
 			.center_x();
 
 	let copy_address_button: Element<Interaction> = Button::new(copy_address_label_container)
 		.style(grin_gui_core::theme::ButtonStyle::Bordered)
 		.on_press(Interaction::WriteToClipboard(copied_address_value))
-		.padding(2)
+		.width(Length::Shrink)
 		.into();
 
 	let address_row = Row::new()
 		.push(address_label_container)
-		.push(Space::with_width(Length::Fixed(2.0)))
+		.push(Space::with_width(Length::Fixed(10.0)))
 		.push(address_container)
-		.push(Space::with_width(Length::Fixed(2.0)))
+		.push(Space::with_width(Length::Fixed(10.0)))
 		.push(copy_address_button.map(Message::Interaction));
 
 	let title_container = Container::new(

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_args: [crates/core, crates/widgets, .]
+        job_args: [crates/core, .]
     steps:
       - uses: actions/checkout@v3
       - name: Test ${{ matrix.job_args }}
