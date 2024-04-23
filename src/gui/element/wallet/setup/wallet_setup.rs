@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use {
 	super::super::super::{
 		BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
+		DEFAULT_SUB_HEADER_FONT_SIZE,
 	},
 	crate::gui::{GrinGui, Interaction, Message},
 	crate::localization::localized_string,
@@ -297,6 +298,24 @@ pub fn data_container<'a>(
 		DEFAULT_PADDING as u16, // bottom
 		0,                      // left
 	]));
+	let display_name = Text::new(localized_string("display-name"))
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
+		.horizontal_alignment(alignment::Horizontal::Left);
+
+	let display_name_container =
+		Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+	let display_name_input = TextInput::new(
+		default_display_name,
+		&state.advanced_options_state.display_name_value,
+	)
+	.on_input(|s| {
+		Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s))
+	})
+	.size(DEFAULT_FONT_SIZE)
+	.padding(6)
+	.width(Length::Fixed(200.0))
+	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
 	let password_column = {
 		let password_input = TextInput::new(
@@ -365,7 +384,7 @@ pub fn data_container<'a>(
 	};
 
 	let description = Text::new(localized_string("setup-grin-wallet-enter-password"))
-		.size(DEFAULT_FONT_SIZE)
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Center);
 	let description_container =
 		Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
@@ -437,27 +456,8 @@ pub fn data_container<'a>(
 
 	// ** start hideable advanced options
 	//let display_name_label =
-	let display_name = Text::new(localized_string("display-name"))
-		.size(DEFAULT_FONT_SIZE)
-		.horizontal_alignment(alignment::Horizontal::Left);
-
-	let display_name_container =
-		Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-	let display_name_input = TextInput::new(
-		default_display_name,
-		&state.advanced_options_state.display_name_value,
-	)
-	.on_input(|s| {
-		Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s))
-	})
-	.size(DEFAULT_FONT_SIZE)
-	.padding(6)
-	.width(Length::Fixed(200.0))
-	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
-
 	let tld = Text::new(localized_string("top-level-domain"))
-		.size(DEFAULT_FONT_SIZE)
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Left);
 
 	let tld_container =
@@ -509,9 +509,6 @@ pub fn data_container<'a>(
 	let is_testnet_row = Row::new().push(is_testnet_checkbox.map(Message::Interaction));
 
 	let advanced_options_column = Column::new()
-		.push(display_name_container)
-		.push(display_name_input.map(Message::Interaction))
-		.push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
 		.push(tld_container)
 		.spacing(DEFAULT_PADDING)
 		.push(folder_select_row)
@@ -584,6 +581,10 @@ pub fn data_container<'a>(
 		.push(cancel_container);
 
 	let mut column = Column::new()
+		.push(display_name_container)
+		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+		.push(display_name_input.map(Message::Interaction))
+		.push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
 		.push(description_container)
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))

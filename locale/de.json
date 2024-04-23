@@ -224,7 +224,7 @@
     "info-awaiting-confirmation": "Awaiting Confirmation",
     "info-awaiting-finalization": "Awaiting Finalization",
     "info-locked": "Locked",
-    "wallet-default-name": "Default",
+    "wallet-default-name": "My Grin Wallet",
     "wallet-create-tx": "Start",
     "wallet-apply-tx": "Continue",
     "wallet-create-contract": "Create Contract",
