@@ -25,6 +25,7 @@ pub trait PersistentData: DeserializeOwned + Serialize {
 	/// Load from `PersistentData::path()`.
 	fn load() -> Result<Self> {
 		let path = Self::path()?;
+		println!("{:?}", path);
 
 		if path.exists() {
 			let file = fs::File::open(&path)?;
@@ -39,7 +40,6 @@ pub trait PersistentData: DeserializeOwned + Serialize {
 	/// and return that object.
 	fn load_or_default<T: PersistentData + Default>() -> Result<T> {
 		let load_result = <T as PersistentData>::load();
-
 		match load_result {
 			Ok(deser) => Ok(deser),
 			_ => Ok(get_default_and_save()?),

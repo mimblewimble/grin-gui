@@ -44,6 +44,7 @@ pub struct Config {
 	#[serde(default = "default_true")]
 	pub alternating_row_colors: bool,
 
+	//TODO: These default values aren't working
 	#[serde(default = "default_true")]
 	pub is_keybindings_enabled: bool,
 

@@ -78,6 +78,7 @@
     "remote-release-channel": "Veröffentlichungskanal",
     "reset-columns": "Spalten zurücksetzen",
     "restore-from-seed": "Restore this wallet from an existing seed phrase",
+    "enter-seed-phrase": "Enter Seed Phrase",
     "retry": "Erneut versuchen",
     "scale": "Skalierung",
     "search-for-addon": "Suche nach einem Addon",

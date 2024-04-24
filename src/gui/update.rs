@@ -10,7 +10,11 @@ use {
 	std::path::PathBuf,
 };
 
-use iced::window;
+use iced::{
+	widget::{focus_next, focus_previous},
+	window,
+};
+use iced_core::SmolStr;
 
 #[cfg(target_os = "windows")]
 use crate::tray::{TrayMessage, SHOULD_EXIT, TRAY_SENDER};
@@ -319,31 +323,31 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 				modifiers,
 			},
 		)) => {
+			/*debug!(
+				"Event::Keyboard::KeyReleased({:?}, {:?}, {:?})",
+				key, location, modifiers
+			);*/
 			// Bail out of keybindings if keybindings is diabled, or we are
 			// pressing any modifiers.
-			if !grin_gui.config.is_keybindings_enabled
-				|| modifiers != iced::keyboard::Modifiers::default()
-			{
+			/*if !grin_gui.config.is_keybindings_enabled {
 				return Ok(Command::none());
-			}
+			}*/
 
-			match key {
-				iced::keyboard::Key::Character(A) => {}
-				iced::keyboard::Key::Character(C) => {
-					grin_gui.mode = Mode::Catalog;
-				}
-				iced::keyboard::Key::Character(R) => {}
-				iced::keyboard::Key::Character(S) => {
-					grin_gui.mode = Mode::Settings;
-				}
-				iced::keyboard::Key::Character(U) => {}
-				iced::keyboard::Key::Character(W) => {}
-				iced::keyboard::Key::Character(I) => {
-					grin_gui.mode = Mode::Install;
+			match key.as_ref() {
+				iced::keyboard::Key::Character("w") => {
+					// Just testing for now
+					debug!("w pressed");
 				}
 				iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape) => {
 					match grin_gui.mode {
 						_ => (),
+					}
+				}
+				iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab) => {
+					if modifiers.shift() {
+						return Ok(focus_previous::<Message>());
+					} else {
+						return Ok(focus_next::<Message>());
 					}
 				}
 				_ => (),

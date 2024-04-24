@@ -78,6 +78,7 @@
     "remote-release-channel": "Release channel",
     "reset-columns": "Reset Columns",
     "restore-from-seed": "Restore this wallet from an existing seed phrase (TBD)",
+    "enter-seed-phrase": "Enter Seed Phrase:",
     "retry": "Retry",
     "scale": "Scale",
     "search-for-addon": "Search for an addon...",

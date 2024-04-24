@@ -23,6 +23,7 @@ pub mod scrollable;
 pub mod table_header;
 pub mod table_row;
 pub mod text;
+pub mod text_editor;
 pub mod text_input;
 
 pub use button::ButtonStyle;
@@ -35,6 +36,7 @@ pub use radio::RadioStyle;
 pub use scrollable::ScrollableStyle;
 pub use table_header::TableHeaderStyle;
 pub use table_row::TableRowStyle;
+pub use text_editor::TextEditorStyle;
 pub use text_input::TextInputStyle;
 
 pub async fn load_user_themes() -> Vec<Theme> {
@@ -56,6 +58,8 @@ pub type Column<'a, Message> = iced::widget::Column<'a, Message, Theme, Renderer
 pub type Row<'a, Message> = iced::widget::Row<'a, Message, Theme, Renderer>;
 pub type Text<'a> = iced::widget::Text<'a, Theme, Renderer>;
 pub type TextInput<'a, Message> = iced::widget::TextInput<'a, Message, Theme, Renderer>;
+pub type TextEditor<'a, Message, Theme, Renderer> =
+	iced::widget::TextEditor<'a, Message, Theme, Renderer>;
 pub type Button<'a, Message> = iced::widget::Button<'a, Message, Theme, Renderer>;
 pub type Scrollable<'a, Message> = iced::widget::Scrollable<'a, Message, Theme, Renderer>;
 pub type PickList<'a, T, L, V, Message> =

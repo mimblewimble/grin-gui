@@ -14,7 +14,7 @@ use {
 	anyhow::Context,
 	grin_gui_core::theme::ColorPalette,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextEditor, TextInput,
 	},
 	grin_gui_core::{
 		config::Wallet,
@@ -23,7 +23,7 @@ use {
 		wallet::create_grin_wallet_path,
 		wallet::WalletInterface,
 	},
-	iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
+	iced::widget::{button, pick_list, scrollable, text_editor, text_input, Checkbox, Space},
 	iced::{alignment, Alignment, Command, Length},
 	std::sync::{Arc, RwLock},
 };
@@ -31,7 +31,7 @@ use {
 pub struct StateContainer {
 	pub password_state: PasswordState,
 	pub restore_from_seed: bool,
-	pub seed_input_value: String,
+	pub seed_input_content: text_editor::Content,
 	pub show_advanced_options: bool,
 	pub is_testnet: bool,
 	pub advanced_options_state: AdvancedOptionsState,
@@ -44,7 +44,7 @@ impl Default for StateContainer {
 			show_advanced_options: false,
 			is_testnet: false,
 			restore_from_seed: false,
-			seed_input_value: Default::default(),
+			seed_input_content: text_editor::Content::new(),
 			advanced_options_state: Default::default(),
 		}
 	}
@@ -94,7 +94,7 @@ pub enum LocalViewInteraction {
 	CreateWallet(String, PathBuf),
 	WalletCreatedOk((String, String, String, ChainTypes)),
 	WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
-	SeedInput(String),
+	SeedValueAction(text_editor::Action),
 	ShowFolderPicker,
 }
 
@@ -191,8 +191,8 @@ pub fn handle_message<'a>(
 			let password = state.password_state.input_value.clone();
 			let w = grin_gui.wallet_interface.clone();
 			let chain_type = if state.is_testnet { Testnet } else { Mainnet };
-			let recovery_phrase = if !state.seed_input_value.is_empty() {
-				Some(state.seed_input_value.clone())
+			let recovery_phrase = if !state.seed_input_content.text().is_empty() {
+				Some(state.seed_input_content.text().clone())
 			} else {
 				None
 			};
@@ -251,8 +251,9 @@ pub fn handle_message<'a>(
 				log_error(e);
 			}
 		}
-		LocalViewInteraction::SeedInput(seed) => {
-			state.seed_input_value = seed;
+		LocalViewInteraction::SeedValueAction(action) => {
+			//state.seed_input_value = seed;
+			state.seed_input_content.perform(action);
 		}
 	}
 
@@ -432,22 +433,33 @@ pub fn data_container<'a>(
 	};
 
 	// ** start hideable restore from seed section
-	let seed_input: Element<Interaction> = TextInput::new(
-		"seed",
-		&state.seed_input_value, /*, |s| {
-									 Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedInput(s))
-								 }*/
-	)
-	.size(DEFAULT_FONT_SIZE)
-	.padding(6)
-	.width(Length::Fixed(200.0))
-	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-	.into();
+	let seed_input: Element<Interaction> = TextEditor::new(&state.seed_input_content)
+		/* .size(DEFAULT_FONT_SIZE)*/
+		//.padding(6)
+		.height(Length::Fill)
+		.style(grin_gui_core::theme::TextEditorStyle::Default)
+		.on_action(|a| {
+			Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedValueAction(a))
+		})
+		.into();
 
-	let seed_column = Column::with_children(vec![seed_input.map(Message::Interaction)]);
+	let seed_input_wrapper = Container::new(seed_input.map(Message::Interaction))
+		.height(Length::Fixed(200.0))
+		.width(Length::Fixed(500.0))
+		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+	let seed_column = Column::with_children(vec![seed_input_wrapper.into()]);
+
+	let seed_description = Text::new(localized_string("enter-seed-phrase"))
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
+		.horizontal_alignment(alignment::Horizontal::Center);
+	let seed_description_container = Container::new(seed_description)
+		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
 	if state.restore_from_seed {
 		restore_from_seed_column = restore_from_seed_column
+			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
+			.push(seed_description_container)
 			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
 			.push(seed_column);
 	}
