@@ -21,7 +21,7 @@ use {
 		fs::PersistentData,
 		node::ChainTypes::{self, Mainnet, Testnet},
 		wallet::create_grin_wallet_path,
-		wallet::WalletInterface,
+		wallet::{validate_mnemonic, WalletInterface},
 	},
 	iced::widget::{button, pick_list, scrollable, text_editor, text_input, Checkbox, Space},
 	iced::{alignment, Alignment, Command, Length},
@@ -91,6 +91,7 @@ pub enum LocalViewInteraction {
 	ToggleAdvancedOptions(bool),
 	ToggleIsTestnet(bool),
 	DisplayName(String),
+	CreateWalletCheck(String, PathBuf),
 	CreateWallet(String, PathBuf),
 	WalletCreatedOk((String, String, String, ChainTypes)),
 	WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
@@ -180,6 +181,36 @@ pub fn handle_message<'a>(
 				}
 			};
 		}
+
+		LocalViewInteraction::CreateWalletCheck(display_name, top_level_directory) => {
+			grin_gui.error.take();
+
+			log::debug!(
+				"setup::wallet::LocalViewInteraction::CreateWalletCheck {}",
+				display_name,
+			);
+			if state.restore_from_seed {
+				if let Err(e) = validate_mnemonic(state.seed_input_content.text().clone()) {
+					let fut = move || async {};
+					return Ok(Command::perform(fut(), |_| {
+						return Message::Interaction(
+							Interaction::WalletSetupWalletViewInteraction(
+								LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(
+									Some(e.into()),
+								))),
+							),
+						);
+					}));
+				}
+			}
+			let fut = move || async {};
+			return Ok(Command::perform(fut(), |_| {
+				return Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+					LocalViewInteraction::CreateWallet(display_name, top_level_directory),
+				));
+			}));
+		}
+
 		LocalViewInteraction::CreateWallet(display_name, top_level_directory) => {
 			grin_gui.error.take();
 
@@ -191,7 +222,7 @@ pub fn handle_message<'a>(
 			let password = state.password_state.input_value.clone();
 			let w = grin_gui.wallet_interface.clone();
 			let chain_type = if state.is_testnet { Testnet } else { Mainnet };
-			let recovery_phrase = if !state.seed_input_content.text().is_empty() {
+			let recovery_phrase = if state.restore_from_seed {
 				Some(state.seed_input_content.text().clone())
 			} else {
 				None
@@ -555,7 +586,7 @@ pub fn data_container<'a>(
 		};
 
 		submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
-			LocalViewInteraction::CreateWallet(display_name, top_level_directory),
+			LocalViewInteraction::CreateWalletCheck(display_name, top_level_directory),
 		));
 	}
 

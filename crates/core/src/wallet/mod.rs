@@ -11,6 +11,7 @@ pub use grin_core::global;
 use grin_core::{self};
 use grin_keychain as keychain;
 use grin_util::{file, Mutex, ZeroingString};
+use keychain::mnemonic;
 
 use super::node::amount_to_hr_string;
 use std::path::PathBuf;
@@ -142,6 +143,14 @@ pub fn get_wallet_config(path: &str) -> Result<GlobalWalletConfig, GrinWalletInt
 	match res {
 		Ok(c) => Ok(c),
 		Err(e) => Err(GrinWalletInterfaceError::ConfigReadError { file: path.into() }),
+	}
+}
+
+pub fn validate_mnemonic(mnemonic: String) -> Result<(), GrinWalletInterfaceError> {
+	let result = mnemonic::to_entropy(&mnemonic);
+	match result {
+		Ok(_) => Ok(()),
+		Err(_) => Err(GrinWalletInterfaceError::InvalidRecoveryPhrase),
 	}
 }
 
