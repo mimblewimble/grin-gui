@@ -2646,7 +2646,7 @@ dependencies = [
 
 [[package]]
 name = "grin-gui-core"
-version = "0.1.0-alpha.7"
+version = "0.1.0-alpha.8"
 dependencies = [
  "async-std",
  "backtrace",

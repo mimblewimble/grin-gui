@@ -16,7 +16,7 @@ no-self-update = ["grin-gui-core/no-self-update"]
 debug = ["iced/debug"]
 
 [dependencies]
-grin-gui-core = { version = "0.1.0-alpha.6", path = "crates/core", features = ["wgpu"]}
+grin-gui-core = { version = "0.1.0-alpha.8", path = "crates/core", features = ["wgpu"]}
 
 iced = { version = "0.12", features = ["canvas", "tokio"]  }
 iced_futures = { version = "0.12", features = ["async-std"] }
