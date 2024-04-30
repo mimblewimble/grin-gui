@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use {
 	super::super::super::{
 		BUTTON_HEIGHT, BUTTON_WIDTH, DEFAULT_FONT_SIZE, DEFAULT_HEADER_FONT_SIZE, DEFAULT_PADDING,
+		DEFAULT_SUB_HEADER_FONT_SIZE,
 	},
 	crate::gui::{GrinGui, Interaction, Message},
 	crate::localization::localized_string,
@@ -13,16 +14,16 @@ use {
 	anyhow::Context,
 	grin_gui_core::theme::ColorPalette,
 	grin_gui_core::theme::{
-		Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextInput,
+		Button, Column, Container, Element, PickList, Row, Scrollable, Text, TextEditor, TextInput,
 	},
 	grin_gui_core::{
 		config::Wallet,
 		fs::PersistentData,
 		node::ChainTypes::{self, Mainnet, Testnet},
 		wallet::create_grin_wallet_path,
-		wallet::WalletInterface,
+		wallet::{validate_mnemonic, WalletInterface},
 	},
-	iced::widget::{button, pick_list, scrollable, text_input, Checkbox, Space},
+	iced::widget::{button, pick_list, scrollable, text_editor, text_input, Checkbox, Space},
 	iced::{alignment, Alignment, Command, Length},
 	std::sync::{Arc, RwLock},
 };
@@ -30,7 +31,7 @@ use {
 pub struct StateContainer {
 	pub password_state: PasswordState,
 	pub restore_from_seed: bool,
-	pub seed_input_value: String,
+	pub seed_input_content: text_editor::Content,
 	pub show_advanced_options: bool,
 	pub is_testnet: bool,
 	pub advanced_options_state: AdvancedOptionsState,
@@ -43,7 +44,7 @@ impl Default for StateContainer {
 			show_advanced_options: false,
 			is_testnet: false,
 			restore_from_seed: false,
-			seed_input_value: Default::default(),
+			seed_input_content: text_editor::Content::new(),
 			advanced_options_state: Default::default(),
 		}
 	}
@@ -90,10 +91,11 @@ pub enum LocalViewInteraction {
 	ToggleAdvancedOptions(bool),
 	ToggleIsTestnet(bool),
 	DisplayName(String),
+	CreateWalletCheck(String, PathBuf),
 	CreateWallet(String, PathBuf),
 	WalletCreatedOk((String, String, String, ChainTypes)),
 	WalletCreateError(Arc<RwLock<Option<anyhow::Error>>>),
-	SeedInput(String),
+	SeedValueAction(text_editor::Action),
 	ShowFolderPicker,
 }
 
@@ -179,6 +181,36 @@ pub fn handle_message<'a>(
 				}
 			};
 		}
+
+		LocalViewInteraction::CreateWalletCheck(display_name, top_level_directory) => {
+			grin_gui.error.take();
+
+			log::debug!(
+				"setup::wallet::LocalViewInteraction::CreateWalletCheck {}",
+				display_name,
+			);
+			if state.restore_from_seed {
+				if let Err(e) = validate_mnemonic(state.seed_input_content.text().clone()) {
+					let fut = move || async {};
+					return Ok(Command::perform(fut(), |_| {
+						return Message::Interaction(
+							Interaction::WalletSetupWalletViewInteraction(
+								LocalViewInteraction::WalletCreateError(Arc::new(RwLock::new(
+									Some(e.into()),
+								))),
+							),
+						);
+					}));
+				}
+			}
+			let fut = move || async {};
+			return Ok(Command::perform(fut(), |_| {
+				return Message::Interaction(Interaction::WalletSetupWalletViewInteraction(
+					LocalViewInteraction::CreateWallet(display_name, top_level_directory),
+				));
+			}));
+		}
+
 		LocalViewInteraction::CreateWallet(display_name, top_level_directory) => {
 			grin_gui.error.take();
 
@@ -190,8 +222,8 @@ pub fn handle_message<'a>(
 			let password = state.password_state.input_value.clone();
 			let w = grin_gui.wallet_interface.clone();
 			let chain_type = if state.is_testnet { Testnet } else { Mainnet };
-			let recovery_phrase = if !state.seed_input_value.is_empty() {
-				Some(state.seed_input_value.clone())
+			let recovery_phrase = if state.restore_from_seed {
+				Some(state.seed_input_content.text().clone())
 			} else {
 				None
 			};
@@ -250,8 +282,9 @@ pub fn handle_message<'a>(
 				log_error(e);
 			}
 		}
-		LocalViewInteraction::SeedInput(seed) => {
-			state.seed_input_value = seed;
+		LocalViewInteraction::SeedValueAction(action) => {
+			//state.seed_input_value = seed;
+			state.seed_input_content.perform(action);
 		}
 	}
 
@@ -297,6 +330,24 @@ pub fn data_container<'a>(
 		DEFAULT_PADDING as u16, // bottom
 		0,                      // left
 	]));
+	let display_name = Text::new(localized_string("display-name"))
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
+		.horizontal_alignment(alignment::Horizontal::Left);
+
+	let display_name_container =
+		Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+	let display_name_input = TextInput::new(
+		default_display_name,
+		&state.advanced_options_state.display_name_value,
+	)
+	.on_input(|s| {
+		Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s))
+	})
+	.size(DEFAULT_FONT_SIZE)
+	.padding(6)
+	.width(Length::Fixed(200.0))
+	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
 
 	let password_column = {
 		let password_input = TextInput::new(
@@ -365,7 +416,7 @@ pub fn data_container<'a>(
 	};
 
 	let description = Text::new(localized_string("setup-grin-wallet-enter-password"))
-		.size(DEFAULT_FONT_SIZE)
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Center);
 	let description_container =
 		Container::new(description).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
@@ -413,22 +464,33 @@ pub fn data_container<'a>(
 	};
 
 	// ** start hideable restore from seed section
-	let seed_input: Element<Interaction> = TextInput::new(
-		"seed",
-		&state.seed_input_value, /*, |s| {
-									 Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedInput(s))
-								 }*/
-	)
-	.size(DEFAULT_FONT_SIZE)
-	.padding(6)
-	.width(Length::Fixed(200.0))
-	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery)
-	.into();
+	let seed_input: Element<Interaction> = TextEditor::new(&state.seed_input_content)
+		/* .size(DEFAULT_FONT_SIZE)*/
+		//.padding(6)
+		.height(Length::Fill)
+		.style(grin_gui_core::theme::TextEditorStyle::Default)
+		.on_action(|a| {
+			Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::SeedValueAction(a))
+		})
+		.into();
 
-	let seed_column = Column::with_children(vec![seed_input.map(Message::Interaction)]);
+	let seed_input_wrapper = Container::new(seed_input.map(Message::Interaction))
+		.height(Length::Fixed(200.0))
+		.width(Length::Fixed(500.0))
+		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);
+
+	let seed_column = Column::with_children(vec![seed_input_wrapper.into()]);
+
+	let seed_description = Text::new(localized_string("enter-seed-phrase"))
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
+		.horizontal_alignment(alignment::Horizontal::Center);
+	let seed_description_container = Container::new(seed_description)
+		.style(grin_gui_core::theme::ContainerStyle::NormalBackground);
 
 	if state.restore_from_seed {
 		restore_from_seed_column = restore_from_seed_column
+			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
+			.push(seed_description_container)
 			.push(Space::with_height(Length::Fixed(DEFAULT_PADDING)))
 			.push(seed_column);
 	}
@@ -437,27 +499,8 @@ pub fn data_container<'a>(
 
 	// ** start hideable advanced options
 	//let display_name_label =
-	let display_name = Text::new(localized_string("display-name"))
-		.size(DEFAULT_FONT_SIZE)
-		.horizontal_alignment(alignment::Horizontal::Left);
-
-	let display_name_container =
-		Container::new(display_name).style(grin_gui_core::theme::ContainerStyle::NormalBackground);
-
-	let display_name_input = TextInput::new(
-		default_display_name,
-		&state.advanced_options_state.display_name_value,
-	)
-	.on_input(|s| {
-		Interaction::WalletSetupWalletViewInteraction(LocalViewInteraction::DisplayName(s))
-	})
-	.size(DEFAULT_FONT_SIZE)
-	.padding(6)
-	.width(Length::Fixed(200.0))
-	.style(grin_gui_core::theme::TextInputStyle::AddonsQuery);
-
 	let tld = Text::new(localized_string("top-level-domain"))
-		.size(DEFAULT_FONT_SIZE)
+		.size(DEFAULT_SUB_HEADER_FONT_SIZE)
 		.horizontal_alignment(alignment::Horizontal::Left);
 
 	let tld_container =
@@ -509,9 +552,6 @@ pub fn data_container<'a>(
 	let is_testnet_row = Row::new().push(is_testnet_checkbox.map(Message::Interaction));
 
 	let advanced_options_column = Column::new()
-		.push(display_name_container)
-		.push(display_name_input.map(Message::Interaction))
-		.push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
 		.push(tld_container)
 		.spacing(DEFAULT_PADDING)
 		.push(folder_select_row)
@@ -546,7 +586,7 @@ pub fn data_container<'a>(
 		};
 
 		submit_button = submit_button.on_press(Interaction::WalletSetupWalletViewInteraction(
-			LocalViewInteraction::CreateWallet(display_name, top_level_directory),
+			LocalViewInteraction::CreateWalletCheck(display_name, top_level_directory),
 		));
 	}
 
@@ -584,6 +624,10 @@ pub fn data_container<'a>(
 		.push(cancel_container);
 
 	let mut column = Column::new()
+		.push(display_name_container)
+		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
+		.push(display_name_input.map(Message::Interaction))
+		.push(Space::new(Length::Fixed(0.0), Length::Fixed(5.0)))
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))
 		.push(description_container)
 		.push(Space::new(Length::Fixed(0.0), Length::Fixed(unit_spacing)))

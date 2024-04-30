@@ -11,6 +11,7 @@ pub use grin_core::global;
 use grin_core::{self};
 use grin_keychain as keychain;
 use grin_util::{file, Mutex, ZeroingString};
+use keychain::mnemonic;
 
 use super::node::amount_to_hr_string;
 use std::path::PathBuf;
@@ -37,6 +38,8 @@ pub use grin_wallet_libwallet::contract::proofs::InvoiceProof;
 use crate::error::GrinWalletInterfaceError;
 use crate::logger;
 
+use crate::fs::GRINGUI_CONFIG_DIR;
+
 use std::convert::TryFrom;
 
 /// Wallet configuration file name
@@ -44,7 +47,6 @@ pub const WALLET_CONFIG_FILE_NAME: &str = "grin-wallet.toml";
 
 const WALLET_LOG_FILE_NAME: &str = "grin-wallet.log";
 
-const GRIN_HOME: &str = ".grin";
 /// Wallet data directory
 pub const GRIN_WALLET_DIR: &str = "wallet_data";
 /// Wallet top level directory
@@ -65,7 +67,7 @@ pub fn get_grin_wallet_default_path(chain_type: &global::ChainTypes) -> PathBuf 
 		Some(p) => p,
 		None => PathBuf::new(),
 	};
-	grin_path.push(GRIN_HOME);
+	grin_path.push(GRINGUI_CONFIG_DIR);
 	grin_path.push(chain_type.shortname());
 	grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
 	grin_path.push(GRIN_WALLET_DEFAULT_DIR);
@@ -79,7 +81,7 @@ pub fn create_grin_wallet_path(chain_type: &global::ChainTypes, sub_dir: &str) -
 		Some(p) => p,
 		None => PathBuf::new(),
 	};
-	grin_path.push(GRIN_HOME);
+	grin_path.push(GRINGUI_CONFIG_DIR);
 	grin_path.push(chain_type.shortname());
 	grin_path.push(GRIN_WALLET_TOP_LEVEL_DIR);
 	grin_path.push(sub_dir);
@@ -141,6 +143,14 @@ pub fn get_wallet_config(path: &str) -> Result<GlobalWalletConfig, GrinWalletInt
 	match res {
 		Ok(c) => Ok(c),
 		Err(e) => Err(GrinWalletInterfaceError::ConfigReadError { file: path.into() }),
+	}
+}
+
+pub fn validate_mnemonic(mnemonic: String) -> Result<(), GrinWalletInterfaceError> {
+	let result = mnemonic::to_entropy(&mnemonic);
+	match result {
+		Ok(_) => Ok(()),
+		Err(_) => Err(GrinWalletInterfaceError::InvalidRecoveryPhrase),
 	}
 }
 

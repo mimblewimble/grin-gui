@@ -152,7 +152,18 @@ pub fn data_container<'a>(
 
 	if let Some(e) = error {
 		// Displays an error + detail button, if any has occured.
-		let error_text = Text::new(e.to_string()).size(DEFAULT_FONT_SIZE);
+
+		let mut error_string = e.to_string();
+		let mut causes = e.chain();
+
+		let count = causes.clone().count();
+		let top_level_cause = causes.next();
+
+		if count > 1 {
+			error_string = format!("{} - {}", error_string, causes.next().unwrap());
+		}
+
+		let error_text = Text::new(error_string).size(DEFAULT_FONT_SIZE);
 
 		let error_detail_button: Button<Interaction> = Button::new(
 			Text::new(localized_string("more-error-detail"))
@@ -168,6 +179,7 @@ pub fn data_container<'a>(
 		error_column = Column::with_children(vec![
 			Space::with_height(Length::Fixed(5.0)).into(),
 			error_text.into(),
+			Space::with_height(Length::Fixed(5.0)).into(),
 			error_detail_button.map(Message::Interaction),
 		])
 		.align_items(Alignment::Center);

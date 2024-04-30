@@ -16,6 +16,8 @@ pub use save::PersistentData;
 #[cfg(feature = "default")]
 pub use theme::{import_theme, load_user_themes};
 
+pub const GRINGUI_CONFIG_DIR: &str = ".grin-gui";
+
 pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {
 	// Returns the location of the config directory. Will create if it doesn't
 	// exist.
@@ -24,7 +26,7 @@ pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {
 	#[cfg(not(windows))]
 	{
 		let home = env::var("HOME").expect("user home directory not found.");
-		let config_dir = PathBuf::from(&home).join(".grin/gui");
+		let config_dir = PathBuf::from(&home).join(&format!("{}/gui", GRINGUI_CONFIG_DIR));
 
 		Mutex::new(config_dir)
 	}
@@ -36,7 +38,7 @@ pub static CONFIG_DIR: Lazy<Mutex<PathBuf>> = Lazy::new(|| {
 	#[cfg(windows)]
 	{
 		let config_dir = dirs_next::home_dir()
-			.map(|path| path.join(".grin"))
+			.map(|path| path.join(GRINGUI_CONFIG_DIR))
 			.map(|path| path.join("gui"))
 			.expect("user home directory not found.");
 

@@ -20,6 +20,8 @@ pub enum GrinWalletInterfaceError {
 	InvalidTxLogState,
 	#[error("Invalid Invoice Proof")]
 	InvalidInvoiceProof,
+	#[error("Invalid Recovery Phrase")]
+	InvalidRecoveryPhrase,
 	#[error("Can't read wallet config file at {file}")]
 	ConfigReadError { file: String },
 }

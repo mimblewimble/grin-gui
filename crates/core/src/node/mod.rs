@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use chrono::prelude::Utc;
 
-use crate::logger;
+use crate::{fs::GRINGUI_CONFIG_DIR, logger};
 
 pub use global::ChainTypes;
 
@@ -29,10 +29,6 @@ pub use grin_chain::types::SyncStatus;
 pub use grin_core::core::{amount_from_hr_string, amount_to_hr_string};
 pub use grin_keychain::Identifier;
 pub use grin_servers::ServerStats;
-
-/// TODO - this differs from the default directory in 5.x,
-/// need to reconcile this with existing installs somehow
-const GRIN_HOME: &str = ".grin";
 
 pub const GRIN_TOP_LEVEL_DIR: &str = "grin_node";
 
@@ -51,7 +47,7 @@ fn get_grin_node_default_path(chain_type: &global::ChainTypes) -> PathBuf {
 		Some(p) => p,
 		None => PathBuf::new(),
 	};
-	grin_path.push(GRIN_HOME);
+	grin_path.push(GRINGUI_CONFIG_DIR);
 	grin_path.push(chain_type.shortname());
 	grin_path.push(GRIN_TOP_LEVEL_DIR);
 	grin_path.push(GRIN_DEFAULT_DIR);
