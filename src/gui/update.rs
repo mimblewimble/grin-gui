@@ -186,6 +186,10 @@ pub fn handle_message(grin_gui: &mut GrinGui, message: Message) -> Result<Comman
 		Message::Interaction(Interaction::WalletSetupWalletViewInteraction(l)) => {
 			return element::wallet::setup::wallet_setup::handle_message(grin_gui, l);
 		}
+		// Setup -> Wallet Restore Settings
+		Message::Interaction(Interaction::WalletSetupRestoreWalletViewInteraction(l)) => {
+			return element::wallet::setup::wallet_restore::handle_message(grin_gui, l);
+		}
 		// Setup -> Wallet Import Settings
 		Message::Interaction(Interaction::WalletSetupImportWalletViewInteraction(l)) => {
 			return element::wallet::setup::wallet_import::handle_message(grin_gui, l);

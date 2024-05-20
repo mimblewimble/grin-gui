@@ -699,6 +699,22 @@ where
 		}
 	}
 
+	pub async fn validate_mnemonic(
+		wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
+		mmemonic: String,
+	) -> Result<(), GrinWalletInterfaceError> {
+		let w = wallet_interface.write().unwrap();
+		match w.owner_api.as_ref() {
+			Some(o) => {
+				let mut w_lock = o.wallet_inst.lock();
+				let p = w_lock.lc_provider()?;
+				p.validate_mnemonic(mmemonic.into())
+					.map_err(|_| GrinWalletInterfaceError::OwnerAPINotInstantiated)
+			}
+			None => Err(GrinWalletInterfaceError::OwnerAPINotInstantiated),
+		}
+	}
+
 	/*pub async fn tx_lock_outputs(
 		wallet_interface: Arc<RwLock<WalletInterface<L, C>>>,
 		init_args: InitTxArgs,
